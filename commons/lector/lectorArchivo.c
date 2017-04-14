@@ -3,13 +3,7 @@
 #include <string.h>
 #include "lectorArchivo.h"
 
-int main (void){
-char * pp=obtenerConfiguracion("IP_KERNEL","testFile.txt");
 
-
-mostrarConfiguracion("testFile.txt");
-
-}
 
 
 int fileRead (char * path,char configValues[100][100]){
