@@ -3,6 +3,15 @@
 #include <string.h>
 #include "lectorArchivo.h"
 
+int main (void){
+char * pp=obtenerConfiguracion("IP_KERNEL","testFile.txt");
+
+
+mostrarConfiguracion("testFile.txt");
+
+}
+
+
 int fileRead (char * path,char configValues[100][100]){
 
 FILE * file;
@@ -58,25 +67,36 @@ while (strcmp(configValues[i],"END")){
 
 
 }
+char* obtenerConfiguracion(char* parametro,char* path){
 
-void leerConfiguracion(char* path){
 
-	 	FILE *archivo;
 
-	 	char caracteres[100];
+    char configValues[100][100];
 
-	 	archivo = fopen(path,"r");
+    fileDataType data[10];
 
-	 	if (archivo == NULL)
-	 		printf("Error");
-	 		exit(1);
+    int cantidaFilas = fileRead(path,configValues);
 
-	 	printf("\nEl contenido del archivo de prueba es \n\n");
-	 	while (feof(archivo) == 0)
-	 	{
-	 		fgets(caracteres,100,archivo);
-	 		printf("%s",caracteres);
-	 	}
-	        fclose(archivo);
+    trimArrayValues(configValues,data);
 
+    int i=0;
+    while (i<cantidaFilas){
+    if (strstr((data+i)->name, parametro) != NULL)
+       {
+           return ((data+i)->value);
+       }
+       i++;
+    }
+
+return 0;
+}
+
+void mostrarConfiguracion(char * path){
+int filas=0;
+char configValues[100][100];
+filas = fileRead (path,configValues);
+int i;
+for (i=0;i<filas;i++){
+    printf("%s",configValues[i]);
+}
 }

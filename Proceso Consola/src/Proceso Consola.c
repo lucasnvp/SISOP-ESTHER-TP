@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <lector/lectorArchivo.h>
+#include "../commons/lector/lectorArchivo.c"
 
 int main(void){
     puts("Proceso Consola");
