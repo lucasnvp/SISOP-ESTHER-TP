@@ -90,7 +90,7 @@ int filas=0;
 char configValues[100][100];
 filas = fileRead (path,configValues);
 int i;
-for (i=0;i<filas;i++){
+for (i=0;i<=filas;i++){
     printf("%s",configValues[i]);
 }
 }
