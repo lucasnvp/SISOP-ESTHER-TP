@@ -3,8 +3,8 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <commons/lectorArchivos.h>
 
+#include "lectorArchivos.h"
 #include "servidor.h"
 
 char* path = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso Consola/src/config.txt";
@@ -13,12 +13,6 @@ char* path = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso Consola/src/con
 int main (void){
 
 	puts("Proceso Consola");
-
-	/*fileDataType data[10];
-	obtenerConfiguracion(data,path);
-
-	printf("%s",data->name);
-	printf("%s",data->value);*/
 
 	mostrarConfiguracion(path);
 
