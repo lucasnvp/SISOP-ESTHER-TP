@@ -1,17 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../commons/lector/lectorArchivo.c"
+#include <commons/lectorArchivos.h>
 
-
+char* path = "/home/utnso/Escritorio/TP/tp-2017-1c-Blacklist/Proceso Consola/src/config.txt";
 
 
 int main (void){
 
-char * pp=obtenerConfiguracion("IP_KERNEL","config.txt");
+	puts("Proceso Consola");
 
-printf("%s",pp);
+	/*fileDataType data[10];
+	obtenerConfiguracion(data,path);
 
-mostrarConfiguracion("testFile.txt");
+	printf("%s",data->name);
+	printf("%s",data->value);*/
+
+	mostrarConfiguracion(path);
+
+    return EXIT_SUCCESS;
 
 }
 
