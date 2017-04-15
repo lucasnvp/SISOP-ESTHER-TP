@@ -16,5 +16,18 @@ int main(void){
 
     mostrarConfiguracion(path);
 
+    //Conexion al servidor
+	int cliente = connect_server();
+
+	//Si conecto, informo
+	if(cliente > 0){
+		printf("Estoy escuchando\n");
+	}
+
+	while(1){
+		//Recibo los datos
+		recive_data(cliente);
+	}
+
     return EXIT_SUCCESS;
 }

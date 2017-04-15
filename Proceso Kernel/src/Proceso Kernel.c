@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/lectorArchivos.h>
+
+#include "lectorArchivos.h"
 
 char* path = "/home/utnso/Escritorio/TP/tp-2017-1c-Blacklist/Proceso Kernel/src/config.txt";
 
