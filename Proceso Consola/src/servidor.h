@@ -1,5 +1,5 @@
-#ifndef SERVIDOR_H_
-#define SERVIDOR_H_
+#ifndef PROCESO_CONSOLA_SRC_SERVIDOR_H_
+#define PROCESO_CONSOLA_SRC_SERVIDOR_H_
 
 #include <stdbool.h>
 #include <string.h>

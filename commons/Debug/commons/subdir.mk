@@ -7,7 +7,6 @@ C_SRCS += \
 ../commons/bitarray.c \
 ../commons/config.c \
 ../commons/error.c \
-../commons/lectorArchivos.c \
 ../commons/log.c \
 ../commons/process.c \
 ../commons/string.c \
@@ -18,7 +17,6 @@ OBJS += \
 ./commons/bitarray.o \
 ./commons/config.o \
 ./commons/error.o \
-./commons/lectorArchivos.o \
 ./commons/log.o \
 ./commons/process.o \
 ./commons/string.o \
@@ -29,7 +27,6 @@ C_DEPS += \
 ./commons/bitarray.d \
 ./commons/config.d \
 ./commons/error.d \
-./commons/lectorArchivos.d \
 ./commons/log.d \
 ./commons/process.d \
 ./commons/string.d \

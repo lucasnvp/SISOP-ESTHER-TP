@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>Proceso FileSystem</name>
+	<name>Proceso_FileSystem</name>
 	<comment></comment>
 	<projects>
 		<project>commons</project>
