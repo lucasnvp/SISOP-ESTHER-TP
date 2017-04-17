@@ -9,7 +9,7 @@
 
 #include "lectorArchivos.h"
 
-char* path = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso Kernel/src/config.txt";
+char* path = "../config.txt";
 
 #define PORT 8080   		// puerto en el que escuchamos
 #define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
