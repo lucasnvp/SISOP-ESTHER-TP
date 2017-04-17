@@ -31,11 +31,11 @@
 # Debug files
 *.dSYM/
 *.su
-./Consola/Debug
-./Cpu/Debug
-./FileSystem/Debug
-./Kernel/Debug
-./Memoria/Debug
+/Consola/Debug
+/Cpu/Debug
+/FileSystem/Debug
+/Kernel/Debug
+/Memoria/Debug
 
 #Eclipse
 .metadata
