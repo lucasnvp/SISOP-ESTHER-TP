@@ -25,14 +25,11 @@ endif
 # All Target
 all: Memoria
 
-dependents:
-	-cd /home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug && $(MAKE) all
-
 # Tool invocations
-Memoria: $(OBJS) $(USER_OBJS) /home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug/libcommons.so
+Memoria: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug" -o "Memoria" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "Memoria" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +40,5 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug/libcommons.so:
 
 -include ../makefile.targets

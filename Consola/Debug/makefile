@@ -8,6 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include src/servidor/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
 -include objects.mk
@@ -25,14 +26,11 @@ endif
 # All Target
 all: Consola
 
-dependents:
-	-cd /home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug && $(MAKE) all
-
 # Tool invocations
-Consola: $(OBJS) $(USER_OBJS) /home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug/libcommons.so
+Consola: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug" -o "Consola" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "Consola" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +41,5 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/Blacklist/tp-2017-1c-Blacklist/Librerias/commons/Debug/libcommons.so:
 
 -include ../makefile.targets
