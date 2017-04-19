@@ -32,7 +32,7 @@
 *.dSYM/
 *.su
 /Consola/Debug
-/Cpu/Debug
+/CPU/Debug
 /FileSystem/Debug
 /Kernel/Debug
 /Memoria/Debug

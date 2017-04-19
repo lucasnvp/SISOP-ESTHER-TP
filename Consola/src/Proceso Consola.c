@@ -17,10 +17,10 @@ int main (void){
 	mostrarConfiguracion(path);
 
 	//Me conecto al servidor
-	int servidor = connect_server("127.0.0.1",8080);
+	int kernel = connect_server("127.0.0.1",5010);
 
 	//Si conecto, informo
-	if(servidor > 0){
+	if(kernel > 0){
 		printf("Ready to send \n");
 	}
 
@@ -30,7 +30,7 @@ int main (void){
 		char* mensaje = malloc(1000);
 		scanf("%s", mensaje);
 		//Envio el mensaje
-		send(servidor, mensaje, strlen(mensaje), 0);
+		send(kernel, mensaje, strlen(mensaje), 0);
 		free(mensaje);
 	}
 
