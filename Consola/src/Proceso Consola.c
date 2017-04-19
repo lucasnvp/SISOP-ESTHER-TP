@@ -5,9 +5,9 @@
 #include <sys/socket.h>
 
 #include "lectorArchivos.h"
-#include "servidor.h"
+#include "servidor/servidor.h"
 
-char* path = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso Consola/src/config.txt";
+char* path = "/config.txt";
 
 
 int main (void){
@@ -17,7 +17,7 @@ int main (void){
 	mostrarConfiguracion(path);
 
 	//Me conecto al servidor
-	int servidor = connect_server();
+	int servidor = connect_server("127.0.0.1",8080);
 
 	//Si conecto, informo
 	if(servidor > 0){
