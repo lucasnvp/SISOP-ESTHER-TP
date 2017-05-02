@@ -8,6 +8,7 @@
 
 char* path = "src/config.txt";
 
+void limpiarBufferDeEntrada();
 
 int main (void){
 
@@ -23,17 +24,37 @@ int main (void){
 		printf("Ready to send \n");
 	}
 
+	int salir = 0;
+
 	//Bucle para el ingreso de datos
-	while (1) {
+	while (!salir) {
 		//Mensaje
-		char* mensaje = malloc(1000);
-		scanf("%s", mensaje);
-		//Envio el mensaje
-		send(kernel, mensaje, strlen(mensaje), 0);
+		char* mensaje = (char *) malloc(sizeof(char) * 1000);
+		printf("> ");
+		scanf("%[^\n]s", mensaje);
+		char* comando = strtok(mensaje, " ");
+		char* argumento = strtok(NULL, " ");
+		if (!strcmp(comando, "run") || !strcmp(comando, "stop")) {
+			if (argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", comando);
+			else //Envio el mensaje
+				send(kernel, argumento, strlen(argumento), 0);
+		}
+		else if (!strcmp(comando, "exit"))
+			salir = 1;
+		else if (!strcmp(comando, "clean"))
+			system("clear");
+		else
+			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n");
 		free(mensaje);
+		limpiarBufferDeEntrada();
 	}
 
     return EXIT_SUCCESS;
 
 }
 
+void limpiarBufferDeEntrada() {
+	char c;
+	while ((c = getchar()) != '\n' && c != EOF) { }
+}
