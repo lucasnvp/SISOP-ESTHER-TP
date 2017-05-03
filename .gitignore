@@ -32,12 +32,17 @@
 *.dSYM/
 *.su
 /Consola/Debug
+/Proceso_Consola/Debug
 /Cpu/Debug
+/Proceso_Cpu/Debug
 /FileSystem/Debug
+/Proceso_FileSystem/Debug
 /Kernel/Debug
+/Proceso_Kernel/Debug
 /Memoria/Debug
+/Proceso_Memoria/Debug
 
 #Eclipse
 .metadata
 RemoteSystemsTempFiles
-Contact GitHub 
+Contact GitHub
