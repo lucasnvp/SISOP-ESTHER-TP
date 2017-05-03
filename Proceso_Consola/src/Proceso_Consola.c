@@ -3,8 +3,10 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+
 #include "lector/lectorArchivos.h"
 #include "servidor/servidor.h"
+#include "serializador/serializador.h"
 
 char* path = "src/config.txt";
 
@@ -38,7 +40,9 @@ int main (void){
 			if (argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", comando);
 			else //Envio el mensaje
-				send(kernel, argumento, strlen(argumento), 0);
+				//send(kernel, argumento, strlen(argumento), 0);
+				//Serializo
+				serializar_path(kernel, 1, strlen(argumento), argumento);
 		}
 		else if (!strcmp(comando, "exit"))
 			salir = 1;

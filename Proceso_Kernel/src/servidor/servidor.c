@@ -91,11 +91,9 @@ int accept_conexion(int servidor, fd_set *master, int fdmax){
 	return fdmax;
 }
 
-DatosRecibidos * recive_data(int cliente){
-	//Buffer para almacenar datos
-	char *buffer = malloc(1000);
+int recive_data(int cliente, void *buf, int bytesToRecive){
 	//Recibo datos
-	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+	int bytesRecibidos = recv(cliente, buf, bytesToRecive, 0);
 	//Valido los datos
 	if(bytesRecibidos <= 0){
 		// error o conexión cerrada por el cliente
@@ -103,21 +101,18 @@ DatosRecibidos * recive_data(int cliente){
 			// conexión cerrada
 			printf("Socket %d hung up\n", cliente);
 		} else {
-			perror("recv");
+			perror("Error al recibir datos");
 		}
-		return 0;
+		close(cliente);
 	}
-	//Agrego el fin de linea
-	buffer[bytesRecibidos] = '\0';
-	//Muestro los datos
-	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
 
-	//Cargo los datos
-	DatosRecibidos * datos = DatosRecibidos_new(buffer,bytesRecibidos);
-	//Libero la memoria del buffer
-	//free(buffer);
+	return bytesRecibidos;
+}
 
-	return datos;
+void send_data(int servidor, void *mensaje, int sizeMensaje){
+	if(send(servidor, mensaje, sizeMensaje, 0) < 0){
+		perror("Error al enviar data");
+	}
 }
 
 void massive_send(int fdmax, fd_set *master, DatosRecibidos * buffer, int i, int servidor){

@@ -5,6 +5,7 @@
 #include <string.h>
 
 int connect_server(char* IP , int Port);
-void recive_data(int cliente);
+int recive_data(int cliente, void *buf,int bytesToRecive);
+void send_data(int servidor, void *mensaje, int sizeMensaje);
 
 #endif
