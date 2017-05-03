@@ -29,20 +29,22 @@ int connect_server(char* IP, int Port){
 	return cliente;
 }
 
-void recive_data(int cliente){
-	//Buffer para almacenar datos
-	char *buffer = malloc(1000);
-	//Recibo datos
-	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
-	//Valido los datos
-	if(bytesRecibidos <= 0){
-		perror("Desconectado");
-		exit(1);
+int recive_data(int cliente, void *buf,int bytesToRecive){
+	//Cantidad de bytes a recibir
+	int numbytes =recv(cliente, buf, bytesToRecive, 0);
+	if(numbytes <=0){
+		if ((numbytes) <0) {
+			perror("Error al recibir datos");
+		}else{
+			printf("Socket %d hung up\n",cliente);
+		}
+		close(cliente);
 	}
-	//Agrego el fin de linea
-	buffer[bytesRecibidos] = '\0';
-	//Muestro los datos
-	printf("Received: %s\n", buffer);
-	//Libero la memoria del buffer
-	free(buffer);
+	return numbytes;
+}
+
+void send_data(int servidor, void *mensaje, int sizeMensaje){
+	if(send(servidor, mensaje, sizeMensaje, 0) < 0){
+		perror("Error al enviar data");
+	}
 }

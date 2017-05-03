@@ -6,8 +6,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #include "lector/lectorArchivos.h"
 #include "servidor/servidor.h"
+#include "serializador/serializador.h"
 
 char* path = "src/config.txt";
 
@@ -74,7 +76,11 @@ int main(void){
 					// acepto una nueva conexion
 					fdmax = accept_conexion(servidorConsola, &master, fdmax);
 				} else {
-					DatosRecibidos * buffer = recive_data(i);
+					//Recibo los datos
+					DatosRecibidos *buffer = deserializar_path(i);
+					//Muestro los datos
+					printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+
 					// gestionar datos de un cliente
 					if(buffer <= 0){
 						FD_CLR(i, &master); // eliminar del conjunto maestro

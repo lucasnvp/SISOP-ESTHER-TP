@@ -15,10 +15,11 @@ int connect_server(char* IP , int Port);
 int build_server(int Port);
 void set_listen(int servidor, int sizeConexiones);
 int accept_conexion(int servidor, fd_set *master, int fdmax);
+void send_data(int servidor, void *mensaje, int sizeMensaje);
 void massive_send(int fdmax, fd_set *master, DatosRecibidos * buffer, int i, int servidor);
-DatosRecibidos * recive_data(int cliente);
+int recive_data(int cliente, void *buf, int bytesToRecive);
 
-DatosRecibidos * DatosRecibidos_new(char *datos,int bytesRecibidos);
+DatosRecibidos *DatosRecibidos_new(char *datos,int bytesRecibidos);
 void DatosRecibidos_free(DatosRecibidos *this);
 
 #endif
