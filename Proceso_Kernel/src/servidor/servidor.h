@@ -12,7 +12,7 @@ typedef struct DatosRecibidosType{
 }DatosRecibidos;
 
 int connect_server(char* IP , int Port);
-int build_server(int Port);
+int build_server(int Port, int quantityConexions);
 void set_listen(int servidor, int sizeConexiones);
 int accept_conexion(int servidor, fd_set *master, int fdmax);
 void send_data(int servidor, void *mensaje, int sizeMensaje);

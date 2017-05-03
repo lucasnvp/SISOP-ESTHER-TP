@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,16 +11,24 @@
 #include "lector/lectorArchivos.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
+#include "pcb/pcb.h"
 
 char* path = "src/config.txt";
 
 #define PORT 8080   		// puerto en el que escuchamos
 #define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
 
+//variable temporal, cambiar por la que se lee en el archivo de config.
+int32_t nivelMultiprogramacion = 1;
+int32_t statusMultiprogramacion = 0;
+
 int main(void){
     puts("Proceso Kernel");
 
     mostrarConfiguracion(path);
+
+    //Almaceno todos los PCBs en ejecucion.
+    PCB listaPCB;
 
     //Conexion al servidor FileSystem
 	int memoria = connect_server("127.0.0.1",5002);
@@ -46,15 +55,12 @@ int main(void){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	int servidorConsola = build_server(5010);
+	int servidorConsola = build_server(5010, CANTCONECIONES);
 
 	//El socket esta listo para escuchar
 	if(servidorConsola > 0){
 		printf("Servidor escuchando\n");
 	}
-
-	// Seteo la cantidad de conexiones
-	set_listen(servidorConsola, CANTCONECIONES);
 
 	// añadir listener al conjunto maestro
 	FD_SET(servidorConsola, &master);
@@ -80,6 +86,8 @@ int main(void){
 					DatosRecibidos *buffer = deserializar_path(i);
 					//Muestro los datos
 					printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+					//Valido el nivel de multiprocesamiento
+					validarMultiprogramacion(listaPCB);
 
 					// gestionar datos de un cliente
 					if(buffer <= 0){
@@ -102,4 +110,21 @@ int main(void){
 	}
 
     return EXIT_SUCCESS;
+}
+
+void validarMultiprogramacion(PCB listaPCB){
+	if(nivelMultiprogramacion > statusMultiprogramacion){
+		printf("Nuevo proceso\n");
+		int32_t pid = fork();
+		printf("El pid del proceso es: %d \n", pid);
+		listaPCB = PCB_new(pid, 0, 0, 0, 0, 0, 0);
+
+		//Muestro el PID Del proceso
+		print_PCB(listaPCB);
+
+		statusMultiprogramacion++;
+	}else{
+		printf("Nivel de multiprocesamiento al maximo\n");
+		exit(1);
+	}
 }

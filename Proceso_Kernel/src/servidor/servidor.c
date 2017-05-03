@@ -30,7 +30,7 @@ int connect_server(char* IP, int Port){
 	return cliente;
 }
 
-int build_server(int Port){
+int build_server(int Port, int quantityConexions){
 	//Estructura del socket
 	struct sockaddr_in datosServidor;
 	datosServidor.sin_family = AF_INET;
@@ -57,6 +57,9 @@ int build_server(int Port){
 		perror("bind");
 		exit(1);
 	}
+
+	// Seteo la cantidad de conexiones
+	set_listen(servidor, quantityConexions);
 
 	return servidor;
 }
