@@ -49,7 +49,7 @@ int main(void){
     // Variables para el servidor
     fd_set master;   	// conjunto maestro de descriptores de fichero
 	fd_set read_fds; 	// conjunto temporal de descriptores de fichero para select()
-	int fdmax;			// número máximo de descriptores de fichero
+	uint32_t fdmax;			// número máximo de descriptores de fichero
 	int i;				// variable para el for
 	FD_ZERO(&master);	// borra los conjuntos maestro
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
@@ -69,7 +69,7 @@ int main(void){
 	fdmax = servidorConsola; // por ahora es éste
 
 	// bucle principal
-	for(;;) {
+	while(1) {
 		read_fds = master; // cópialo
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
 			perror("select");
@@ -80,27 +80,31 @@ int main(void){
 			if (FD_ISSET(i, &read_fds)) { // ¡¡tenemos datos!!
 				if (i == servidorConsola) {
 					// acepto una nueva conexion
-					fdmax = accept_conexion(servidorConsola, &master, fdmax);
+					uint32_t newfd = accept_conexion(servidorConsola);
+					FD_SET(newfd, &master); // añadir al conjunto maestro
+					if (newfd > fdmax) {    // actualizar el máximo
+						fdmax = newfd;
+					}
 				} else {
 					//Recibo los datos
 					DatosRecibidos *buffer = deserializar_path(i);
-					//Muestro los datos
-					printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
-					//Valido el nivel de multiprocesamiento
-					validarMultiprogramacion(listaPCB);
 
 					// gestionar datos de un cliente
 					if(buffer <= 0){
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
+						//Muestro los datos
+						printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+
+						//Valido el nivel de multiprocesamiento
+						uint32_t pidPCB = validarMultiprogramacion(listaPCB);
+						//Envio el PID a la consola
+						serializar_path(i, pidPCB, 4, "PID");
+
 						//Manda la info a la memoria
-						if (send(memoria, buffer->datos, buffer->bytesRecibidos, 0) == -1) {
-							perror("send");
-						}
+						send_data(memoria, buffer->datos, buffer->bytesRecibidos);
 						//Manda la info al FS
-						if (send(fileSystem, buffer->datos, buffer->bytesRecibidos, 0) == -1) {
-							perror("send");
-						}
+						send_data(fileSystem, buffer->datos, buffer->bytesRecibidos);
 						//Manda la info a todas las cpu
 						massive_send(fdmax, &master, buffer, i, servidorConsola);
 					}
@@ -112,10 +116,10 @@ int main(void){
     return EXIT_SUCCESS;
 }
 
-void validarMultiprogramacion(PCB listaPCB){
+int32_t validarMultiprogramacion(PCB listaPCB){
 	if(nivelMultiprogramacion > statusMultiprogramacion){
 		printf("Nuevo proceso\n");
-		int32_t pid = fork();
+		uint32_t pid = fork();
 		printf("El pid del proceso es: %d \n", pid);
 		listaPCB = PCB_new(pid, 0, 0, 0, 0, 0, 0);
 
@@ -123,8 +127,10 @@ void validarMultiprogramacion(PCB listaPCB){
 		print_PCB(listaPCB);
 
 		statusMultiprogramacion++;
+
+		return pid;
 	}else{
 		printf("Nivel de multiprocesamiento al maximo\n");
-		exit(1);
+		return -1;
 	}
 }

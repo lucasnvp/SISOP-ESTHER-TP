@@ -40,9 +40,14 @@ int main (void){
 			if (argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", comando);
 			else //Envio el mensaje
-				//send(kernel, argumento, strlen(argumento), 0);
-				//Serializo
-				serializar_path(kernel, 1, strlen(argumento), argumento);
+				//Serializo el path
+				serializar_path(kernel, 2, strlen(argumento), argumento);
+
+				//Recibo los datos
+				DatosRecibidos *buffer = deserializar_path(kernel);
+				//Muestro los datos
+				printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+
 		}
 		else if (!strcmp(comando, "exit"))
 			salir = 1;

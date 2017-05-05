@@ -30,6 +30,7 @@ void serializar_path(int client, uint32_t id, uint32_t dimension, char *buff){
 	//Envio el mensaje
 	send_data(client, ENVIAR, sizeof(myHeader) + myHeader.dimension);
 
+	free(ENVIAR);
 }
 
 DatosRecibidos *deserializar_path(int servidor){

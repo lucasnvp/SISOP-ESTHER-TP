@@ -32,7 +32,7 @@ void serializar_path(int client, uint32_t id, uint32_t dimension, char *buff){
 
 }
 
-char* deserializar_path(int servidor){
+DatosRecibidos *deserializar_path(int servidor){
 	//Cabecera auxiliar
 	Header aux;
 
@@ -49,5 +49,8 @@ char* deserializar_path(int servidor){
 	//Muestro el header que me llego
 	printHeader(aux);
 
-	return data;
+	//Cargo los datos
+	DatosRecibidos * datos = DatosRecibidos_new(data,aux.dimension);
+
+	return datos;
 }

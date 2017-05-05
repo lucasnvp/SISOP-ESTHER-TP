@@ -5,8 +5,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <inttypes.h>
 
-int connect_server(char* IP, int Port){
+uint32_t connect_server(char* IP, uint32_t Port){
 	//Estructura del socket
 	struct sockaddr_in direccionServidor;
 	direccionServidor.sin_family = AF_INET;
@@ -14,7 +15,7 @@ int connect_server(char* IP, int Port){
 	direccionServidor.sin_port = htons(Port);
 
 	//Nro de cliente
-	int cliente;
+	uint32_t cliente;
 	if ((cliente = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		perror("socket");
 		exit(1);
@@ -30,7 +31,7 @@ int connect_server(char* IP, int Port){
 	return cliente;
 }
 
-int build_server(int Port, int quantityConexions){
+uint32_t build_server(uint32_t Port, uint32_t quantityConexions){
 	//Estructura del socket
 	struct sockaddr_in datosServidor;
 	datosServidor.sin_family = AF_INET;
@@ -39,7 +40,7 @@ int build_server(int Port, int quantityConexions){
 	memset(&(datosServidor.sin_zero), '\0', 8);
 
 	//Nro de cliente
-	int servidor;
+	uint32_t servidor;
 
 	// obtener socket a la escucha
 	if ((servidor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -64,34 +65,28 @@ int build_server(int Port, int quantityConexions){
 	return servidor;
 }
 
-void set_listen(int servidor, int sizeConexiones){
+void set_listen(uint32_t servidor, uint32_t sizeConexiones){
     if (listen(servidor, sizeConexiones) == -1) {
         perror("listen");
         exit(1);
     }
 }
 
-int accept_conexion(int servidor, fd_set *master, int fdmax){
+uint32_t accept_conexion(uint32_t servidor){
 	// dirección del cliente
 	struct sockaddr_in remoteaddr;
 	// gestionar nuevas conexiones
-	int addrlen = sizeof(remoteaddr);
-
+	uint32_t addrlen = sizeof(remoteaddr);
 	// descriptor de socket de nueva conexión aceptada
-	int newfd;
+	uint32_t newfd;
 
 	if ((newfd = accept(servidor, (struct sockaddr *)&remoteaddr, &addrlen)) == -1) {
 		perror("accept");
 	} else {
-		FD_SET(newfd, master); // añadir al conjunto maestro
-		if (newfd > fdmax) {    // actualizar el máximo
-			fdmax = newfd;
-		}
-		printf("selectserver: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
-		send(newfd,"Conectado\n",10,0);
+		printf("Server: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
 	}
 
-	return fdmax;
+	return newfd;
 }
 
 int recive_data(int cliente, void *buf, int bytesToRecive){
