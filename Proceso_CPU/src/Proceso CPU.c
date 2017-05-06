@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "servidor/servidor.h"
-#include "lector/lectorArchivos.h"
+#include "config_CPU.h"
+#include <parser/parser.h>
 
-char* path = "src/config.txt";
+char* PATH_CONFIG = "config.cfg";
 
 int main(void){
     puts("Proceso CPU");
 
-    mostrarConfiguracion(path);
+	//Cargo archivo de configuracion y muestro
+	abrir_config(PATH_CONFIG);
+	mostrarConfig();
 
     //Conexion al servidor
-    int kernel = connect_server("127.0.0.1",5010);
+    int kernel = connect_server(ipKernel(),puertoKernel());
 
 	//Si conecto, informo
 	if(kernel > 0){
@@ -22,6 +25,8 @@ int main(void){
 		//Recibo los datos
 		recive_data(kernel);
 	}
+
+	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 }

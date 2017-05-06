@@ -7,22 +7,22 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "servidor/servidor.h"
-#include "lector/lectorArchivos.h"
-#define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
+#include "config_FS.h"
 
-char* path = "src/config.txt";
+char* PATH_CONFIG = "config.cfg";
 
 int main(void){
     puts("Proceso FileSystem");
 
-    mostrarConfiguracion(path);
+    abrir_config(PATH_CONFIG);
+    mostrarConfig();
 
     // variables para el servidor
     int fdmax;        // número máximo de descriptores de fichero
     fd_set master;   // conjunto maestro de descriptores de fichero
 
     //Creacion del servidor
-	int servidor = build_server(5003);
+	int servidor = build_server(puerto());
 
 	//El socket esta listo para escuchar
 	if(servidor > 0){
@@ -30,7 +30,7 @@ int main(void){
 	}
 
 	// Seteo la cantidad de conexiones
-	set_listen(servidor, CANTCONECIONES);
+	set_listen(servidor, cantConexiones());
 
 	// seguir la pista del descriptor de fichero mayor
 	fdmax = servidor; // por ahora es éste
@@ -48,6 +48,8 @@ int main(void){
 			}
 		}
 	}
+
+	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 }
