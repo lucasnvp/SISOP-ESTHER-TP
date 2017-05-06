@@ -6,10 +6,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "config_Memoria.h"
+#include "config/config_Memoria.h"
 #include "servidor/servidor.h"
 
-char* PATH_CONFIG = "config.cfg";
+char* PATH_CONFIG = "../src/config/config.cfg";
 
 int main(void){
     puts("Proceso Memoria");

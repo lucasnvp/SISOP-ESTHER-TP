@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "servidor/servidor.h"
-#include "config_CPU.h"
+#include "config/config_CPU.h"
 #include <parser/parser.h>
 
-char* PATH_CONFIG = "config.cfg";
+char* PATH_CONFIG = "../src/config/config.cfg";
 
 int main(void){
     puts("Proceso CPU");

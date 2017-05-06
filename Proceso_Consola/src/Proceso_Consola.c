@@ -3,11 +3,11 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include "config_consola.h"
+#include "config/config_consola.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 
-char* PATH_CONFIG = "config.cfg";
+char* PATH_CONFIG = "../src/config/config.cfg";
 
 void limpiarBufferDeEntrada();
 

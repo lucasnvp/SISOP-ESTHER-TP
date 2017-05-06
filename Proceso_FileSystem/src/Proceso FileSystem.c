@@ -7,9 +7,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "servidor/servidor.h"
-#include "config_FS.h"
+#include "config/config_FS.h"
 
-char* PATH_CONFIG = "config.cfg";
+char* PATH_CONFIG = "../src/config/config.cfg";
 
 int main(void){
     puts("Proceso FileSystem");

@@ -7,13 +7,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#include "config_Kernel.h"
+#include "config/config_Kernel.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 #include "pcb/pcb.h"
 
-char* PATH_CONFIG = "config.cfg";
+char* PATH_CONFIG = "../src/config/config.cfg";
 int32_t statusMultiprogramacion = 0;
 
 int main(void){
