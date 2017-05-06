@@ -3,12 +3,11 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-
-#include "lector/lectorArchivos.h"
+#include "config_consola.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 
-char* path = "src/config.txt";
+char* PATH_CONFIG = "config.cfg";
 
 void limpiarBufferDeEntrada();
 
@@ -16,10 +15,12 @@ int main (void){
 
 	puts("Proceso Consola");
 
-	mostrarConfiguracion(path);
+	//Cargo archivo de configuracion y muestro
+	abrir_config(PATH_CONFIG);
+	mostrarConfig();
 
 	//Me conecto al servidor
-	int kernel = connect_server("127.0.0.1",5010);
+	int kernel = connect_server(ipKernel(),puertoKernel());
 
 	//Si conecto, informo
 	if(kernel > 0){
@@ -53,6 +54,8 @@ int main (void){
 		free(mensaje);
 		limpiarBufferDeEntrada();
 	}
+
+	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 

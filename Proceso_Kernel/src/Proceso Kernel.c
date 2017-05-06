@@ -8,30 +8,27 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "lector/lectorArchivos.h"
+#include "config_Kernel.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 #include "pcb/pcb.h"
 
-char* path = "src/config.txt";
-
-#define PORT 8080   		// puerto en el que escuchamos
-#define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
-
-//variable temporal, cambiar por la que se lee en el archivo de config.
-int32_t nivelMultiprogramacion = 1;
+char* PATH_CONFIG = "config.cfg";
 int32_t statusMultiprogramacion = 0;
 
 int main(void){
-    puts("Proceso Kernel");
 
-    mostrarConfiguracion(path);
+	puts("Proceso Kernel");
+
+    //Cargo archivo de configuracion y muestro
+    abrir_config(PATH_CONFIG);
+    mostrarConfig();
 
     //Almaceno todos los PCBs en ejecucion.
     PCB listaPCB;
 
     //Conexion al servidor FileSystem
-	int memoria = connect_server("127.0.0.1",5002);
+	int memoria = connect_server(ip_memoria(),puerto_memoria());
 
 	//Si conecto, informo
 	if(memoria > 0){
@@ -39,7 +36,7 @@ int main(void){
 	}
 
     //Conexion al servidor FileSystem
-	int fileSystem = connect_server("127.0.0.1",5003);
+	int fileSystem = connect_server(ip_FS(),puerto_FS());
 
 	//Si conecto, informo
 	if(fileSystem > 0){
@@ -55,7 +52,7 @@ int main(void){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	int servidorConsola = build_server(5010, CANTCONECIONES);
+	int servidorConsola = build_server(puerto_prog(), cant_conexiones());
 
 	//El socket esta listo para escuchar
 	if(servidorConsola > 0){
@@ -109,11 +106,13 @@ int main(void){
 		}
 	}
 
+	cerrar_config_actual();
+
     return EXIT_SUCCESS;
 }
 
 void validarMultiprogramacion(PCB listaPCB){
-	if(nivelMultiprogramacion > statusMultiprogramacion){
+	if(grado_multiprog() > statusMultiprogramacion){
 		printf("Nuevo proceso\n");
 		int32_t pid = fork();
 		printf("El pid del proceso es: %d \n", pid);
