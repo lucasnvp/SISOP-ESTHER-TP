@@ -3,13 +3,12 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include "config/config_consola.h"
 #include "servidor/servidor.h"
+#include "config/config_consola.h"
+#include "utiles/ComandosPorConsola.h"
 #include "serializador/serializador.h"
 
 char* PATH_CONFIG = "../src/config/config.cfg";
-
-void limpiarBufferDeEntrada();
 
 int main (void){
 
@@ -31,42 +30,28 @@ int main (void){
 
 	//Bucle para el ingreso de datos
 	while (!salir) {
-		//Mensaje
-		char* mensaje = (char *) malloc(sizeof(char) * 1000);
-		printf("> ");
-		scanf("%[^\n]s", mensaje);
-		char* comando = strtok(mensaje, " ");
-		char* argumento = strtok(NULL, " ");
-		if (!strcmp(comando, "run") || !strcmp(comando, "stop")) {
-			if (argumento == NULL)
-				printf("Falta el argumento de la funcion %s\n", comando);
+		t_Consola consola = leerComandos();
+		if (!strcmp(consola.comando, "run") || !strcmp(consola.comando, "stop")) {
+			if (consola.argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else //Envio el mensaje
 				//Serializo el path
-				serializar_path(kernel, 2, strlen(argumento), argumento);
-
+				serializar_path(kernel, 2, strlen(consola.argumento), consola.argumento);
 				//Recibo los datos
 				DatosRecibidos *buffer = deserializar_path(kernel);
 				//Muestro los datos
 				printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
-
 		}
-		else if (!strcmp(comando, "exit"))
+		else if (!strcmp(consola.comando, "exit"))
 			salir = 1;
-		else if (!strcmp(comando, "clean"))
+		else if (!strcmp(consola.comando, "clean"))
 			system("clear");
 		else
 			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n");
-		free(mensaje);
-		limpiarBufferDeEntrada();
 	}
 
 	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 
-}
-
-void limpiarBufferDeEntrada() {
-	char c;
-	while ((c = getchar()) != '\n' && c != EOF) { }
 }
