@@ -36,3 +36,10 @@ void list_process(t_list * LIST_READY){
 		//free(unPCB);
 	}
 }
+
+void kill_process(t_list * lista,uint32_t id_process){
+	//matar el proceso
+	PCB * unPCB = list_remove(lista, id_process);
+	PCB_free(unPCB);
+	//informar a la consola que se murio el proceso
+}

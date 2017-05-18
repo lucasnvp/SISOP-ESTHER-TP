@@ -4,7 +4,7 @@ int main(void) {
 	puts("Proceso Kernel");
 
 	// Variables hilos
-	pthread_t programa;
+	pthread_t thread_programa;
 	pthread_t thread_server;
 	pthread_t thread_consola;
 
@@ -28,11 +28,11 @@ int main(void) {
 	pthread_create(&thread_consola,NULL,(void*) consola_kernel,"Consola");
 
 	//Hilo por cada programa
-	pthread_create(&programa,NULL,(void*) procesarPCB,NULL);
+	pthread_create(&thread_programa,NULL,(void*) procesarPCB,NULL);
 
 	pthread_join(thread_server, (void**) NULL);
 	pthread_join(thread_consola, (void**) NULL);
-	pthread_join(programa, (void**) NULL);
+	pthread_join(thread_programa, (void**) NULL);
 
 	return EXIT_SUCCESS;
 }
@@ -161,8 +161,15 @@ void consola_kernel(void* args){
 			system("clear");
 		else if (!strcmp(consola.comando, "list"))
 			list_process(LIST_READY);
+		else if (!strcmp(consola.comando, "kill"))
+			if (consola.argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", consola.comando);
+			else {
+				//Necesito poder leer un int procedente del kill
+				kill_process(LIST_READY,(uint32_t *)consola.argumento);
+			}
 		else
-			printf("Comando incorrecto. Pruebe con: exit | clean | list \n");
+			printf("Comando incorrecto. Pruebe con: exit | clean | list | kill \n");
 	}
 }
 
