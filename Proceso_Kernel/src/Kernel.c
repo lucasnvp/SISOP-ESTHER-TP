@@ -1,16 +1,5 @@
 #include "Kernel.h"
 
-pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
-sem_t SEM_MULTIPROGRAMACION;
-sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene trabajos
-
-uint32_t PID_PCB = 1;
-t_queue * QUEUE_PCB;
-
-uint32_t SERVIDOR_KERNEL;
-uint32_t SERVIDOR_MEMORIA;
-uint32_t SERVIDOR_FILESYSTEM;
-
 int main(void) {
 	puts("Proceso Kernel");
 
@@ -20,6 +9,7 @@ int main(void) {
 	pthread_t thread_consola;
 
 	QUEUE_PCB = queue_create();
+	LIST_READY = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_PCB,0,0); //Iniciazilo el semaforo de la cola de PCB
@@ -76,7 +66,11 @@ void procesarPCB(void* args){
 
 		printf("Nuevo proceso PCB\n");
 		printf("El pid del proceso es: %d \n", PID_PCB);
-		PCB newPCB = PCB_new(PID_PCB, 0, 0, 0, 0, 0, 0);
+
+		PCB * newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+
+		//Agrego el pcb a la lista de ready
+		add_PCB_TO_LISTREADY(newPCB);
 
 		//Envio el PID a la consola
 		serializar_path(aProgram->ID_Consola, PID_PCB, 4, "PID");
@@ -165,8 +159,10 @@ void consola_kernel(void* args){
 			exit(0);
 		else if (!strcmp(consola.comando, "clean"))
 			system("clear");
+		else if (!strcmp(consola.comando, "list"))
+			list_process(LIST_READY);
 		else
-			printf("Comando incorrecto. Pruebe con: exit | clean\n");
+			printf("Comando incorrecto. Pruebe con: exit | clean | list \n");
 	}
 }
 
@@ -186,4 +182,8 @@ void queue_sync_push(t_queue* self, void* element){
 	queue_push(self, element);
 	pthread_mutex_unlock(&mutexPCB);
 	sem_post(&SEM_PCB);
+}
+
+void add_PCB_TO_LISTREADY(void* element){
+	list_add(LIST_READY,element);
 }

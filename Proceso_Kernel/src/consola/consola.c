@@ -22,3 +22,17 @@ void limpiarBufferDeEntrada() {
 	char c;
 	while ((c = getchar()) != '\n' && c != EOF) { }
 }
+
+void list_process(t_list * LIST_READY){
+	uint32_t elemn;
+	uint32_t cant_procesos = list_size(LIST_READY);
+	PCB * unPCB;
+
+	printf("Se estan ejecutando %d procesos \n", cant_procesos);
+
+	for(elemn = 0;elemn < cant_procesos; elemn++){
+		unPCB = list_get(LIST_READY,elemn);
+		printf("El PID en la posicion %d es: %d \n",elemn,unPCB->PID);
+		//free(unPCB);
+	}
+}

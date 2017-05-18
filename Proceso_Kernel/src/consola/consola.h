@@ -1,8 +1,12 @@
-#ifndef SRC_UTILES_COMANDOSPORCONSOLA_H_
-#define SRC_UTILES_COMANDOSPORCONSOLA_H_
+#ifndef CONSOLA_H_
+#define CONSOLA_H_
 
 #include <stdio.h>
 #include <inttypes.h>
+
+#include <commons/collections/queue.h>
+
+#include "../pcb/pcb.h"
 
 typedef struct {
 	uint32_t kernel;
@@ -12,5 +16,6 @@ typedef struct {
 
 t_Consola leerComandos();
 void limpiarBufferDeEntrada();
+void list_process(t_list * LIST_READY);
 
-#endif /* SRC_UTILES_COMANDOSPORCONSOLA_H_ */
+#endif /* CONSOLA_H_ */

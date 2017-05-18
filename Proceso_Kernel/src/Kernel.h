@@ -17,6 +17,18 @@
 #include "serializador/serializador.h"
 #include "consola/consola.h"
 
+pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
+sem_t SEM_MULTIPROGRAMACION;
+sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene trabajos
+
+uint32_t PID_PCB = 1;
+t_queue * QUEUE_PCB;
+t_list * LIST_READY;
+
+uint32_t SERVIDOR_KERNEL;
+uint32_t SERVIDOR_MEMORIA;
+uint32_t SERVIDOR_FILESYSTEM;
+
 void connect_server_memoria();
 void connect_server_filesystem();
 
@@ -26,5 +38,6 @@ void consola_kernel(void* args);
 
 void* queue_sync_pop(t_queue* self);
 void queue_sync_push(t_queue* self, void* element);
+void add_PCB_TO_LISTREADY(void* element);
 
 #endif /* KERNEL_H_ */
