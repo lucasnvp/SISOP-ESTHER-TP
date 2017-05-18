@@ -17,6 +17,8 @@ int main(void) {
 	// Variables hilos
 	pthread_t programa;
 	pthread_t thread_server;
+	pthread_t thread_consola;
+
 	QUEUE_PCB = queue_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
@@ -32,10 +34,14 @@ int main(void) {
 	//Creo el hilo del servidor
 	pthread_create(&thread_server,NULL,(void*) server,"Servidor");
 
+	//Hilo de consola
+	pthread_create(&thread_consola,NULL,(void*) consola_kernel,"Consola");
+
 	//Hilo por cada programa
 	pthread_create(&programa,NULL,(void*) procesarPCB,NULL);
 
 	pthread_join(thread_server, (void**) NULL);
+	pthread_join(thread_consola, (void**) NULL);
 	pthread_join(programa, (void**) NULL);
 
 	return EXIT_SUCCESS;
@@ -151,13 +157,26 @@ void server(void* args){
 	}
 }
 
+void consola_kernel(void* args){
+	while(true) {
+		t_Consola consola = leerComandos();
+		consola.kernel = SERVIDOR_KERNEL;
+		if (!strcmp(consola.comando, "exit"))
+			exit(0);
+		else if (!strcmp(consola.comando, "clean"))
+			system("clear");
+		else
+			printf("Comando incorrecto. Pruebe con: exit | clean\n");
+	}
+}
+
 void* queue_sync_pop(t_queue* self) {
 	sem_wait(&SEM_PCB);
 	pthread_mutex_lock(&mutexPCB);
 	void* elem = queue_pop(self);
 	pthread_mutex_unlock(&mutexPCB);
-	// Semaforo de multiprogramacion, tiene que ir cuando se finaliza un PCB asi lo deja entrar otro en la cola.
-	//sem_post(&SEM_MULTIPROGRAMACION);
+	//Semaforo de multiprogramacion, tiene que ir cuando se finaliza un PCB asi lo deja entrar otro en la cola.
+	sem_post(&SEM_MULTIPROGRAMACION);
 	return elem;
 }
 
