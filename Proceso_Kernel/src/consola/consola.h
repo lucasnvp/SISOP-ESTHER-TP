@@ -18,5 +18,6 @@ t_Consola leerComandos();
 void limpiarBufferDeEntrada();
 void list_process(t_list * LIST_READY);
 void kill_process(t_list * lista,uint32_t id_process);
+void status_process(t_list * lista,uint32_t id_process);
 
 #endif /* CONSOLA_H_ */

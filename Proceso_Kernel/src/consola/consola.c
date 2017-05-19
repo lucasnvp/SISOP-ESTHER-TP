@@ -43,3 +43,9 @@ void kill_process(t_list * lista,uint32_t id_process){
 	PCB_free(unPCB);
 	//informar a la consola que se murio el proceso
 }
+
+void status_process(t_list * lista,uint32_t id_process){
+	PCB *unPCB = list_get(lista, id_process);
+	print_PCB(unPCB);
+	PCB_free(unPCB);
+}

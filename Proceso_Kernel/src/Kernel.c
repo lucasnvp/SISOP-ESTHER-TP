@@ -201,16 +201,22 @@ void consola_kernel(void* args){
 			sem_wait(&SEM_STOP_PLANNING);
 		else if (!strcmp(consola.comando, "start"))
 			sem_post(&SEM_STOP_PLANNING);
+		else if (!strcmp(consola.comando, "status"))
+			if (consola.argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", consola.comando);
+			else {
+				uint32_t nroProceso = atoi(consola.argumento);
+				status_process(LIST_READY,nroProceso);
+			}
 		else if (!strcmp(consola.comando, "kill"))
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
-				//Necesito poder leer un int procedente del kill
 				uint32_t nroProceso = atoi(consola.argumento);
 				kill_process(LIST_READY,nroProceso);
 			}
 		else
-			printf("Comando incorrecto. Pruebe con: exit | clean | list | kill \n");
+			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
 	}
 }
 
