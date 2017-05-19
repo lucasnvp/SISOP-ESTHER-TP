@@ -14,9 +14,10 @@ int main(void) {
 	LIST_READY = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
-	sem_init(&SEM_PCB,0,0); //Iniciazilo el semaforo de la cola de PCB
-	sem_init(&SEM_READY,0,0);
 	sem_init(&SEM_MULTIPROGRAMACION,0,2); 	//Semaforo de multi programacion
+	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
+	sem_init(&SEM_READY,0,0);
+	sem_init(&SEM_STOP_PLANNING,0,1);
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -98,11 +99,15 @@ void planificador(void* args){
 		//Semaforo de multiprogramacion, detiene el ingreso de PCBs a la lista de READYs
 		sem_wait(&SEM_MULTIPROGRAMACION);
 		sem_wait(&SEM_READY);
+		//Semaforo para parar la planificacion
+		sem_wait(&SEM_STOP_PLANNING);
 		printf("Ingreso un PCB al panificador \n");
 		//Sacar un PCB de la cola de NEWs
 		PCB* element = (PCB*) queue_pop(QUEUE_NEW);
 		//Agregar un PCB a la lista de READYs
 		list_add(LIST_READY,element);
+		//vuelvo a liberar la planificacion
+		sem_post(&SEM_STOP_PLANNING);
 	}
 
 	//Preguntar si algun CPU esta disponible
@@ -192,6 +197,10 @@ void consola_kernel(void* args){
 			system("clear");
 		else if (!strcmp(consola.comando, "list"))
 			list_process(LIST_READY);
+		else if (!strcmp(consola.comando, "stop"))
+			sem_wait(&SEM_STOP_PLANNING);
+		else if (!strcmp(consola.comando, "start"))
+			sem_post(&SEM_STOP_PLANNING);
 		else if (!strcmp(consola.comando, "kill"))
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);

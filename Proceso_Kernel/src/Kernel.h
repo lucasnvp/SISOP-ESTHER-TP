@@ -21,6 +21,7 @@ pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION;
 sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene entradas
 sem_t SEM_READY; //Para que la lista de READYs se supenda si no tiene entradas
+sem_t SEM_STOP_PLANNING;
 
 uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
