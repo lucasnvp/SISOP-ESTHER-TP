@@ -23,7 +23,7 @@ int main (void){
 
 	//Si conecto, informo
 	if(kernel > 0){
-		printf("Ready to send \n");
+		printf("Ready to send \n> ");
 	}
 
 	int salir = 0;
@@ -34,12 +34,12 @@ int main (void){
 		consola.kernel = kernel;
 		if (!strcmp(consola.comando, "run") || !strcmp(consola.comando, "stop")) {
 			if (consola.argumento == NULL)
-				printf("Falta el argumento de la funcion %s\n", consola.comando);
+				printf("Falta el argumento de la funcion %s\n\n> ", consola.comando);
 			else {
 				//Envio el mensaje
-				pthread_t hiloConsola;
-				t_Consola parametro = consola;
-				pthread_create(&hiloConsola, NULL, (void*) crearHiloConsola, (void*) &parametro);
+				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
+				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) &consola);
+				free(hiloConsola);
 			}
 		}
 		else if (!strcmp(consola.comando, "exit"))
@@ -47,7 +47,7 @@ int main (void){
 		else if (!strcmp(consola.comando, "clean"))
 			system("clear");
 		else
-			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n");
+			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n\n> ");
 	}
 
 	cerrar_config_actual();
