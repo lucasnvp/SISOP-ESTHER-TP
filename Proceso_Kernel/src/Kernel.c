@@ -197,7 +197,8 @@ void consola_kernel(void* args){
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				//Necesito poder leer un int procedente del kill
-				kill_process(LIST_READY,(uint32_t *)consola.argumento);
+				uint32_t nroProceso = atoi(consola.argumento);
+				kill_process(LIST_READY,nroProceso);
 			}
 		else
 			printf("Comando incorrecto. Pruebe con: exit | clean | list | kill \n");
