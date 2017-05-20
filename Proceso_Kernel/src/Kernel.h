@@ -16,6 +16,7 @@
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 #include "consola/consola.h"
+#include "config/config_kernel.h"
 
 pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION;
@@ -27,6 +28,9 @@ uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
 t_list * LIST_READY;
+
+char* PATH_CONFIG = "../src/config/config.cgf";
+Type_Config config;
 
 uint32_t SERVIDOR_KERNEL;
 uint32_t SERVIDOR_MEMORIA;

@@ -3,6 +3,10 @@
 int main(void) {
 	puts("Proceso Kernel");
 
+	//Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
+
 	// Variables hilos
 	pthread_t thread_programa;
 	pthread_t thread_server;
@@ -16,8 +20,8 @@ int main(void) {
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,2); 	//Semaforo de multi programacion
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
-	sem_init(&SEM_READY,0,0);
-	sem_init(&SEM_STOP_PLANNING,0,1);
+	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
+	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -81,6 +85,7 @@ void procesarPCB(void* args){
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
+		//Aviso que hay un nuevo PCB
 		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
@@ -94,13 +99,14 @@ void procesarPCB(void* args){
 }
 
 void planificador(void* args){
-	//Agregar un mutex para poder detener la planificacion
 	while(true){
 		//Semaforo de multiprogramacion, detiene el ingreso de PCBs a la lista de READYs
 		sem_wait(&SEM_MULTIPROGRAMACION);
+		//Levanto el signal de un nuevo PCB
 		sem_wait(&SEM_READY);
 		//Semaforo para parar la planificacion
 		sem_wait(&SEM_STOP_PLANNING);
+		//Informo que ingresa un PCB al planificador
 		printf("Ingreso un PCB al panificador \n");
 		//Sacar un PCB de la cola de NEWs
 		PCB* element = (PCB*) queue_pop(QUEUE_NEW);
