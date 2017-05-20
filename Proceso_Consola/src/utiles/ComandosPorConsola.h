@@ -38,25 +38,25 @@ t_Consola leerComandos() {
 }
 
 void crearHiloConsola(t_Consola* consola) {
+	t_Consola* param = consola;
+
 	DatosRecibidos *buffer;
 	pthread_mutex_t sem_consola;
 	pthread_mutex_init(&sem_consola, NULL);
 
 	//Serializo el path
-	serializar_path(consola->kernel, 2, strlen(consola->argumento), consola->argumento);
+	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
 
-	int i;
-	for(i = 1; i <= 10; i++) {
+	//while(1) {
 		//Recibo los datos
-		//buffer = deserializar_path(consola->kernel);
+		buffer = deserializar_path(consola->kernel);
 
 		//Muestro los datos
 		pthread_mutex_lock(&sem_consola);
-		//printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
-		printf("HOLA SOY EL PROCESO %d\n", i);
-		sleep(5);
+		printf("Me llegaron %d bytes con %s\n\n> ", buffer->bytesRecibidos, buffer->datos);
+		fflush(stdout);
 		pthread_mutex_unlock(&sem_consola);
-	}
+	//}
 	pthread_exit(NULL);
 }
 

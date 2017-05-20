@@ -32,7 +32,7 @@ int main (void){
 	while (!salir) {
 		t_Consola consola = leerComandos();
 		consola.kernel = kernel;
-		if (!strcmp(consola.comando, "run") || !strcmp(consola.comando, "stop")) {
+		if (!strcmp(consola.comando, "run") /*|| !strcmp(consola.comando, "stop")*/) {
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n\n> ", consola.comando);
 			else {
@@ -42,10 +42,15 @@ int main (void){
 				free(hiloConsola);
 			}
 		}
+		else if (!strcmp(consola.comando, "close"))
+			printf("> ");
 		else if (!strcmp(consola.comando, "exit"))
 			salir = 1;
-		else if (!strcmp(consola.comando, "clean"))
+		else if (!strcmp(consola.comando, "clean")) {
 			system("clear");
+			printf("> ");
+			fflush(stdout);
+		}
 		else
 			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n\n> ");
 	}
