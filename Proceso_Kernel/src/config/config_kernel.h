@@ -10,13 +10,13 @@
 typedef struct ConfigType{
 	uint32_t PUERTO_PROG;
 	uint32_t PUERTO_CPU;
-	char* IP_MEMORIA;
+	char IP_MEMORIA[16];
 	uint32_t PUERTO_MEMORIA;
-	char* IP_FS;
+	char IP_FS[16];
 	uint32_t PUERTO_FS;
 	uint32_t QUANTUM;
 	uint32_t QUANTUM_SLEEP;
-	char* ALGORITMO;
+	char ALGORITMO[5];
 	uint32_t GRADO_MULTIPROG;
 	//SEM_IDS=[SEM1, SEM2, SEM3]
 	//SEM_INIT=[0, 0, 5]

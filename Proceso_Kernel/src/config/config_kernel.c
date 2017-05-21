@@ -7,13 +7,19 @@ Type_Config load_config(char* path){
 
 	config.PUERTO_PROG = config_get_int_value(auxConfig, "PUERTO_PROG");
 	config.PUERTO_CPU = config_get_int_value(auxConfig, "PUERTO_CPU");
-	config.IP_MEMORIA = config_get_string_value(auxConfig, "IP_MEMORIA");
+	char *ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
+	memcpy(config.IP_MEMORIA, ipMemoria, strlen(ipMemoria)+1);
+	free (ipMemoria);
 	config.PUERTO_MEMORIA = config_get_int_value(auxConfig, "PUERTO_MEMORIA");
-	config.IP_FS = config_get_string_value(auxConfig, "IP_FS");
+	char *IP_FS = config_get_string_value(auxConfig, "IP_FS");
+	memcpy(config.IP_FS, IP_FS, strlen(IP_FS)+1);
+	free (IP_FS);
 	config.PUERTO_FS = config_get_int_value(auxConfig, "PUERTO_FS");
 	config.QUANTUM = config_get_int_value(auxConfig, "QUANTUM");
 	config.QUANTUM_SLEEP = config_get_int_value(auxConfig, "QUANTUM_SLEEP");
-	config.ALGORITMO = config_get_string_value(auxConfig, "ALGORITMO");
+	char *ALGORITMO = config_get_string_value(auxConfig, "ALGORITMO");
+	memcpy(config.ALGORITMO, ALGORITMO, strlen(ALGORITMO)+1);
+	free (ALGORITMO);
 	config.GRADO_MULTIPROG = config_get_int_value(auxConfig, "GRADO_MULTIPROG");
 	//SEM_IDS=[SEM1, SEM2, SEM3]
 	//SEM_INIT=[0, 0, 5]
