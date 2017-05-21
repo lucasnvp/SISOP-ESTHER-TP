@@ -8,9 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <semaphore.h>
-
 #include <commons/collections/queue.h>
-
 #include "pcb/pcb.h"
 #include "programa/programa.h"
 #include "servidor/servidor.h"

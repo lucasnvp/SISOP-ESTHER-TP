@@ -1,4 +1,6 @@
 #include "Kernel.h"
+#include <pthread.h>
+#include <semaphore.h>
 
 pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION;
