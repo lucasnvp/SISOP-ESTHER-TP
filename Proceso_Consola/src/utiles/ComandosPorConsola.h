@@ -2,6 +2,8 @@
 #define SRC_UTILES_COMANDOSPORCONSOLA_H_
 #include "../serializador/serializador.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 typedef struct {
 	int kernel;
@@ -25,7 +27,6 @@ t_Consola leerComandos() {
 	consola.kernel = 0;
 	consola.comando = "";
 	consola.argumento = "";
-	//printf("> ");
 	scanf("%[^\n]s", mensaje);
 	if (strcmp(mensaje, "")) {
 		consola.comando = strtok(mensaje, " ");
@@ -37,14 +38,26 @@ t_Consola leerComandos() {
 }
 
 void crearHiloConsola(t_Consola* consola) {
+	t_Consola* param = consola;
+
+	DatosRecibidos *buffer;
+	pthread_mutex_t sem_consola;
+	pthread_mutex_init(&sem_consola, NULL);
+
 	//Serializo el path
-	serializar_path(consola->kernel, 2, strlen(consola->argumento), consola->argumento);
+	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
 
-	//Recibo los datos
-	DatosRecibidos *buffer = deserializar_path(consola->kernel);
+	//while(1) {
+		//Recibo los datos
+		buffer = deserializar_path(consola->kernel);
 
-	//Muestro los datos
-	printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+		//Muestro los datos
+		pthread_mutex_lock(&sem_consola);
+		printf("Me llegaron %d bytes con %s\n\n> ", buffer->bytesRecibidos, buffer->datos);
+		fflush(stdout);
+		pthread_mutex_unlock(&sem_consola);
+	//}
+	pthread_exit(NULL);
 }
 
 #endif /* SRC_UTILES_COMANDOSPORCONSOLA_H_ */

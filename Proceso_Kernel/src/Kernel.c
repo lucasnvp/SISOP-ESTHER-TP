@@ -2,28 +2,28 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
-sem_t SEM_MULTIPROGRAMACION;
-sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene trabajos
-
-uint32_t PID_PCB = 1;
-t_queue * QUEUE_PCB;
-
-uint32_t SERVIDOR_KERNEL;
-uint32_t SERVIDOR_MEMORIA;
-uint32_t SERVIDOR_FILESYSTEM;
-
 int main(void) {
 	puts("Proceso Kernel");
 
+	//Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
+
 	// Variables hilos
-	pthread_t programa;
+	pthread_t thread_programa;
 	pthread_t thread_server;
+	pthread_t thread_consola;
+	pthread_t thread_planificador;
+
 	QUEUE_PCB = queue_create();
+	QUEUE_NEW = queue_create();
+	LIST_READY = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
-	sem_init(&SEM_PCB,0,0); //Iniciazilo el semaforo de la cola de PCB
-	sem_init(&SEM_MULTIPROGRAMACION,0,1); 	//Semaforo de multi programacion
+	sem_init(&SEM_MULTIPROGRAMACION,0,2); 	//Semaforo de multi programacion
+	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
+	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
+	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -34,11 +34,19 @@ int main(void) {
 	//Creo el hilo del servidor
 	pthread_create(&thread_server,NULL,(void*) server,"Servidor");
 
-	//Hilo por cada programa
-	pthread_create(&programa,NULL,(void*) procesarPCB,NULL);
+	//Hilo de consola
+	pthread_create(&thread_consola,NULL,(void*) consola_kernel,"Consola");
+
+	//Hilo que procesa los PCB mandandolos a la cola de NEWs
+	pthread_create(&thread_programa,NULL,(void*) procesarPCB,NULL);
+
+	//Hilo que planifica el paso de NEWs a READYs dependiendo del grado de multiprogramacion
+	pthread_create(&thread_planificador,NULL,(void*) planificador, NULL);
 
 	pthread_join(thread_server, (void**) NULL);
-	pthread_join(programa, (void**) NULL);
+	pthread_join(thread_programa, (void**) NULL);
+	pthread_join(thread_planificador, (void**) NULL);
+	pthread_join(thread_consola, (void**) NULL);
 
 	return EXIT_SUCCESS;
 }
@@ -72,7 +80,15 @@ void procesarPCB(void* args){
 
 		printf("Nuevo proceso PCB\n");
 		printf("El pid del proceso es: %d \n", PID_PCB);
-		PCB newPCB = PCB_new(PID_PCB, 0, 0, 0, 0, 0, 0);
+
+		uint32_t idConsola = aProgram->ID_Consola;
+
+		PCB * newPCB = PCB_new_pointer(idConsola,PID_PCB, 0, 0, 0, 0, 0, 0);
+
+		//Agrego el pcb a la lista de new
+		queue_push(QUEUE_NEW, newPCB);
+		//Aviso que hay un nuevo PCB
+		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
 		serializar_path(aProgram->ID_Consola, PID_PCB, 4, "PID");
@@ -82,6 +98,32 @@ void procesarPCB(void* args){
 
 		PID_PCB++;
 	}
+}
+
+void planificador(void* args){
+	while(true){
+		//Semaforo de multiprogramacion, detiene el ingreso de PCBs a la lista de READYs
+		sem_wait(&SEM_MULTIPROGRAMACION);
+		//Levanto el signal de un nuevo PCB
+		sem_wait(&SEM_READY);
+		//Semaforo para parar la planificacion
+		sem_wait(&SEM_STOP_PLANNING);
+		//Informo que ingresa un PCB al planificador
+		printf("Ingreso un PCB al panificador \n");
+		//Sacar un PCB de la cola de NEWs
+		PCB* element = (PCB*) queue_pop(QUEUE_NEW);
+		//Agregar un PCB a la lista de READYs
+		list_add(LIST_READY,element);
+		//vuelvo a liberar la planificacion
+		sem_post(&SEM_STOP_PLANNING);
+	}
+
+	//Preguntar si algun CPU esta disponible
+	//Mandar el PCB a la CPU
+	//Respuesta de la CPU
+	//Semaforo de multiprogramacion, tiene que ir cuando se finaliza un PCB asi deja entrar otro en la lista.
+
+	//sem_post(&SEM_MULTIPROGRAMACION);
 }
 
 void server(void* args){
@@ -153,18 +195,48 @@ void server(void* args){
 	}
 }
 
+void consola_kernel(void* args){
+	while(true) {
+		t_Consola consola = leerComandos();
+		consola.kernel = SERVIDOR_KERNEL;
+		if (!strcmp(consola.comando, "exit"))
+			exit(0);
+		else if (!strcmp(consola.comando, "clean"))
+			system("clear");
+		else if (!strcmp(consola.comando, "list"))
+			list_process(LIST_READY);
+		else if (!strcmp(consola.comando, "stop"))
+			sem_wait(&SEM_STOP_PLANNING);
+		else if (!strcmp(consola.comando, "start"))
+			sem_post(&SEM_STOP_PLANNING);
+		else if (!strcmp(consola.comando, "status"))
+			if (consola.argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", consola.comando);
+			else {
+				uint32_t nroProceso = atoi(consola.argumento);
+				status_process(LIST_READY,nroProceso);
+			}
+		else if (!strcmp(consola.comando, "kill"))
+			if (consola.argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n", consola.comando);
+			else {
+				uint32_t nroProceso = atoi(consola.argumento);
+				kill_process(LIST_READY,nroProceso);
+			}
+		else
+			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
+	}
+}
+
 void* queue_sync_pop(t_queue* self) {
 	sem_wait(&SEM_PCB);
 	pthread_mutex_lock(&mutexPCB);
 	void* elem = queue_pop(self);
 	pthread_mutex_unlock(&mutexPCB);
-	// Semaforo de multiprogramacion, tiene que ir cuando se finaliza un PCB asi lo deja entrar otro en la cola.
-	//sem_post(&SEM_MULTIPROGRAMACION);
 	return elem;
 }
 
 void queue_sync_push(t_queue* self, void* element){
-	sem_wait(&SEM_MULTIPROGRAMACION);
 	pthread_mutex_lock(&mutexPCB);
 	queue_push(self, element);
 	pthread_mutex_unlock(&mutexPCB);
