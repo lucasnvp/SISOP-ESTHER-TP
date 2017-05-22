@@ -20,7 +20,7 @@ int main(void) {
 	LIST_READY = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
-	sem_init(&SEM_MULTIPROGRAMACION,0,2); 	//Semaforo de multi programacion
+	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
 	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
@@ -54,7 +54,7 @@ int main(void) {
 void connect_server_memoria(){
     //Conexion al servidor FileSystem
 	//SERVIDOR_MEMORIA = connect_server(ip_memoria(),puerto_memoria());
-	SERVIDOR_MEMORIA = connect_server("127.0.0.1",5002);
+	SERVIDOR_MEMORIA = connect_server(config.IP_MEMORIA,config.PUERTO_MEMORIA);
 
 	//Si conecto, informo
 	if(SERVIDOR_MEMORIA > 0){
@@ -64,7 +64,7 @@ void connect_server_memoria(){
 
 void connect_server_filesystem(){
     //Conexion al servidor FileSystem
-	SERVIDOR_FILESYSTEM = connect_server("127.0.0.1",5003);
+	SERVIDOR_FILESYSTEM = connect_server(config.IP_FS,config.PUERTO_FS);
 
 	//Si conecto, informo
 	if(SERVIDOR_FILESYSTEM > 0){
@@ -136,7 +136,7 @@ void server(void* args){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	SERVIDOR_KERNEL = build_server(5010, 10);
+	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){

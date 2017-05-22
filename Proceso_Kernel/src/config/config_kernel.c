@@ -5,8 +5,7 @@ Type_Config load_config(char* path){
 	t_config *auxConfig;
 	auxConfig = config_create(path);
 
-	config.PUERTO_PROG = config_get_int_value(auxConfig, "PUERTO_PROG");
-	config.PUERTO_CPU = config_get_int_value(auxConfig, "PUERTO_CPU");
+	config.PUERTO_KERNEL = config_get_int_value(auxConfig, "PUERTO_KERNEL");
 	char *ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
 	memcpy(config.IP_MEMORIA, ipMemoria, strlen(ipMemoria)+1);
 	free (ipMemoria);
@@ -36,8 +35,7 @@ void print_config(Type_Config auxConfig){
 	puts("----------------------");
 	printf("Configuracion:\n");
 	puts("");
-	printf("PUERTO_PROG = %d \n", auxConfig.PUERTO_PROG);
-	printf("PUERTO_CPU = %d \n", auxConfig.PUERTO_CPU);
+	printf("PUERTO_KERNEL = %d \n", auxConfig.PUERTO_KERNEL);
 	printf("IP_MEMORIA = %s \n", auxConfig.IP_MEMORIA);
 	printf("PUERTO_MEMORIA = %d \n", auxConfig.PUERTO_MEMORIA);
 	printf("IP_FS = %s \n", auxConfig.IP_FS);
