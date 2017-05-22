@@ -11,6 +11,8 @@ typedef struct {
 	char* argumento;
 } t_Consola;
 
+pthread_mutex_t sem_consola;
+
 void limpiarBufferDeEntrada();
 t_Consola leerComandos();
 void crearHiloConsola(t_Consola* consola);
@@ -41,8 +43,6 @@ void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
 
 	DatosRecibidos *buffer;
-	pthread_mutex_t sem_consola;
-	pthread_mutex_init(&sem_consola, NULL);
 
 	//Serializo el path
 	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
@@ -57,7 +57,6 @@ void crearHiloConsola(t_Consola* consola) {
 		fflush(stdout);
 		pthread_mutex_unlock(&sem_consola);
 	//}
-	pthread_exit(NULL);
 }
 
 #endif /* SRC_UTILES_COMANDOSPORCONSOLA_H_ */

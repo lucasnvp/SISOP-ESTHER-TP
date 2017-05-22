@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "servidor/servidor.h"
@@ -13,6 +10,9 @@ char* PATH_CONFIG = "../src/config/config.cfg";
 int main (void){
 
 	puts("Proceso Consola");
+
+	//Inicializo mutex para impresion por pantalla
+	pthread_mutex_init(&sem_consola, NULL);
 
 	//Cargo archivo de configuracion y muestro
 	abrir_config(PATH_CONFIG);
@@ -56,6 +56,8 @@ int main (void){
 	}
 
 	cerrar_config_actual();
+
+	pthread_exit(NULL);
 
     return EXIT_SUCCESS;
 
