@@ -57,6 +57,8 @@ void crearHiloConsola(t_Consola* consola) {
 		fflush(stdout);
 		pthread_mutex_unlock(&sem_consola);
 	//}
+
+	pthread_exit(NULL);
 }
 
 #endif /* SRC_UTILES_COMANDOSPORCONSOLA_H_ */
