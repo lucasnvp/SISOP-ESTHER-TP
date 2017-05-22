@@ -1,37 +1,28 @@
 #include "config_FS.h"
-#include <stdlib.h>
-#include <commons/string.h>
-#include <commons/config.h>
 
-t_config *config;
+Type_Config load_config(char* path){
+	Type_Config config;
+	t_config *auxConfig;
+	auxConfig = config_create(path);
 
-void abrir_config(char* path) {
-	config = config_create(path);
+	config.PUERTO_FILESYSTEM = config_get_int_value(auxConfig, "PUERTO");
+	char *puntoDeMontaje = config_get_string_value(auxConfig, "PUNTO_MONTAJE");
+	memcpy(config.PUNTO_MONTAJE, puntoDeMontaje, strlen(puntoDeMontaje)+1);
+	free (puntoDeMontaje);
+	config.CANTCONEXIONES = config_get_int_value(auxConfig, "CANTCONEXIONES");
+
+	config_destroy(auxConfig);
+
+	return config;
 }
 
-void cerrar_config_actual() {
-	config_destroy(config);
-}
-
-int puerto() {
-	return config_get_int_value(config, "PUERTO");
-}
-
-char* montaje() {
-	return config_get_string_value(config, "PUNTO_MONTAJE");
-}
-
-int cantConexiones() {
-	return config_get_int_value(config, "CANTCONEXIONES");
-}
-
-void mostrarConfig() {
+void print_config(Type_Config auxConfig){
 
 	puts("----------------------");
 	printf("Configuracion:\n");
 	puts("");
-    printf("PUERTO = %d\n",puerto());
-    printf("PUNTO_MONTAJE = %s\n",montaje());
-    printf("CANTCONEXIONES = %d\n",cantConexiones());
+    printf("PUERTO = %d\n",auxConfig.PUERTO_FILESYSTEM);
+    printf("PUNTO_MONTAJE = %s\n",auxConfig.PUNTO_MONTAJE);
+    printf("CANTCONEXIONES = %d\n",auxConfig.CANTCONEXIONES);
     puts("----------------------");
 }

@@ -1,6 +1,4 @@
 #include "Kernel.h"
-#include <pthread.h>
-#include <semaphore.h>
 
 int main(void) {
 	puts("Proceso Kernel");
