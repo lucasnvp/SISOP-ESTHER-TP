@@ -57,8 +57,6 @@ int main (void){
 
 	cerrar_config_actual();
 
-	pthread_exit(NULL);
-
     return EXIT_SUCCESS;
 
 }
