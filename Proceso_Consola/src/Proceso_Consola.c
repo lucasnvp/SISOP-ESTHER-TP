@@ -5,7 +5,8 @@
 #include "config/config_consola.h"
 #include "utiles/ComandosPorConsola.h"
 
-char* PATH_CONFIG = "../src/config/config.cfg";
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
 
 int main (void){
 
@@ -14,12 +15,12 @@ int main (void){
 	//Inicializo mutex para impresion por pantalla
 	pthread_mutex_init(&sem_consola, NULL);
 
-	//Cargo archivo de configuracion y muestro
-	abrir_config(PATH_CONFIG);
-	mostrarConfig();
+	//Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
 	//Me conecto al servidor
-	int kernel = connect_server(ipKernel(),puertoKernel());
+	int kernel = connect_server(config.IP_KERNEL,config.PUERTO_KERNEL);
 
 	//Si conecto, informo
 	if(kernel > 0){
@@ -54,8 +55,6 @@ int main (void){
 		else
 			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n\n> ");
 	}
-
-	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 

@@ -14,7 +14,7 @@
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
 
-char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_FileSystem/src/config/config.txt";
+char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
 
 #endif /* FILESYSTEM_H_ */

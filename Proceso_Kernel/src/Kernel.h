@@ -27,7 +27,7 @@ t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
 t_list * LIST_READY;
 
-char* PATH_CONFIG = "../src/config/config.cgf";
+char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
 
 uint32_t SERVIDOR_KERNEL;
