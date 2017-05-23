@@ -5,7 +5,8 @@
 #include "config/config_CPU.h"
 #include "pcb/pcb.h"
 
-char* PATH_CONFIG = "../src/config/config.cfg";
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
 
 // ------------------------ VARIABLES GLOBALES ---------------------------------
 
@@ -16,12 +17,12 @@ int main(void) {
 
 	idCpu = 1;
 
-	//Cargo archivo de configuracion y muestro
-	abrir_config(PATH_CONFIG);
-	mostrarConfig();
+	//Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
 	//Conexion al servidor
-	int kernel = connect_server(ipKernel(), puertoKernel());
+	int kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
 
 	//Si conecto, informo
 	if (kernel > 0) {
@@ -35,10 +36,6 @@ int main(void) {
 		enviarMensaje("Hola Kernel Serializado",0,1,kernel);
 
 	}
-
-
-
-	cerrar_config_actual();
 
 	return EXIT_SUCCESS;
 }
