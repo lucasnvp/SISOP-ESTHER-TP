@@ -9,7 +9,8 @@
 #include "config/config_Memoria.h"
 #include "servidor/servidor.h"
 
-char* PATH_CONFIG = "../src/config/config.cfg";
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
 
 #include "Listash.h"
 
@@ -78,16 +79,16 @@ tDato obtenerMemoria(void * memoria,int PID);
 int main(void){
     puts("Proceso Memoria");
 
-    //Cargo archivo de configuracion y muestro
-    abrir_config(PATH_CONFIG);
-    mostrarConfig();
+    //Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
     // variables para el servidor
 	int fdmax;        // número máximo de descriptores de fichero
 	fd_set master;   // conjunto maestro de descriptores de fichero
 
 	//Creacion del servidor
-	int servidor = build_server(puerto());
+	int servidor = build_server(config.PUERTO);
 
 	//El socket esta listo para escuchar
 	if(servidor > 0){
@@ -95,7 +96,7 @@ int main(void){
 	}
 
 	// Seteo la cantidad de conexiones
-	set_listen(servidor, cantConexiones());
+	set_listen(servidor, config.CANTCONEXIONES);
 
 	// seguir la pista del descriptor de fichero mayor
 	fdmax = servidor; // por ahora es éste
@@ -113,8 +114,6 @@ int main(void){
 			}
 		}
 	}
-
-	cerrar_config_actual();
 
     return EXIT_SUCCESS;
 }
