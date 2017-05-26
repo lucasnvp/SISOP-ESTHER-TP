@@ -89,7 +89,7 @@ void procesarPCB(void* args){
 		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
-		serializar_path(aProgram->ID_Consola, PID_PCB, 4, "PID");
+		serializar(aProgram->ID_Consola, PID_PCB, 4, "PID");
 
 		//Muestro el PID Del proceso
 		print_PCB(newPCB);
@@ -166,24 +166,25 @@ void server(void* args){
 					}
 				} else {
 					//Recibo los datos
-					DatosRecibidos *buffer = deserializar_path(i);
+					char* buffer = (char*)deserializar(i);
+					uint32_t bytesRecibidos = sizeof(buffer);
 
 					// gestionar datos de un cliente
 					if(buffer <= 0){
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
 						//Muestro los datos
-						printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
+						printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
 
 						Program * auxProgram = malloc(sizeof(Program));
 						auxProgram->ID_Consola = i;
-						auxProgram->Path = buffer->datos;
+						auxProgram->Path = buffer;
 						queue_sync_push(QUEUE_PCB, auxProgram);
 
 						//Manda la info a la memoria
-						send_data(SERVIDOR_MEMORIA, buffer->datos, buffer->bytesRecibidos);
+						send_data(SERVIDOR_MEMORIA, buffer, bytesRecibidos);
 						//Manda la info al FS
-						send_data(SERVIDOR_FILESYSTEM, buffer->datos, buffer->bytesRecibidos);
+						send_data(SERVIDOR_FILESYSTEM, buffer, bytesRecibidos);
 						//Manda la info a todas las cpu
 						massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
 					}
