@@ -5,20 +5,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
-typedef struct DatosRecibidosType{
-	char *datos;
-	int bytesRecibidos;
-}DatosRecibidos;
+uint32_t connect_server(char* IP , uint32_t Port);
+uint32_t build_server(uint32_t Port, uint32_t quantityConexions);
+uint32_t accept_conexion(uint32_t servidor);
 
-int connect_server(char* IP , int Port);
-int build_server(int Port);
-void set_listen(int servidor, int sizeConexiones);
-int accept_conexion(int servidor, fd_set *master, int fdmax);
-void massive_send(int fdmax, fd_set *master, DatosRecibidos * buffer, int i, int servidor);
-DatosRecibidos * recive_data(int cliente);
-
-DatosRecibidos * DatosRecibidos_new(char *datos,int bytesRecibidos);
-void DatosRecibidos_free(DatosRecibidos *this);
+void set_listen(uint32_t servidor, uint32_t sizeConexiones);
+void send_data(uint32_t servidor, void* dataToSend, uint32_t bytesToSend);
+void send_string(uint32_t socket, char* mensaje);
+void massive_send(uint32_t fdmax, fd_set *master, void* buffer, uint32_t cantToSend, uint32_t servidor);
+void recive_data(uint32_t cliente, void* buf, uint32_t bytesToRecive);
 
 #endif

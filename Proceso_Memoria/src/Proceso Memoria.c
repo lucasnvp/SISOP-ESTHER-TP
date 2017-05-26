@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include "config/config_Memoria.h"
 #include "servidor/servidor.h"
+#include "serializador/serializador.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
@@ -88,15 +89,12 @@ int main(void){
 	fd_set master;   // conjunto maestro de descriptores de fichero
 
 	//Creacion del servidor
-	int servidor = build_server(config.PUERTO);
+	uint32_t servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
 
 	//El socket esta listo para escuchar
 	if(servidor > 0){
 		printf("Servidor Memoria Escuchando\n");
 	}
-
-	// Seteo la cantidad de conexiones
-	set_listen(servidor, config.CANTCONEXIONES);
 
 	// seguir la pista del descriptor de fichero mayor
 	fdmax = servidor; // por ahora es éste
@@ -105,12 +103,21 @@ int main(void){
 	while(1) {
 		if(fdmax == servidor){
 			// acepto una nueva conexion
-			fdmax = accept_conexion(servidor, &master, fdmax);
+			uint32_t newfd = accept_conexion(servidor);
+			FD_SET(newfd, &master); // añadir al conjunto maestro
+			if (newfd > fdmax) {    // actualizar el máximo
+				fdmax = newfd;
+			}
 		}else{
-			DatosRecibidos * buffer = recive_data(fdmax);
+			//Recibo los datos
+			char* buffer = (char*)deserializar(fdmax);
+			uint32_t bytesRecibidos = sizeof(buffer);
 			// gestionar datos de un cliente
 			if(buffer <= 0){
 				fdmax = servidor; // eliminar del conjunto maestro
+			} else{
+				//Muestro los datos
+				printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
 			}
 		}
 	}
