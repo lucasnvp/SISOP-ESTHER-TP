@@ -117,7 +117,7 @@ void massive_send(uint32_t fdmax, fd_set *master, void* buffer, uint32_t i, uint
 }
 
 
-void recive_data(uint32_t cliente, void* buf, uint32_t bytesToRecive){
+uint32_t recive_data(uint32_t cliente, void* buf, uint32_t bytesToRecive){
     //Recibo datos
     uint32_t bytesRecibidos = recv(cliente, buf, bytesToRecive, 0);
     //Valido los datos
@@ -131,4 +131,5 @@ void recive_data(uint32_t cliente, void* buf, uint32_t bytesToRecive){
             perror("Error al recibir datos");
         }
     }
+    return bytesRecibidos;
 }

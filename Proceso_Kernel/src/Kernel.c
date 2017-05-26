@@ -132,6 +132,7 @@ void server(void* args){
 	int i;				// variable para el for
 	FD_ZERO(&master);	// borra los conjuntos maestro
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
+	char command;
 
 	//Creacion del servidor consola
 	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
@@ -165,33 +166,47 @@ void server(void* args){
 						fdmax = newfd;
 					}
 				} else {
-					//Recibo los datos
-					char* buffer = (char*)deserializar(i);
-					uint32_t bytesRecibidos = sizeof(buffer);
+					//Recibo el comando
+					uint32_t bytesRecibidos = recive_data(i, &command, sizeof(command));
 
 					// gestionar datos de un cliente
-					if(buffer <= 0){
+					if(bytesRecibidos <= 0){
+						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
-						//Muestro los datos
-						printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
-
-						Program * auxProgram = malloc(sizeof(Program));
-						auxProgram->ID_Consola = i;
-						auxProgram->Path = buffer;
-						queue_sync_push(QUEUE_PCB, auxProgram);
-
-						//Manda la info a la memoria
-						send_data(SERVIDOR_MEMORIA, buffer, bytesRecibidos);
-						//Manda la info al FS
-						send_data(SERVIDOR_FILESYSTEM, buffer, bytesRecibidos);
-						//Manda la info a todas las cpu
-						massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
+						connection_handler(i, command);
 					}
 				}
 			}
 		}
 	}
+}
+
+void connection_handler(uint32_t socket, uint32_t command){
+	switch(command){
+	case 'r':
+		recive_string();
+		break;
+	default:
+		printf("Error al recibir el comando");
+	}
+
+	return;
+}
+
+void recive_string(){
+	//Recibo los datos
+	char* buffer = (char*)deserializar(socket);
+	uint32_t bytesRecibidos = sizeof(buffer);
+	//Muestro los datos
+	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
+
+	//Manda la info a la memoria
+	send_data(SERVIDOR_MEMORIA, buffer, bytesRecibidos);
+	//Manda la info al FS
+	send_data(SERVIDOR_FILESYSTEM, buffer, bytesRecibidos);
+	//Manda la info a todas las cpu
+	//massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
 }
 
 void consola_kernel(void* args){
