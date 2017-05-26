@@ -10,11 +10,17 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
+
+uint32_t SERVIDOR_FILESYSTEM;
+
+void server(void* args);
+void connection_handler(uint32_t socket, uint32_t command);
 
 #endif /* FILESYSTEM_H_ */
