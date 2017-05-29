@@ -25,4 +25,3 @@ void print_config(Type_Config auxConfig){
 	puts("----------------------");
 }
 
-

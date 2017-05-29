@@ -42,22 +42,20 @@ t_Consola leerComandos() {
 void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
 
-	char* buffer;
+	//Ejecuto el comando run en el servidor
+	serializar(param->kernel, 1, 4, "run");
+	//Le envio el path
+	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
 
-	//Serializo el path
-	serializar(param->kernel, 2, strlen(param->argumento), param->argumento);
+	//Recibo los datos
+	//char* buffer = deserializar(consola->kernel);
+	//uint32_t bytesRecibidos = sizeof(buffer);
 
-	//while(1) {
-		//Recibo los datos
-		buffer = deserializar(consola->kernel);
-		uint32_t bytesRecibidos = sizeof(buffer);
-
-		//Muestro los datos
-		pthread_mutex_lock(&sem_consola);
-		printf("Me llegaron %d bytes con %s\n\n> ", bytesRecibidos, buffer);
-		fflush(stdout);
-		pthread_mutex_unlock(&sem_consola);
-	//}
+	//Muestro los datos
+	//pthread_mutex_lock(&sem_consola);
+	//printf("Me llegaron %d bytes con %s\n\n> ", bytesRecibidos, buffer);
+	//fflush(stdout);
+	//pthread_mutex_unlock(&sem_consola);
 
 	pthread_exit(NULL);
 }

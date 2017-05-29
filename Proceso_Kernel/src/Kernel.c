@@ -129,10 +129,9 @@ void server(void* args){
 	fd_set master;   	// conjunto maestro de descriptores de fichero
 	fd_set read_fds; 	// conjunto temporal de descriptores de fichero para select()
 	uint32_t fdmax;			// número máximo de descriptores de fichero
-	int i;				// variable para el for
+	int i,j;				// variable para el for
 	FD_ZERO(&master);	// borra los conjuntos maestro
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
-	char command;
 
 	//Creacion del servidor consola
 	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
@@ -167,7 +166,8 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					uint32_t bytesRecibidos = recive_data(i, &command, sizeof(command));
+					char* command = (char*)deserializar(i);
+					uint32_t bytesRecibidos = sizeof(command);
 
 					// gestionar datos de un cliente
 					if(bytesRecibidos <= 0){
@@ -175,6 +175,7 @@ void server(void* args){
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
 						connection_handler(i, command);
+						free(command);
 					}
 				}
 			}
@@ -183,14 +184,20 @@ void server(void* args){
 }
 
 void connection_handler(uint32_t socket, uint32_t command){
-	switch(command){
-	case 'r':
-		recive_string();
-		break;
-	default:
-		printf("Error al recibir el comando");
-	}
+	if(!strcmp(command, "run")){
+		printf("Nuevo Programa\n");
+		//Pregunto a la memoria si tiene lugar
 
+		//Ingreso del path
+		char* buffer = (char*)deserializar(socket);
+		//Cargo el programa
+		Program * auxProgram = malloc(sizeof(Program));
+		auxProgram->ID_Consola = socket;
+		auxProgram->Path = buffer;
+		queue_sync_push(QUEUE_PCB, auxProgram);
+		free(buffer);
+	}else
+		printf("Error de comando\n");
 	return;
 }
 
