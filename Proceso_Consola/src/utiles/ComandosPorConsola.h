@@ -43,19 +43,18 @@ void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
 
 	//Ejecuto el comando run en el servidor
-	serializar(param->kernel, 1, 4, "run");
+	serializar_data(param->kernel, 1, 4, "run");
 	//Le envio el path
-	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
+	serializar_data(param->kernel, 2, strlen(param->argumento), param->argumento);
 
 	//Recibo los datos
-	//char* buffer = deserializar(consola->kernel);
-	//uint32_t bytesRecibidos = sizeof(buffer);
+	uint32_t PID_PCB = deserializar_int(consola->kernel);
 
 	//Muestro los datos
-	//pthread_mutex_lock(&sem_consola);
-	//printf("Me llegaron %d bytes con %s\n\n> ", bytesRecibidos, buffer);
-	//fflush(stdout);
-	//pthread_mutex_unlock(&sem_consola);
+	pthread_mutex_lock(&sem_consola);
+	printf("El PID del programa es: %d \n\n> ", PID_PCB);
+	fflush(stdout);
+	pthread_mutex_unlock(&sem_consola);
 
 	pthread_exit(NULL);
 }

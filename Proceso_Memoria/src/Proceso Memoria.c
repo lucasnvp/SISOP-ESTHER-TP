@@ -110,7 +110,7 @@ int main(void){
 			}
 		}else{
 			//Recibo los datos
-			char* buffer = (char*)deserializar(fdmax);
+			char* buffer = (char*)deserializar_data(fdmax);
 			uint32_t bytesRecibidos = sizeof(buffer);
 			// gestionar datos de un cliente
 			if(buffer <= 0){

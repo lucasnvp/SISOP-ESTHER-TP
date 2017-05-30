@@ -89,7 +89,7 @@ void procesarPCB(void* args){
 		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
-		serializar(aProgram->ID_Consola, PID_PCB, 4, "PID");
+		serializar_int(aProgram->ID_Consola, PID_PCB);
 
 		//Muestro el PID Del proceso
 		print_PCB(newPCB);
@@ -166,7 +166,7 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					char* command = (char*)deserializar(i);
+					char* command = (char*)deserializar_data(i);
 					uint32_t bytesRecibidos = sizeof(command);
 
 					// gestionar datos de un cliente
@@ -189,7 +189,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//Pregunto a la memoria si tiene lugar
 
 		//Ingreso del path
-		char* buffer = (char*)deserializar(socket);
+		char* buffer = (char*)deserializar_data(socket);
 		//Cargo el programa
 		Program * auxProgram = malloc(sizeof(Program));
 		auxProgram->ID_Consola = socket;
@@ -203,7 +203,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 
 void recive_string(){
 	//Recibo los datos
-	char* buffer = (char*)deserializar(socket);
+	char* buffer = (char*)deserializar_data(socket);
 	uint32_t bytesRecibidos = sizeof(buffer);
 	//Muestro los datos
 	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);

@@ -52,12 +52,12 @@ void enviarMensaje(char* mensaje, int valor, int idMje, int socket) {
 
 	if (idMje == 1) { //IMPRIMIR TEXTO
 		str_mensaje.id_MSJ = IMPRIMIR_TEXTO;
-		serializar(str_mensaje.socket_server,str_mensaje.id_MSJ ,str_mensaje.size_str, str_mensaje.texto);
+		serializar_data(str_mensaje.socket_server,str_mensaje.id_MSJ ,str_mensaje.size_str, str_mensaje.texto);
 	} else if (idMje == 2) { //IMPRIMIR VALOR
 		str_mensaje.id_MSJ = IMPRIMIR_VALOR;
 		str_mensaje.valor = valor;
 	}
-	serializar(str_mensaje.socket_server,1,str_mensaje.size_str, str_mensaje.texto);
+	serializar_data(str_mensaje.socket_server,1,str_mensaje.size_str, str_mensaje.texto);
 }
 
 t_STR_INTERCAMBIO incializarIntercambio(){
