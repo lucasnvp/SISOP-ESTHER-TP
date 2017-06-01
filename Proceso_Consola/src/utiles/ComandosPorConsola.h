@@ -11,6 +11,8 @@ typedef struct {
 	char* argumento;
 } t_Consola;
 
+pthread_mutex_t sem_consola;
+
 void limpiarBufferDeEntrada();
 t_Consola leerComandos();
 void crearHiloConsola(t_Consola* consola);
@@ -40,23 +42,20 @@ t_Consola leerComandos() {
 void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
 
-	DatosRecibidos *buffer;
-	pthread_mutex_t sem_consola;
-	pthread_mutex_init(&sem_consola, NULL);
+	//Ejecuto el comando run en el servidor
+	serializar_data(param->kernel, 1, 4, "run");
+	//Le envio el path
+	serializar_data(param->kernel, 2, strlen(param->argumento), param->argumento);
 
-	//Serializo el path
-	serializar_path(param->kernel, 2, strlen(param->argumento), param->argumento);
+	//Recibo los datos
+	uint32_t PID_PCB = deserializar_int(consola->kernel);
 
-	//while(1) {
-		//Recibo los datos
-		buffer = deserializar_path(consola->kernel);
+	//Muestro los datos
+	pthread_mutex_lock(&sem_consola);
+	printf("El PID del programa es: %d \n\n> ", PID_PCB);
+	fflush(stdout);
+	pthread_mutex_unlock(&sem_consola);
 
-		//Muestro los datos
-		pthread_mutex_lock(&sem_consola);
-		printf("Me llegaron %d bytes con %s\n\n> ", buffer->bytesRecibidos, buffer->datos);
-		fflush(stdout);
-		pthread_mutex_unlock(&sem_consola);
-	//}
 	pthread_exit(NULL);
 }
 

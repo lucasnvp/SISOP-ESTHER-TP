@@ -7,7 +7,8 @@
 #include "Proceso CPU.h"
 #include <parser/metadata_program.h>
 
-char* PATH_CONFIG = "../src/config/config.cfg";
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
 
 
 static const char* PROGRAMA =
@@ -70,12 +71,23 @@ int memoria;
 int main(void) {
 	puts("Proceso CPU");
 
+<<<<<<< HEAD
 	//Cargo archivo de configuracion y muestro
 	abrir_config(PATH_CONFIG);
 	mostrarConfig();
 
 	//Conexion al servidor
 	kernel = connect_server(ipKernel(), puertoKernel());
+=======
+	idCpu = 1;
+
+	//Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
+
+	//Conexion al servidor
+	int kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
+>>>>>>> df890442ba72ec5ff3a0e225d292b3fd5e1c86f9
 
 	//Si conecto, informo
 	if (kernel > 0) {
@@ -86,12 +98,15 @@ int main(void) {
 
 	while (existePCB == 0) {
 
+<<<<<<< HEAD
 		ejecutarPrograma();
 
 	}
 
 	cerrar_config_actual();
 
+=======
+>>>>>>> df890442ba72ec5ff3a0e225d292b3fd5e1c86f9
 	return EXIT_SUCCESS;
 }
 
@@ -108,6 +123,7 @@ void ejecutarPrograma(){
 
 	t_metadata_program *metadata = metadata_desde_literal(programa);//hacerlo por que si
 
+<<<<<<< HEAD
 	int programCounter = 0;//deberia ser el del PCB
 
 	while(!terminoElPrograma()){
@@ -128,6 +144,16 @@ void ejecutarPrograma(){
 //connectionHandler(socketKernel);
 
 
+=======
+	if (idMje == 1) { //IMPRIMIR TEXTO
+		str_mensaje.id_MSJ = IMPRIMIR_TEXTO;
+		serializar_data(str_mensaje.socket_server,str_mensaje.id_MSJ ,str_mensaje.size_str, str_mensaje.texto);
+	} else if (idMje == 2) { //IMPRIMIR VALOR
+		str_mensaje.id_MSJ = IMPRIMIR_VALOR;
+		str_mensaje.valor = valor;
+	}
+	serializar_data(str_mensaje.socket_server,1,str_mensaje.size_str, str_mensaje.texto);
+>>>>>>> df890442ba72ec5ff3a0e225d292b3fd5e1c86f9
 }
 
 //Funcion para esperar un PCB del Kernel

@@ -8,8 +8,7 @@
 #include <commons/config.h>
 
 typedef struct ConfigType{
-	uint32_t PUERTO_PROG;
-	uint32_t PUERTO_CPU;
+	uint32_t PUERTO_KERNEL;
 	char IP_MEMORIA[16];
 	uint32_t PUERTO_MEMORIA;
 	char IP_FS[16];
@@ -23,7 +22,6 @@ typedef struct ConfigType{
 	//SHARED_VARS=[!Global, !UnaVar, !tiempo3]
 	uint32_t STACK_SIZE;
 	uint32_t CANTCONEXIONES;
-	//PUERTO_LISTEN=8080
 } Type_Config;
 
 Type_Config load_config(char* path);

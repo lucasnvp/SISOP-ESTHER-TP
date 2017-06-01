@@ -6,16 +6,16 @@
 #include "../servidor/servidor.h"
 
 typedef struct HeaderType{
-	uint32_t id;
-	uint32_t dimension;
+    uint32_t id;
+    uint32_t dimension;
 } Header;
 
 void printHeader(Header aux){
-	printf("Id: %d\n",aux.id);
-	printf("Dimension: %d\n",aux.dimension);
+    printf("Id: %d\n",aux.id);
+    printf("Dimension: %d\n",aux.dimension);
 }
 
-void serializar_path(int client, uint32_t id, uint32_t dimension, char *buff){
+void serializar_data(int client, uint32_t id, uint32_t dimension, void* buff){
 	//Cabezara de la informacion
 	Header myHeader;
 	myHeader.dimension = dimension;
@@ -33,25 +33,29 @@ void serializar_path(int client, uint32_t id, uint32_t dimension, char *buff){
 	free(ENVIAR);
 }
 
-DatosRecibidos *deserializar_path(int servidor){
+void* deserializar_data(int servidor){
 	//Cabecera auxiliar
 	Header aux;
 
 	//Recibo el header
 	recive_data(servidor,&aux,sizeof(Header));
-	char *data = malloc(aux.dimension);
+	void* data = malloc(aux.dimension);
 
 	//Recibo la informacion
 	recive_data(servidor,data,aux.dimension);
 
-	//Agrego el fin de linea
-	data[aux.dimension] = '\0';
-
 	//Muestro el header que me llego
 	printHeader(aux);
 
-	//Cargo los datos
-	DatosRecibidos * datos = DatosRecibidos_new(data,aux.dimension);
+	return data;
+}
 
-	return datos;
+void serializar_int(uint32_t socket, uint32_t number){
+	send_data(socket, &number, sizeof(uint32_t));
+}
+
+uint32_t deserializar_int(uint32_t socket){
+	uint32_t aux;
+	recive_data(socket,&aux,sizeof(uint32_t));
+	return aux;
 }

@@ -1,6 +1,4 @@
 #include "Kernel.h"
-#include <pthread.h>
-#include <semaphore.h>
 
 int main(void) {
 	puts("Proceso Kernel");
@@ -20,7 +18,7 @@ int main(void) {
 	LIST_READY = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
-	sem_init(&SEM_MULTIPROGRAMACION,0,2); 	//Semaforo de multi programacion
+	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
 	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
@@ -54,7 +52,7 @@ int main(void) {
 void connect_server_memoria(){
     //Conexion al servidor FileSystem
 	//SERVIDOR_MEMORIA = connect_server(ip_memoria(),puerto_memoria());
-	SERVIDOR_MEMORIA = connect_server("127.0.0.1",5002);
+	SERVIDOR_MEMORIA = connect_server(config.IP_MEMORIA,config.PUERTO_MEMORIA);
 
 	//Si conecto, informo
 	if(SERVIDOR_MEMORIA > 0){
@@ -64,7 +62,7 @@ void connect_server_memoria(){
 
 void connect_server_filesystem(){
     //Conexion al servidor FileSystem
-	SERVIDOR_FILESYSTEM = connect_server("127.0.0.1",5003);
+	SERVIDOR_FILESYSTEM = connect_server(config.IP_FS,config.PUERTO_FS);
 
 	//Si conecto, informo
 	if(SERVIDOR_FILESYSTEM > 0){
@@ -91,7 +89,7 @@ void procesarPCB(void* args){
 		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
-		serializar_path(aProgram->ID_Consola, PID_PCB, 4, "PID");
+		serializar_int(aProgram->ID_Consola, PID_PCB);
 
 		//Muestro el PID Del proceso
 		print_PCB(newPCB);
@@ -131,12 +129,12 @@ void server(void* args){
 	fd_set master;   	// conjunto maestro de descriptores de fichero
 	fd_set read_fds; 	// conjunto temporal de descriptores de fichero para select()
 	uint32_t fdmax;			// número máximo de descriptores de fichero
-	int i;				// variable para el for
+	int i,j;				// variable para el for
 	FD_ZERO(&master);	// borra los conjuntos maestro
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	SERVIDOR_KERNEL = build_server(5010, 10);
+	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){
@@ -167,32 +165,55 @@ void server(void* args){
 						fdmax = newfd;
 					}
 				} else {
-					//Recibo los datos
-					DatosRecibidos *buffer = deserializar_path(i);
+					//Recibo el comando
+					char* command = (char*)deserializar_data(i);
+					uint32_t bytesRecibidos = sizeof(command);
 
 					// gestionar datos de un cliente
-					if(buffer <= 0){
+					if(bytesRecibidos <= 0){
+						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
-						//Muestro los datos
-						printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
-
-						Program * auxProgram = malloc(sizeof(Program));
-						auxProgram->ID_Consola = i;
-						auxProgram->Path = buffer->datos;
-						queue_sync_push(QUEUE_PCB, auxProgram);
-
-						//Manda la info a la memoria
-						send_data(SERVIDOR_MEMORIA, buffer->datos, buffer->bytesRecibidos);
-						//Manda la info al FS
-						send_data(SERVIDOR_FILESYSTEM, buffer->datos, buffer->bytesRecibidos);
-						//Manda la info a todas las cpu
-						massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
+						connection_handler(i, command);
+						free(command);
 					}
 				}
 			}
 		}
 	}
+}
+
+void connection_handler(uint32_t socket, uint32_t command){
+	if(!strcmp(command, "run")){
+		printf("Nuevo Programa\n");
+		//Pregunto a la memoria si tiene lugar
+
+		//Ingreso del path
+		char* buffer = (char*)deserializar_data(socket);
+		//Cargo el programa
+		Program * auxProgram = malloc(sizeof(Program));
+		auxProgram->ID_Consola = socket;
+		auxProgram->Path = buffer;
+		queue_sync_push(QUEUE_PCB, auxProgram);
+		free(buffer);
+	}else
+		printf("Error de comando\n");
+	return;
+}
+
+void recive_string(){
+	//Recibo los datos
+	char* buffer = (char*)deserializar_data(socket);
+	uint32_t bytesRecibidos = sizeof(buffer);
+	//Muestro los datos
+	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
+
+	//Manda la info a la memoria
+	send_data(SERVIDOR_MEMORIA, buffer, bytesRecibidos);
+	//Manda la info al FS
+	send_data(SERVIDOR_FILESYSTEM, buffer, bytesRecibidos);
+	//Manda la info a todas las cpu
+	//massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
 }
 
 void consola_kernel(void* args){

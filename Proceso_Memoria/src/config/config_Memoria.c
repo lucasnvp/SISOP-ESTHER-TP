@@ -1,64 +1,39 @@
 #include "config_Memoria.h"
-#include <stdlib.h>
-#include <commons/string.h>
-#include <commons/config.h>
 
-t_config *config;
+Type_Config load_config(char* path){
+	Type_Config config;
+	t_config *auxConfig;
+	auxConfig = config_create(path);
 
-void abrir_config(char* path){
-	config = config_create(path);
+	config.PUERTO = config_get_int_value(auxConfig, "PUERTO");
+	config.MARCOS = config_get_int_value(auxConfig, "MARCOS");
+	config.MARCO_SIZE = config_get_int_value(auxConfig, "MARCO_SIZE");
+	config.ENTRADAS_CACHE = config_get_int_value(auxConfig, "ENTRADAS_CACHE");
+	config.CACHE_X_PROC = config_get_int_value(auxConfig, "CACHE_X_PROC");
+	char *reemplazoCache = config_get_string_value(auxConfig, "REEMPLAZO_CACHE");
+	memcpy(config.REEMPLAZO_CACHE, reemplazoCache, strlen(reemplazoCache)+1);
+	free (reemplazoCache);
+	config.RETARDO_MEMORIA = config_get_int_value(auxConfig, "RETARDO_MEMORIA");
+	config.CANTCONEXIONES = config_get_int_value(auxConfig, "CANTCONEXIONES");
+
+	config_destroy(auxConfig);
+
+	return config;
 }
 
-void cerrar_config_actual(){
-	config_destroy(config);
-}
-
-int puerto(){
-	return config_get_int_value(config, "PUERTO");
-}
-
-int marcos(){
-	return config_get_int_value(config, "MARCOS");
-}
-
-int marco_size(){
-	return config_get_int_value(config, "MARCO_SIZE");
-}
-
-int entradas_cache(){
-	return config_get_int_value(config, "ENTRADAS_CACHE");
-}
-
-int cache_x_proc(){
-	return config_get_int_value(config, "CACHE_X_PROC");
-}
-
-char* reemplazo_cache(){
-	return config_get_string_value(config,"REEMPLAZO_CACHE");
-}
-
-
-int retardo_memoria(){
-	return config_get_int_value(config, "RETARDO_MEMORIA");
-}
-
-int cantConexiones(){
-	return config_get_int_value(config, "CANTCONEXIONES");
-}
-
-void mostrarConfig(){
+void print_config(Type_Config auxConfig){
 
 	puts("----------------------");
 	printf("Configuracion:\n");
 	puts("");
-	printf("PUERTO = %d\n",puerto());
-	printf("MARCOS = %d\n",marcos());
-	printf("MARCO_SIZE = %d\n",marco_size());
-	printf("ENTRADAS_CACHE = %d\n",entradas_cache());
-	printf("CACHE_X_PROC = %d\n",cache_x_proc());
-	printf("REEMPLAZO_CACHE = %s\n",reemplazo_cache());
-	printf("RETARDO_MEMORIA = %d\n",retardo_memoria());
-	printf("CANTCONEXIONES = %d\n",cantConexiones());
+	printf("PUERTO = %d\n",auxConfig.PUERTO);
+	printf("MARCOS = %d\n",auxConfig.MARCOS);
+	printf("MARCO_SIZE = %d\n",auxConfig.MARCO_SIZE);
+	printf("ENTRADAS_CACHE = %d\n",auxConfig.ENTRADAS_CACHE);
+	printf("CACHE_X_PROC = %d\n",auxConfig.CACHE_X_PROC);
+	printf("REEMPLAZO_CACHE = %s\n",auxConfig.REEMPLAZO_CACHE);
+	printf("RETARDO_MEMORIA = %d\n",auxConfig.RETARDO_MEMORIA);
+	printf("CANTCONEXIONES = %d\n",auxConfig.CANTCONEXIONES);
 	puts("----------------------");
 }
 
