@@ -119,6 +119,7 @@ void recibirPCB(int socket) {
 
 	t_PCB *pcbRecibido = deserializar_data(socket); //Deserializo la info que trae el socket
 
+
 	if (pcbRecibido == NULL) {  //Si el socket no tiene info valida tiro error.
 
 		printf("%s", "Error al recibir PCB desde Kernel");
