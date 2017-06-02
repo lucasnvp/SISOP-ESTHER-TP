@@ -93,8 +93,6 @@ int main(void) {
 
 	}
 
-	cerrar_config_actual();
-
 	return EXIT_SUCCESS;
 }
 
@@ -146,7 +144,8 @@ void ejecutarPrograma(){
 
 void recibirPCB(int socket){
 
-	t_PCB *pcbRecibido = deserializar_path(socket); //Deserializo la info que trae el socket
+	//t_PCB *pcbRecibido = deserializar_data(socket); //Deserializo la info que trae el socket
+	t_PCB *pcbRecibido;
 
 	if(pcbRecibido == NULL){  //Si el socket no tiene info valida tiro error.
 

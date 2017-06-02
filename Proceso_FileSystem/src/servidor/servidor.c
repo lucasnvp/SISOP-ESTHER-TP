@@ -83,17 +83,9 @@ void set_listen(uint32_t servidor, uint32_t sizeConexiones){
 }
 
 void send_data(uint32_t servidor, void* dataToSend, uint32_t bytesToSend){
-    void* mensaje = malloc(sizeof(uint32_t) + bytesToSend);
-    void* aux = mensaje;
-    *((uint32_t*)aux) = bytesToSend;
-    aux += sizeof(uint32_t);
-    memcpy(aux, dataToSend, bytesToSend);
-
     if(send(servidor, dataToSend, sizeof(uint32_t) + bytesToSend, 0) < 0){
         perror("Error al enviar data");
     }
-
-    free(mensaje);
 }
 
 void send_string(uint32_t socket, char* mensaje){

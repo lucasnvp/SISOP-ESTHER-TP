@@ -44,8 +44,7 @@ void procesarPCB(void* args);
 void server(void* args);
 void consola_kernel(void* args);
 void planificador(void* args);
-void connection_handler(uint32_t socket, uint32_t command);
-void recive_string();
+void connection_handler(uint32_t socket, char* command);
 
 void* queue_sync_pop(t_queue* self);
 void queue_sync_push(t_queue* self, void* element);

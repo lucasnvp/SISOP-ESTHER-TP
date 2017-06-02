@@ -33,15 +33,16 @@ int main(void){
 				fdmax = newfd;
 			}
 		}else{
-			//Recibo los datos
-			char* buffer = (char*)deserializar_data(fdmax);
-			uint32_t bytesRecibidos = sizeof(buffer);
+			//Recibo el comando
+			t_SerialString* command = malloc(sizeof(t_SerialString));
+			deserializar_string(fdmax, command);
+			uint32_t bytesRecibidos = command->sizeString;
 			// gestionar datos de un cliente
-			if(buffer <= 0){
+			if(bytesRecibidos <= 0){
 				fdmax = servidor; // eliminar del conjunto maestro
 			} else{
 				//Muestro los datos
-				printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
+				printf("Me llegaron %d bytes con %s\n", command->sizeString, command->dataString);
 			}
 
 		}

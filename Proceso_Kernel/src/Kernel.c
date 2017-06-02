@@ -131,7 +131,7 @@ void server(void* args){
 	fd_set master;   	// conjunto maestro de descriptores de fichero
 	fd_set read_fds; 	// conjunto temporal de descriptores de fichero para select()
 	uint32_t fdmax;			// número máximo de descriptores de fichero
-	int i,j;				// variable para el for
+	int i;				// variable para el for
 	FD_ZERO(&master);	// borra los conjuntos maestro
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
@@ -168,16 +168,17 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					char* command = (char*)deserializar_data(i);
-					uint32_t bytesRecibidos = sizeof(command);
+					t_SerialString* command = malloc(sizeof(t_SerialString));
+					deserializar_string(i, command);
+					uint32_t bytesRecibidos = command->sizeString;
 
 					// gestionar datos de un cliente
 					if(bytesRecibidos <= 0){
 						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
-						connection_handler(i, command);
-						free(command);
+						connection_handler(i, command->dataString);
+						//free(command);
 					}
 				}
 			}
@@ -185,39 +186,30 @@ void server(void* args){
 	}
 }
 
-void connection_handler(uint32_t socket, uint32_t command){
+void connection_handler(uint32_t socket, char* command){
 	if(!strcmp(command, "run")){
 		printf("Nuevo Programa\n");
 		//Deserializar el path
 		//Pregunto a la memoria si tiene lugar
 		//Si tiene lugar
+			serializar_int(socket, 1);
 			//Deserializar path
-			char* buffer = (char*)deserializar_data(socket);
+			t_SerialString* PATH = malloc(sizeof(t_SerialString));
+			deserializar_string(socket, PATH);
+
+			printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
+			printf("El mensaje es: %s\n", PATH->dataString);
+
 			//Almacenar la consola
 			Program* NewProgram = Program_new(socket, 0);
 			queue_sync_push(QUEUE_PCB, NewProgram);
-			free(buffer);
+			//free(PATH);
 		//No tiene lugar
 			//Abortar run
 
 	}else
 		printf("Error de comando\n");
 	return;
-}
-
-void recive_string(){
-	//Recibo los datos
-	char* buffer = (char*)deserializar_data(socket);
-	uint32_t bytesRecibidos = sizeof(buffer);
-	//Muestro los datos
-	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
-
-	//Manda la info a la memoria
-	send_data(SERVIDOR_MEMORIA, buffer, bytesRecibidos);
-	//Manda la info al FS
-	send_data(SERVIDOR_FILESYSTEM, buffer, bytesRecibidos);
-	//Manda la info a todas las cpu
-	//massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
 }
 
 void consola_kernel(void* args){

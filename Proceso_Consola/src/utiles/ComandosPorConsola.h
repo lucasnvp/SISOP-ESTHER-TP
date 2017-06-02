@@ -43,9 +43,27 @@ void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
 
 	//Ejecuto el comando run en el servidor
-	serializar_data(param->kernel, 1, 4, "run");
+	t_SerialString* command = malloc(sizeof(t_SerialString));
+	command->sizeString = 3;
+	command->dataString = malloc(command->sizeString);
+	command->dataString = "run";
+	serializar_string(param->kernel, command);
+	//free(command);
+
+	uint32_t mandarPath = deserializar_int(param->kernel);
+	if(mandarPath == 1){
+		printf("Mandar Path\n");
+	} else{
+		printf("No podes mandar path\n");
+	}
+
 	//Le envio el path
-	serializar_data(param->kernel, 2, strlen(param->argumento), param->argumento);
+	t_SerialString* path = malloc(sizeof(t_SerialString));
+	path->sizeString = strlen(param->argumento);
+	path->dataString = malloc(path->sizeString);
+	path->dataString = param->argumento;
+	serializar_string(param->kernel, path);
+	//free(path);
 
 	//Recibo los datos
 	uint32_t PID_PCB = deserializar_int(consola->kernel);
