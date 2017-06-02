@@ -28,6 +28,7 @@ uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
 t_list * LIST_READY;
+t_list * LIST_CONSOLAS;
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;

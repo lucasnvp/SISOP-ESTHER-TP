@@ -16,6 +16,7 @@ int main(void) {
 	QUEUE_PCB = queue_create();
 	QUEUE_NEW = queue_create();
 	LIST_READY = list_create();
+	LIST_CONSOLAS = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
@@ -79,9 +80,10 @@ void procesarPCB(void* args){
 		printf("Nuevo proceso PCB\n");
 		printf("El pid del proceso es: %d \n", PID_PCB);
 
-		uint32_t idConsola = aProgram->ID_Consola;
+		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
+		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB * newPCB = PCB_new_pointer(idConsola,PID_PCB, 0, 0, 0, 0, 0, 0);
+		PCB * newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -186,16 +188,18 @@ void server(void* args){
 void connection_handler(uint32_t socket, uint32_t command){
 	if(!strcmp(command, "run")){
 		printf("Nuevo Programa\n");
+		//Deserializar el path
 		//Pregunto a la memoria si tiene lugar
+		//Si tiene lugar
+			//Deserializar path
+			char* buffer = (char*)deserializar_data(socket);
+			//Almacenar la consola
+			Program* NewProgram = Program_new(socket, 0);
+			queue_sync_push(QUEUE_PCB, NewProgram);
+			free(buffer);
+		//No tiene lugar
+			//Abortar run
 
-		//Ingreso del path
-		char* buffer = (char*)deserializar_data(socket);
-		//Cargo el programa
-		Program * auxProgram = malloc(sizeof(Program));
-		auxProgram->ID_Consola = socket;
-		auxProgram->Path = buffer;
-		queue_sync_push(QUEUE_PCB, auxProgram);
-		free(buffer);
 	}else
 		printf("Error de comando\n");
 	return;

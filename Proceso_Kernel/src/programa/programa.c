@@ -1,9 +1,9 @@
 #include "programa.h"
 
-Program Program_new(int32_t ID_Consola, char* Path){
-	Program aProgram;
-	aProgram.ID_Consola = ID_Consola;
-	aProgram.Path = Path;
+Program* Program_new(uint32_t ID_Consola, uint32_t PID){
+	Program* aProgram = malloc(sizeof(Program));
+	aProgram->ID_Consola = ID_Consola;
+	aProgram->PID = PID;
 	return aProgram;
 }
 
@@ -12,6 +12,6 @@ void Program_free(Program *this){
 }
 
 void print_Program(Program auxProgram){
-	printf("PID: %d\n",auxProgram.ID_Consola);
-	printf("ProgramCounter: %s\n",auxProgram.Path);
+	printf("El socket de la consola es: %d\n",auxProgram.ID_Consola);
+	printf("El PID asociado es: %d\n",auxProgram.PID);
 }
