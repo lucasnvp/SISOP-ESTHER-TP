@@ -1,81 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "config/config_Memoria.h"
-#include "servidor/servidor.h"
-#include "serializador/serializador.h"
-
-char* PATH_CONFIG = "../src/config/config.txt";
-Type_Config config;
-
-#include "Listash.h"
-
-#define TAM_BLOQUE 512
-#define TAM_PAGINA 512
-#define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
-#define TRUE 1
-#define FALSE 0
-
-//Estos define que defino ahora luego se obtienen del config file
-#define MARCOS 4
-#define MARCO_SIZE 512
-
-
-
-
-Lista listaMemoriaLibre = NULL;
-pNodo p;
-
-Lista listaMemoriaOcupada = NULL;
-pNodo q;
-
-void * memoria; //MARCOS * MARCOS_SIZE
-
-
-
-struct heapMetadata{
-    int size;
-	bool isFree;
-};
-
-//Creo esta estructura para guardar los datos con su tamanio por que si no no se puede saber con un sizeof por ser void
-struct datosStruct{
-    void * dato;
-    unsigned int tamDatos;
-    int pid;
-
-};
-
-struct estructuraPaginacionInversa{
-    int ** matriz;
-    int filas;
-    int columnas;
-
-};
-typedef struct estructuraPaginacionInversa tEstructuraPaginacionInversa;
-
-tEstructuraPaginacionInversa EPI;
-
-typedef struct heapMetadata metadata;
-
-typedef struct datosStruct tDato;
-
-
-
-void * nuevoBloqueDeMemoria();
-metadata obtengoHeapMetadata(void * pagina,int posicionDeArranque);
-void dividoMemoria(void * memoria);
-bool puedoAlojarDatosEnUnaPagina(metadata memoria, int tamDatos);
-void * agregarDatosABloqueDeMemoria(void * memoria, tDato datos);
-tDato creoDato(void * dato,unsigned int tamDatos);
-bool puedoAlojarDatos(void * memoria, int tamDatos);
-bool consola();
-tDato obtenerMemoria(void * memoria,int PID);
+#include "Memoria.h"
 
 int main(void){
     puts("Proceso Memoria");
@@ -83,6 +6,7 @@ int main(void){
     //Configuracion inicial
 	config = load_config(PATH_CONFIG);
 	print_config(config);
+
 
     // variables para el servidor
 	int fdmax;        // número máximo de descriptores de fichero
@@ -119,6 +43,7 @@ int main(void){
 				//Muestro los datos
 				printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
 			}
+
 		}
 	}
 
@@ -127,7 +52,7 @@ int main(void){
 
 void * nuevoBloqueDeMemoria()//Inicializo memora
 	{
-		void * memoria = malloc(MARCOS*MARCO_SIZE);
+		void * memoria = malloc(config.MARCOS*config.MARCO_SIZE);
 
 	    dividoMemoria(memoria); //Divido el bloque en paginas de 512 con indicadores de inicio y fin de pagina
 
@@ -285,20 +210,20 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	    int i=0;
 
-	    while (i<MARCOS){
+	    while (i<(config.MARCOS)){
 
 		metadata inicio;
-		inicio.size=MARCO_SIZE-(sizeof(metadata)*2);
+		inicio.size=config.MARCO_SIZE-(sizeof(metadata)*2);
 		inicio.isFree=TRUE;
 
-		memcpy(memoria + (i*MARCO_SIZE),&inicio,sizeof(metadata));
-	    Insertar(&listaMemoriaLibre,((memoria + (i*MARCO_SIZE))),0);//Agrega a listaDeMemoriaLibrea posiciones de los heaps con memoria libre
+		memcpy(memoria + (i*config.MARCO_SIZE),&inicio,sizeof(metadata));
+	    Insertar(&listaMemoriaLibre,((memoria + (i*config.MARCO_SIZE))),0);//Agrega a listaDeMemoriaLibrea posiciones de los heaps con memoria libre
 
 		metadata fin;
 	    fin.size=0;
 	    fin.isFree=TRUE;
-	    memcpy(memoria+(((i+1)*MARCO_SIZE)-sizeof(metadata)),&fin,sizeof(metadata));
-	    Insertar(&listaMemoriaOcupada,memoria+((i+1)*MARCO_SIZE)-sizeof(metadata),0);
+	    memcpy(memoria+(((i+1)*config.MARCO_SIZE)-sizeof(metadata)),&fin,sizeof(metadata));
+	    Insertar(&listaMemoriaOcupada,memoria+((i+1)*config.MARCO_SIZE)-sizeof(metadata),0);
 	    i++;
 	    }
 
