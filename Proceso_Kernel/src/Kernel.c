@@ -240,6 +240,7 @@ void consola_kernel(void* args){
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
 				kill_process(LIST_READY,nroProceso);
+				sem_post(&SEM_MULTIPROGRAMACION);
 			}
 		else
 			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
