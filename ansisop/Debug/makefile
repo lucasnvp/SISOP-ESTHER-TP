@@ -26,7 +26,7 @@ endif
 all: libansisop.so
 
 dependents:
-	-cd /home/utnso/git/tp-2017-1c-Blacklist/commons/Debug && $(MAKE) all
+	-cd /home/utnso/git/tp-2017-1c-Blacklist/commons/Debug && $(MAKE) clean all
 
 # Tool invocations
 libansisop.so: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2017-1c-Blacklist/commons/Debug/libcommons.so

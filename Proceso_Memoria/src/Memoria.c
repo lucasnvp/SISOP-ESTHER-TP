@@ -22,22 +22,13 @@ int main(void){
 		if(newfd){
 			pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 			pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
-<<<<<<< HEAD
-=======
-			free(hiloConsola);
->>>>>>> e5310ee55bb6d35fa4fced5121c2164d8214b2de
+
 		}
 	}
 	return EXIT_SUCCESS;
 }
 
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> e5310ee55bb6d35fa4fced5121c2164d8214b2de
 void crearHilo(uint32_t * newfd){
 
 	t_SerialString* command = malloc(sizeof(t_SerialString));
@@ -286,21 +277,16 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	    return d;
 	}
 
-<<<<<<< HEAD
 	void * borrarDatosMemoria(int PID){//todo FALTA TERMINAR
 
 		/* -
-=======
-	void * borrarDatosMemoria(int PID){
 
-		/* -Buscar en tabla de paginacion donde esta
->>>>>>> e5310ee55bb6d35fa4fced5121c2164d8214b2de
 		 * -Borrar en momoria segun posicion inicial que devuelve tabla y pararme para obtener heapMetada y saber cuanto borrar
 		 * -Eliminar el nodo de memoria ocupada, agregar el nodo de memoria libre
 		 * -eliminar de tabla de paginacion la entrada del programa en cuestion
 		 */
 
-<<<<<<< HEAD
+
 		void * programa = buscarEnEPI(PID);
 		metadata meta;
 
@@ -309,7 +295,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 		int memoriaABorrar = meta.size;
 
-		borrar(listaMemoriaOcupada,programa);
+		Borrar(listaMemoriaOcupada,programa);
 
 		meta.size-=memoriaABorrar;
 		meta.isFree=true;
@@ -321,16 +307,16 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		while(programa!=NULL)
 		{
 
-			char ** nuevaTabla = reorganizarTabla(PID);
+			//char ** nuevaTabla = reorganizarTabla(PID);
 
 		}
 
 	}
 
-	char ** reorganizarTabla(int PID);
+	/*todo char ** reorganizarTabla(int PID);
 	{
 
-	}
+	}*/
 	void * buscarEnEPI(int PID)
 	{
 		int i;
@@ -342,8 +328,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 			}
 		}
 		return NULL;
-=======
->>>>>>> e5310ee55bb6d35fa4fced5121c2164d8214b2de
+
 	}
 
 	void dump(){
@@ -383,10 +368,9 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		if (!strcmp(command,"HAYMEMORIA")) //Kernel
 			{
 				bool puedoAlojar = puedoAlojarDatos(memoria,55);
-<<<<<<< HEAD
-				serializar_string()
-=======
->>>>>>> e5310ee55bb6d35fa4fced5121c2164d8214b2de
+
+				//serializar_string()
+
 			}
 			if (!strcmp(command,"GUARDAENMEMORIA")) //Kernel
 			{
