@@ -4,8 +4,8 @@ int main(void) {
 	puts("Proceso Kernel");
 
 	//Configuracion inicial
-	config = load_config(PATH_CONFIG);
-	print_config(config);
+	//config = load_config(PATH_CONFIG);
+	//print_config(config);
 
 	// Variables hilos
 	pthread_t thread_programa;
@@ -23,6 +23,7 @@ int main(void) {
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
 	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
+	sem_init(&SEM_COMMAND,0,0);
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -136,7 +137,8 @@ void server(void* args){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	//SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	SERVIDOR_KERNEL = build_server(5010, 10);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){
@@ -168,17 +170,14 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					t_SerialString* command = malloc(sizeof(t_SerialString));
-					deserializar_string(i, command);
-					uint32_t bytesRecibidos = command->sizeString;
+					uint32_t command = deserializar_int(i);
 
 					// gestionar datos de un cliente
-					if(bytesRecibidos <= 0){
+					if(command <= 0){
 						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
-						connection_handler(i, command->dataString);
-						//free(command);
+						connection_handler(i, command);
 					}
 				}
 			}
@@ -186,29 +185,26 @@ void server(void* args){
 	}
 }
 
-void connection_handler(uint32_t socket, char* command){
-	if(!strcmp(command, "run")){
+void connection_handler(uint32_t socket, uint32_t command){
+
+	switch(command){
+	case 1:
 		printf("Nuevo Programa\n");
-		//Deserializar el path
-		//Pregunto a la memoria si tiene lugar
-		//Si tiene lugar
-			serializar_int(socket, 1);
-			//Deserializar path
-			t_SerialString* PATH = malloc(sizeof(t_SerialString));
-			deserializar_string(socket, PATH);
-
-			printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
-			printf("El mensaje es: %s\n", PATH->dataString);
-
-			//Almacenar la consola
-			Program* NewProgram = Program_new(socket, 0);
-			queue_sync_push(QUEUE_PCB, NewProgram);
-			//free(PATH);
-		//No tiene lugar
-			//Abortar run
-
-	}else
+		t_SerialString* PATH = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, PATH);
+		printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
+		printf("El mensaje es: %s\n", PATH->dataString);
+		free(PATH->dataString);
+		free(PATH);
+		//Almacenar la consola
+		Program* NewProgram = Program_new(socket, 0);
+		queue_sync_push(QUEUE_PCB, NewProgram);
+		break;
+	default:
 		printf("Error de comando\n");
+		break;
+	}
+
 	return;
 }
 

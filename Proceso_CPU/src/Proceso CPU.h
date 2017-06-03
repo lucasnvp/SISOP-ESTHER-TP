@@ -2,7 +2,6 @@
 #define PROCESO_CPU_H_
 
 #include "servidor/servidor.h"
-#include <stdint.h>
 #include "primitivas/ansi_primit.h"
 #include <parser/parser.h>
 
@@ -53,6 +52,7 @@ typedef struct pcb { // Estructura que representa el PCB
 	uint32_t ExitCode; //Número entero que identifica el motivo de finalización	del proceso.
 
 } t_PCB;
+
 
 typedef struct strGenMsg { // estructura generica, debe estar en todas las estructuras
 	uint32_t id_MSJ;
@@ -150,7 +150,5 @@ t_KER_PRO_CPU_UMV obtener_nueva_shared_str() {
 	nueva.valor = 0;
 	return nueva;
 }
-
-
 
 #endif /* PROCESO_CPU_H_ */

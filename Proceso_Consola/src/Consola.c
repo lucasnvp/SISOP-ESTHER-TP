@@ -4,8 +4,8 @@ int main (void){
 	puts("Proceso Consola");
 
 	//Configuracion inicial
-	config = load_config(PATH_CONFIG);
-	print_config(config);
+	//config = load_config(PATH_CONFIG);
+	//print_config(config);
 
 	// Variables hilos
 	pthread_t thread_comandos;
@@ -26,8 +26,8 @@ int main (void){
 
 void connect_server_kernel(){
 	//Me conecto al servidor
-	SERVIDOR_KERNEL = connect_server(config.IP_KERNEL,config.PUERTO_KERNEL);
-	//SERVIDOR_KERNEL = connect_server("127.0.0.1",5010);
+	//SERVIDOR_KERNEL = connect_server(config.IP_KERNEL,config.PUERTO_KERNEL);
+	SERVIDOR_KERNEL = connect_server("127.0.0.1",5010);
 
 	//Si conecto, informo
 	if(SERVIDOR_KERNEL > 0){
@@ -46,7 +46,7 @@ void consola_comandos(){
 				//Envio el mensaje
 				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) &consola);
-				free(hiloConsola);
+				//free(hiloConsola);
 			}
 		}
 		else if (!strcmp(consola.comando, "close"))

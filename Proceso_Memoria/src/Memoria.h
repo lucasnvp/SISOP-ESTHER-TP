@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -77,3 +78,7 @@ bool puedoAlojarDatos(void * memoria, int tamDatos);
 bool consola();
 tDato obtenerMemoria(void * memoria,int PID);
 void crearHilo(uint32_t * newfd);
+<<<<<<< HEAD
+=======
+void * buscarEnEPI(int PID);
+>>>>>>> b0af0ca4947292a9997d7b4b17a59b1b90d2e52b

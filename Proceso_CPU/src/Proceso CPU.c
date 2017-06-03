@@ -1,7 +1,7 @@
-#include "Proceso CPU.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "Proceso CPU.h"
 #include "config/config_CPU.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
@@ -16,8 +16,7 @@ int main(void) {
 
 	puts("Proceso CPU");
 
-	idCPU = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
-	cpuOcupado = 0; // No tengo programa asignado
+	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
