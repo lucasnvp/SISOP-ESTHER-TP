@@ -5,28 +5,21 @@
 #include "primitivas/ansi_primit.h"
 #include <parser/parser.h>
 
-AnSISOP_funciones functions = {
-		.AnSISOP_definirVariable		= definirVariable,
+AnSISOP_funciones functions = { .AnSISOP_definirVariable = definirVariable,
 //		.AnSISOP_imprimirTexto			= imprimirTexto,
-		.AnSISOP_obtenerPosicionVariable= obtenerPosicionVariable,
-		.AnSISOP_dereferenciar			= dereferenciar,
-		.AnSISOP_asignar				= asignar,
+		.AnSISOP_obtenerPosicionVariable = obtenerPosicionVariable,
+		.AnSISOP_dereferenciar = dereferenciar, .AnSISOP_asignar = asignar,
 		//.AnSISOP_imprimir				= imprimir,
-		.AnSISOP_irAlLabel				= irAlLabel,
-		.AnSISOP_asignarValorCompartida = asignarValorCompartida,
+		.AnSISOP_irAlLabel = irAlLabel, .AnSISOP_asignarValorCompartida =
+				asignarValorCompartida,
 //		.AnSISOP_entradaSalida 			= entradaSalida,
 //		.AnSISOP_obtenerValorCompartida	= obtenerValorCompartida,
-		.AnSISOP_llamarSinRetorno		= llamarSinRetorno,
-		.AnSISOP_llamarConRetorno		= llamarConRetorno,
-		.AnSISOP_finalizar				= finalizar,
-		.AnSISOP_retornar				= retornar,
-};
+		.AnSISOP_llamarSinRetorno = llamarSinRetorno,
+		.AnSISOP_llamarConRetorno = llamarConRetorno, .AnSISOP_finalizar =
+				finalizar, .AnSISOP_retornar = retornar, };
 
-AnSISOP_kernel kernel_functions = {
-		.AnSISOP_signal 				= semaforo_signal,
-		.AnSISOP_wait					= semaforo_wait,
-};
-
+AnSISOP_kernel kernel_functions = { .AnSISOP_signal = semaforo_signal,
+		.AnSISOP_wait = semaforo_wait, };
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;
@@ -53,77 +46,30 @@ typedef struct pcb { // Estructura que representa el PCB
 
 } t_PCB;
 
+typedef struct strKernelProgramaCPUUMV {
 
-typedef struct strGenMsg { // estructura generica, debe estar en todas las estructuras
+	//Datos para conexion
 	uint32_t id_MSJ;
 	uint32_t disconnected;
 	uint32_t socket_descriptor;
 	uint32_t socket_descriptor_server;
 	uint32_t size_str;
-} __attribute__ ((__packed__)) t_GEN_MSG;
-
-
-typedef struct strKernelProgramaCPUUMV {
-	t_GEN_MSG gen_msg;
-
-	//HANDSHAKE_PROGRAMA_PLP y HANDSHAKE_CPU_PCP
 	uint32_t identificador_cpu; //(identificador propio de CPU)
-	//HANDSHAKE_PROGRAMA_PLP y ENVIO_COD_INS_ETI
-	uint32_t codigo_long;
-	char* codigo; //Ansisop
-	//IMPRIMIR - IMPRIMIR_TEXTO
-	uint32_t texto_long;
-	char* texto;
-	//CREAR_SEGMENTOS
-	uint32_t tamanio_segmento;
-	uint32_t base_segmento;
+	uint32_t codigo_long;//Para uso ansisop
+	char* codigo; //Para uso ansisop
+	t_PCB PCB; //PCB
+	uint32_t PID; //Identificador del proceso
+	uint32_t OK;	// Para paso de Mensajes
+	uint32_t mensaje_long;	// Para paso de Mensajes
+	char* mensaje;	// Para paso de Mensajes
 
-	//EJECUTAR_PROGRAMA
-	uint32_t quantum;
-	uint32_t retardo;
-	//OBTENER_VALOR y GRABAR_VALOR
-	uint32_t id_var_comp_long;
-	char* id_var_comp;
-	int valor;
-	//WAIT y SIGNAL
-	uint32_t id_sem_long;
-	char* id_sem;
-	//ENTRADA_SALIDA
-	uint32_t id_dispositivo_long;
-	char* id_dispositivo;
-	uint32_t utilizacion;
-	//SOLICITAR_BYTES y ENVIAR_BYTES
-	uint32_t  base_bytes;
-	uint32_t  offset_bytes;
-	uint32_t  tamanio_bytes;
-	//SOLICITAR_BYTES, ENVIAR_BYTES y SOLICTUD_INSTRUCCION
-	uint32_t buffer_long;
-	char* buffer;
-	//EJECUTAR_PROGRAMA
-	t_PCB PCB;
-	//HANDSHAKE_PROGRAMA_PLP, HANDSHAKE_CPU_PCP, HANDSHAKE_CPU_UMV, CAMBIO_PROCESO_ACTIVO, FINALIZAR_EJECUCION, DESTRUIR_SEGMENTOS, NOTIFICACION_QUANTUM
-	uint32_t PID;
-	//ENTRADA_INDICE
-	uint32_t  indice;
-	// Proposito Gral
-	uint32_t OK;
-	uint32_t mensaje_long;
-	char* mensaje;
+}__attribute__ ((__packed__)) str_generica_msjs;
 
-}__attribute__ ((__packed__)) t_KER_PRO_CPU_UMV;
+str_generica_msjs inicializar_str_msjs() {
+	str_generica_msjs nueva;
 
-
-
-t_KER_PRO_CPU_UMV obtener_nueva_shared_str() {
-	t_KER_PRO_CPU_UMV nueva;
-
-	nueva.buffer = "\0";
 	nueva.codigo = "\0";
-	nueva.id_dispositivo = "\0";
-	nueva.id_sem = "\0";
-	nueva.id_var_comp = "\0";
 	nueva.mensaje = "\0";
-	nueva.texto = "\0";
 	nueva.PID = 0;
 	nueva.OK = 0;
 	nueva.PCB.PID = 0;
@@ -133,21 +79,12 @@ t_KER_PRO_CPU_UMV obtener_nueva_shared_str() {
 	nueva.PCB.TagsPointer = 0;
 	nueva.PCB.PageCode = 0;
 	nueva.PCB.ExitCode = 0;
-	nueva.base_bytes = 0;
-	nueva.base_segmento = 0;
-	nueva.gen_msg.disconnected = 0;
-	nueva.gen_msg.id_MSJ = 0;
-	nueva.gen_msg.socket_descriptor = 0;
-	nueva.gen_msg.socket_descriptor_server = 0;
+	nueva.disconnected = 0;
+	nueva.id_MSJ = 0;
+	nueva.socket_descriptor = 0;
+	nueva.socket_descriptor_server = 0;
 	nueva.identificador_cpu = 0;
-	nueva.indice = 0;
-	nueva.offset_bytes = 0;
-	nueva.quantum = 0;
-	nueva.retardo = 0;
-	nueva.tamanio_bytes = 0;
-	nueva.tamanio_segmento = 0;
-	nueva.utilizacion = 0;
-	nueva.valor = 0;
+
 	return nueva;
 }
 
