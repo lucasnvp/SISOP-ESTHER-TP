@@ -1,3 +1,4 @@
+
 # Object files
 *.o
 *.ko
@@ -43,7 +44,9 @@
 /Proceso_Memoria/Debug
 
 /commons/Debug
+/commons/Debug/*
 /ansisop/Debug
+/ansisop/Debug/*
 
 #Eclipse
 .metadata
