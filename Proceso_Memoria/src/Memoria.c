@@ -22,11 +22,13 @@ int main(void){
 		if(newfd){
 			pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 			pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
-			free(hiloConsola);
 		}
 	}
 	return EXIT_SUCCESS;
 }
+
+
+
 
 
 void crearHilo(uint32_t * newfd){
@@ -174,12 +176,13 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	            tamPrograma+=heap.size;
 	            programa = calloc(programa,tamPrograma*sizeof(void*));
 	            if(programa!='\0'){
+
 	           memmove((void *)(programa+tamProgramaAnterior),(void *)(EPI.matriz[i][3]+sizeof(heap)),heap.size);
 
 	            }
 	        }
 	    }
-	    dato.dato=programa; // aca hay que hacer un memcpy
+	    dato.dato=programa; // TODO aca hay que hacer un memcpy
 	    dato.tamDatos=tamPrograma;
 
 	    return dato;
@@ -276,14 +279,55 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	    return d;
 	}
 
-	void * borrarDatosMemoria(int PID){
+	void * borrarDatosMemoria(int PID){//todo FALTA TERMINAR
 
-		/* -Buscar en tabla de paginacion donde esta
+		/* -
 		 * -Borrar en momoria segun posicion inicial que devuelve tabla y pararme para obtener heapMetada y saber cuanto borrar
 		 * -Eliminar el nodo de memoria ocupada, agregar el nodo de memoria libre
 		 * -eliminar de tabla de paginacion la entrada del programa en cuestion
 		 */
 
+		void * programa = buscarEnEPI(PID);
+		metadata meta;
+
+		meta = obtengoHeapMetadata(memoria,PID);
+
+
+		int memoriaABorrar = meta.size;
+
+		borrar(listaMemoriaOcupada,programa);
+
+		meta.size-=memoriaABorrar;
+		meta.isFree=true;
+
+		memcpy(memoria,&meta,sizeof(meta));
+
+		void Insertar(listaDeMemoriaLibre,memoria,PID);
+
+		while(programa!=NULL)
+		{
+
+			char ** nuevaTabla = reorganizarTabla(PID);
+
+		}
+
+	}
+
+	char ** reorganizarTabla(int PID);
+	{
+
+	}
+	void * buscarEnEPI(int PID)
+	{
+		int i;
+		for(i=0;i<EPI.filas;i++)
+		{
+			if (PID==EPI.matriz[i][1])
+			{
+				return EPI.matriz[i][3];
+			}
+		}
+		return NULL;
 	}
 
 	void dump(){
@@ -323,6 +367,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		if (!strcmp(command,"HAYMEMORIA")) //Kernel
 			{
 				bool puedoAlojar = puedoAlojarDatos(memoria,55);
+				serializar_string()
 			}
 			if (!strcmp(command,"GUARDAENMEMORIA")) //Kernel
 			{
