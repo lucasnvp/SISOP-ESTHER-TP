@@ -34,6 +34,14 @@ AnSISOP_kernel kernel_functions = {
 
 bool termino = false;
 
+uint32_t cpuOcupado;
+uint32_t idCPU;
+
+// USAR ESTOS MENSAJES
+#define HANDSHAKE_PROGRAMA_PLP 1
+#define HANDSHAKE_CPU_KERNEL 2
+#define HANDSHAKE_CPU_MEMORIA 3
+
 typedef struct pcb { // Estructura que representa el PCB
 	uint32_t PID; //Número identificador del proceso único en el sistema.
 	uint32_t ProgramCounter; //Número de la próxima instrucción del Programa que se	debe ejecutar.
@@ -44,9 +52,5 @@ typedef struct pcb { // Estructura que representa el PCB
 	uint32_t ExitCode; //Número entero que identifica el motivo de finalización	del proceso.
 
 } t_PCB;
-
-bool terminoElPrograma(void);
-void ejecutarPrograma();
-void recibirPCB(int socket);
 
 #endif /* PROCESO_CPU_H_ */
