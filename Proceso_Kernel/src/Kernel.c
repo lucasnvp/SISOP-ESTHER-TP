@@ -4,8 +4,8 @@ int main(void) {
 	puts("Proceso Kernel");
 
 	//Configuracion inicial
-	config = load_config(PATH_CONFIG);
-	print_config(config);
+	//config = load_config(PATH_CONFIG);
+	//print_config(config);
 
 	// Variables hilos
 	pthread_t thread_programa;
@@ -16,12 +16,14 @@ int main(void) {
 	QUEUE_PCB = queue_create();
 	QUEUE_NEW = queue_create();
 	LIST_READY = list_create();
+	LIST_CONSOLAS = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
 	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
+	sem_init(&SEM_COMMAND,0,0);
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -79,9 +81,10 @@ void procesarPCB(void* args){
 		printf("Nuevo proceso PCB\n");
 		printf("El pid del proceso es: %d \n", PID_PCB);
 
-		uint32_t idConsola = aProgram->ID_Consola;
+		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
+		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB * newPCB = PCB_new_pointer(idConsola,PID_PCB, 0, 0, 0, 0, 0, 0);
+		PCB * newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -89,7 +92,7 @@ void procesarPCB(void* args){
 		sem_post(&SEM_READY);
 
 		//Envio el PID a la consola
-		serializar_path(aProgram->ID_Consola, PID_PCB, 4, "PID");
+		serializar_int(aProgram->ID_Consola, PID_PCB);
 
 		//Muestro el PID Del proceso
 		print_PCB(newPCB);
@@ -134,7 +137,8 @@ void server(void* args){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	//SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	SERVIDOR_KERNEL = build_server(5010, 10);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){
@@ -165,32 +169,43 @@ void server(void* args){
 						fdmax = newfd;
 					}
 				} else {
-					//Recibo los datos
-					DatosRecibidos *buffer = deserializar_path(i);
+					//Recibo el comando
+					uint32_t command = deserializar_int(i);
 
 					// gestionar datos de un cliente
-					if(buffer <= 0){
+					if(command <= 0){
+						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
-						//Muestro los datos
-						printf("Me llegaron %d bytes con %s\n", buffer->bytesRecibidos, buffer->datos);
-
-						Program * auxProgram = malloc(sizeof(Program));
-						auxProgram->ID_Consola = i;
-						auxProgram->Path = buffer->datos;
-						queue_sync_push(QUEUE_PCB, auxProgram);
-
-						//Manda la info a la memoria
-						send_data(SERVIDOR_MEMORIA, buffer->datos, buffer->bytesRecibidos);
-						//Manda la info al FS
-						send_data(SERVIDOR_FILESYSTEM, buffer->datos, buffer->bytesRecibidos);
-						//Manda la info a todas las cpu
-						massive_send(fdmax, &master, buffer, i, SERVIDOR_KERNEL);
+						connection_handler(i, command);
 					}
 				}
 			}
 		}
 	}
+}
+
+void connection_handler(uint32_t socket, uint32_t command){
+
+	switch(command){
+	case 1:
+		printf("Nuevo Programa\n");
+		t_SerialString* PATH = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, PATH);
+		printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
+		printf("El mensaje es: %s\n", PATH->dataString);
+		free(PATH->dataString);
+		free(PATH);
+		//Almacenar la consola
+		Program* NewProgram = Program_new(socket, 0);
+		queue_sync_push(QUEUE_PCB, NewProgram);
+		break;
+	default:
+		printf("Error de comando\n");
+		break;
+	}
+
+	return;
 }
 
 void consola_kernel(void* args){

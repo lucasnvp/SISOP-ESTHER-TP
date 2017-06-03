@@ -1,3 +1,6 @@
+#ifndef SERIALIZADOR_H_
+#define SERIALIZADOR_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -5,52 +8,17 @@
 
 #include "../servidor/servidor.h"
 
-typedef struct HeaderType{
-	uint32_t id;
-	uint32_t dimension;
-} Header;
+//CREAR PATH
+typedef struct{
+	uint32_t sizeString;
+	char* dataString;
 
-void printHeader(Header aux){
-	printf("Id: %d\n",aux.id);
-	printf("Dimension: %d\n",aux.dimension);
-}
+}__attribute__((packed)) t_SerialString;
 
-void serializar_path(int client, uint32_t id, uint32_t dimension, char *buff){
-	//Cabezara de la informacion
-	Header myHeader;
-	myHeader.dimension = dimension;
-	myHeader.id = id;
+void serializar_string(int client, t_SerialString* PATH);
+void deserializar_string(int servidor, t_SerialString* PATH);
 
-	//Preparo el mensaje
-	void *ENVIAR = malloc(myHeader.dimension + sizeof(myHeader));
+void serializar_int(uint32_t socket, uint32_t number);
+uint32_t deserializar_int(uint32_t socket);
 
-	memcpy(ENVIAR,&myHeader,sizeof(myHeader));
-	memcpy(ENVIAR+sizeof(myHeader),buff,myHeader.dimension);
-
-	//Envio el mensaje
-	send_data(client, ENVIAR, sizeof(myHeader) + myHeader.dimension);
-
-}
-
-DatosRecibidos *deserializar_path(int servidor){
-	//Cabecera auxiliar
-	Header aux;
-
-	//Recibo el header
-	recive_data(servidor,&aux,sizeof(Header));
-	char *data = malloc(aux.dimension);
-
-	//Recibo la informacion
-	recive_data(servidor,data,aux.dimension);
-
-	//Agrego el fin de linea
-	data[aux.dimension] = '\0';
-
-	//Muestro el header que me llego
-	printHeader(aux);
-
-	//Cargo los datos
-	DatosRecibidos * datos = DatosRecibidos_new(data,aux.dimension);
-
-	return datos;
-}
+#endif /* SERIALIZADOR_H_ */

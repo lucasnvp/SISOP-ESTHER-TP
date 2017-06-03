@@ -9,7 +9,6 @@ C_SRCS += \
 ../commons/error.c \
 ../commons/log.c \
 ../commons/process.c \
-../commons/shared_strs.c \
 ../commons/string.c \
 ../commons/temporal.c \
 ../commons/txt.c 
@@ -20,7 +19,6 @@ OBJS += \
 ./commons/error.o \
 ./commons/log.o \
 ./commons/process.o \
-./commons/shared_strs.o \
 ./commons/string.o \
 ./commons/temporal.o \
 ./commons/txt.o 
@@ -31,7 +29,6 @@ C_DEPS += \
 ./commons/error.d \
 ./commons/log.d \
 ./commons/process.d \
-./commons/shared_strs.d \
 ./commons/string.d \
 ./commons/temporal.d \
 ./commons/txt.d 

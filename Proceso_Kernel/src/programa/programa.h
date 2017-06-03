@@ -4,11 +4,11 @@
 #include <inttypes.h>
 
 typedef struct ProgramType{
-	int32_t ID_Consola;
-	char* Path;
+	uint32_t ID_Consola;
+	uint32_t PID;
 } Program;
 
-Program Program_new(int32_t ID_Consola, char* Path);
+Program* Program_new(uint32_t ID_Consola, uint32_t PID);
 void Program_free(Program *this);
 void print_Program(Program auxProgram);
 

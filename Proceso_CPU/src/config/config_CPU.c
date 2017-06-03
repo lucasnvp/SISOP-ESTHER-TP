@@ -1,34 +1,31 @@
 #include "config_CPU.h"
-#include <stdlib.h>
-#include <commons/string.h>
-#include <commons/config.h>
 
-t_config *config;
+Type_Config load_config(char* path){
+	Type_Config config;
+	t_config *auxConfig;
+	auxConfig = config_create(path);
 
-void abrir_config(char* path) {
-	config = config_create(path);
+	config.PUERTO_KERNEL = config_get_int_value(auxConfig, "PUERTO_KERNEL");
+	char *ipKernel = config_get_string_value(auxConfig, "IP_KERNEL");
+	memcpy(config.IP_KERNEL, ipKernel, strlen(ipKernel)+1);
+	free (ipKernel);
+	config.PUERTO_MEMORIA = config_get_int_value(auxConfig, "PUERTO_MEMORIA");
+	char *ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
+	memcpy(config.IP_MEMORIA, ipMemoria, strlen(ipMemoria)+1);
+	free (ipMemoria);
+
+	config_destroy(auxConfig);
+
+	return config;
 }
 
-void cerrar_config_actual() {
-	config_destroy(config);
-}
-
-int puertoKernel() {
-	return config_get_int_value(config, "PUERTO_KERNEL");
-}
-
-char* ipKernel() {
-	return config_get_string_value(config, "IP_KERNEL");
-}
-
-void mostrarConfig() {
+void print_config(Type_Config auxConfig){
 
 	puts("----------------------");
 	printf("Configuracion:\n");
 	puts("");
-	printf("IP_KERNEL = %s\n", ipKernel());
-	printf("PUERTO_KERNEL = %d\n", puertoKernel());
+	printf("IP_KERNEL = %s\n", auxConfig.IP_KERNEL);
+	printf("PUERTO_KERNEL = %d\n", auxConfig.PUERTO_KERNEL);
 	puts("----------------------");
 }
-
 

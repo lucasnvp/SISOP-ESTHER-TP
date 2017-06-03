@@ -1,129 +1,51 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "config/config_Memoria.h"
-#include "servidor/servidor.h"
+#include "Memoria.h"
 
-char* PATH_CONFIG = "../src/config/config.cfg";
-
-#include "Listash.h"
-
-#define TAM_BLOQUE 512
-#define TAM_PAGINA 512
-#define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
-#define TRUE 1
-#define FALSE 0
-
-//Estos define que defino ahora luego se obtienen del config file
-#define MARCOS 4
-#define MARCO_SIZE 512
-
-
-
-
-Lista listaMemoriaLibre = NULL;
-pNodo p;
-
-Lista listaMemoriaOcupada = NULL;
-pNodo q;
-
-void * memoria; //MARCOS * MARCOS_SIZE
-
-
-
-struct heapMetadata{
-    int size;
-	bool isFree;
-};
-
-//Creo esta estructura para guardar los datos con su tamanio por que si no no se puede saber con un sizeof por ser void
-struct datosStruct{
-    void * dato;
-    unsigned int tamDatos;
-    int pid;
-
-};
-
-struct estructuraPaginacionInversa{
-    int ** matriz;
-    int filas;
-    int columnas;
-
-};
-typedef struct estructuraPaginacionInversa tEstructuraPaginacionInversa;
-
-tEstructuraPaginacionInversa EPI;
-
-typedef struct heapMetadata metadata;
-
-typedef struct datosStruct tDato;
-
-
-
-void * nuevoBloqueDeMemoria();
-metadata obtengoHeapMetadata(void * pagina,int posicionDeArranque);
-void dividoMemoria(void * memoria);
-bool puedoAlojarDatosEnUnaPagina(metadata memoria, int tamDatos);
-void * agregarDatosABloqueDeMemoria(void * memoria, tDato datos);
-tDato creoDato(void * dato,unsigned int tamDatos);
-bool puedoAlojarDatos(void * memoria, int tamDatos);
-bool consola();
-tDato obtenerMemoria(void * memoria,int PID);
 
 int main(void){
     puts("Proceso Memoria");
 
-    //Cargo archivo de configuracion y muestro
-    abrir_config(PATH_CONFIG);
-    mostrarConfig();
-
-    // variables para el servidor
-	int fdmax;        // número máximo de descriptores de fichero
-	fd_set master;   // conjunto maestro de descriptores de fichero
+    //Configuracion inicial
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
 	//Creacion del servidor
-	int servidor = build_server(puerto());
+	uint32_t servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
 
 	//El socket esta listo para escuchar
 	if(servidor > 0){
 		printf("Servidor Memoria Escuchando\n");
 	}
 
-	// Seteo la cantidad de conexiones
-	set_listen(servidor, cantConexiones());
-
-	// seguir la pista del descriptor de fichero mayor
-	fdmax = servidor; // por ahora es éste
-
 	// bucle principal
 	while(1) {
-		if(fdmax == servidor){
-			// acepto una nueva conexion
-			fdmax = accept_conexion(servidor, &master, fdmax);
-		}else{
-			DatosRecibidos * buffer = recive_data(fdmax);
-			// gestionar datos de un cliente
-			if(buffer <= 0){
-				fdmax = servidor; // eliminar del conjunto maestro
-			}
+		// acepto una nueva conexion
+		uint32_t newfd = accept_conexion(servidor);
+		if(newfd){
+			pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
+			pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
+
 		}
 	}
-
-	cerrar_config_actual();
-
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
+
+
+void crearHilo(uint32_t * newfd){
+
+
+	uint32_t command = deserializar_int(newfd);
+
+
+	connection_handler(newfd,command);
+
+}
+
 
 void * nuevoBloqueDeMemoria()//Inicializo memora
 	{
-		void * memoria = malloc(MARCOS*MARCO_SIZE);
+		void * memoria = malloc(config.MARCOS*config.MARCO_SIZE);
 
-	    dividoMemoria(memoria); //Divido el bloque en paginas de 512 con indicadores de inicio y fin de pagina
+	    dividoMemoria(memoria); //Divido el cant de marcos y marcossize con indicadores de inicio y fin de pagina
 
 	    inicializoEPI();
 
@@ -181,7 +103,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	            memcpy((nodo->posMemHeap)+sizeof(metaData),datos,cuantoPuedoCopiar); //Copio los datos que me llegan
 
-	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/512)-1;
+	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/config.MARCO_SIZE)-1; //Aca antes iba 512
 	          if (nPagina==-1) nPagina+=1;
 
 
@@ -252,12 +174,13 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	            tamPrograma+=heap.size;
 	            programa = calloc(programa,tamPrograma*sizeof(void*));
 	            if(programa!='\0'){
+
 	           memmove((void *)(programa+tamProgramaAnterior),(void *)(EPI.matriz[i][3]+sizeof(heap)),heap.size);
 
 	            }
 	        }
 	    }
-	    dato.dato=programa; // aca hay que hacer un memcpy
+	    dato.dato=programa; // TODO aca hay que hacer un memcpy
 	    dato.tamDatos=tamPrograma;
 
 	    return dato;
@@ -279,20 +202,20 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	    int i=0;
 
-	    while (i<MARCOS){
+	    while (i<(config.MARCOS)){
 
 		metadata inicio;
-		inicio.size=MARCO_SIZE-(sizeof(metadata)*2);
+		inicio.size=config.MARCO_SIZE-(sizeof(metadata)*2);
 		inicio.isFree=TRUE;
 
-		memcpy(memoria + (i*MARCO_SIZE),&inicio,sizeof(metadata));
-	    Insertar(&listaMemoriaLibre,((memoria + (i*MARCO_SIZE))),0);//Agrega a listaDeMemoriaLibrea posiciones de los heaps con memoria libre
+		memcpy(memoria + (i*config.MARCO_SIZE),&inicio,sizeof(metadata));
+	    Insertar(&listaMemoriaLibre,((memoria + (i*config.MARCO_SIZE))),0);//Agrega a listaDeMemoriaLibrea posiciones de los heaps con memoria libre
 
 		metadata fin;
 	    fin.size=0;
 	    fin.isFree=TRUE;
-	    memcpy(memoria+(((i+1)*MARCO_SIZE)-sizeof(metadata)),&fin,sizeof(metadata));
-	    Insertar(&listaMemoriaOcupada,memoria+((i+1)*MARCO_SIZE)-sizeof(metadata),0);
+	    memcpy(memoria+(((i+1)*config.MARCO_SIZE)-sizeof(metadata)),&fin,sizeof(metadata));
+	    Insertar(&listaMemoriaOcupada,memoria+((i+1)*config.MARCO_SIZE)-sizeof(metadata),0);
 	    i++;
 	    }
 
@@ -354,6 +277,60 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	    return d;
 	}
 
+	void * borrarDatosMemoria(int PID){//todo FALTA TERMINAR
+
+		/* -
+
+		 * -Borrar en momoria segun posicion inicial que devuelve tabla y pararme para obtener heapMetada y saber cuanto borrar
+		 * -Eliminar el nodo de memoria ocupada, agregar el nodo de memoria libre
+		 * -eliminar de tabla de paginacion la entrada del programa en cuestion
+		 */
+
+
+		void * programa = buscarEnEPI(PID);
+		metadata meta;
+
+		meta = obtengoHeapMetadata(memoria,PID);
+
+
+		int memoriaABorrar = meta.size;
+
+		Borrar(listaMemoriaOcupada,programa);
+
+		meta.size-=memoriaABorrar;
+		meta.isFree=true;
+
+		memcpy(memoria,&meta,sizeof(meta));
+
+		void Insertar(listaDeMemoriaLibre,memoria,PID);
+
+		while(programa!=NULL)
+		{
+
+			//char ** nuevaTabla = reorganizarTabla(PID);
+
+		}
+
+	}
+
+	/*todo char ** reorganizarTabla(int PID);
+	{
+
+	}*/
+	void * buscarEnEPI(int PID)
+	{
+		int i;
+		for(i=0;i<EPI.filas;i++)
+		{
+			if (PID==EPI.matriz[i][1])
+			{
+				return EPI.matriz[i][3];
+			}
+		}
+		return NULL;
+
+	}
+
 	void dump(){
 	    BorrarLista(&listaMemoriaLibre);
 	    BorrarLista(&listaMemoriaOcupada);
@@ -387,4 +364,20 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		char c;
 		while ((c = getchar()) != '\n' && c != EOF) { }
 	}
+	void connection_handler(uint32_t socket, uint32_t command){
+		switch(command){
+			case 5: //Me piden devolver Memoria
+				//Obtengo memoria
+				/*t_SerialString dato;
+				dato.dataString = "Holee";
+				dato.sizeString = 6;
+				serializar_string(socket,dato);*/
+				puts("ehhhh un 5");
+				break;
+			default:
+				printf("Error de comando\n");
+				break;
+			}
+	}
+
 

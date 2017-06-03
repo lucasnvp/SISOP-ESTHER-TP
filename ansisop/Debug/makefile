@@ -26,13 +26,13 @@ endif
 all: libansisop.so
 
 dependents:
-	-cd /home/utnso/Escritorio/tp-2017-1c-Blacklist/commons/Debug && $(MAKE) all
+	-cd /home/utnso/git/tp-2017-1c-Blacklist/commons/Debug && $(MAKE) all
 
 # Tool invocations
-libansisop.so: $(OBJS) $(USER_OBJS) /home/utnso/Escritorio/tp-2017-1c-Blacklist/commons/Debug/libcommons.so
+libansisop.so: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2017-1c-Blacklist/commons/Debug/libcommons.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/Escritorio/tp-2017-1c-Blacklist/commons/Debug" -shared -o "libansisop.so" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/git/tp-2017-1c-Blacklist/commons/Debug" -shared -o "libansisop.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +43,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/Escritorio/tp-2017-1c-Blacklist/commons/Debug/libcommons.so:
+/home/utnso/git/tp-2017-1c-Blacklist/commons/Debug/libcommons.so:
 
 -include ../makefile.targets
