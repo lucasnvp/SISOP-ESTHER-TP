@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+<<<<<<< HEAD
+=======
+#include <commons/shared_strs.h>
+>>>>>>> 9a978abd1d9edd60fcc5fa4a19cbea4fff1b5713
 #include "config/config_CPU.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
