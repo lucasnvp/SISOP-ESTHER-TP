@@ -9,6 +9,10 @@ Type_Config load_config(char* path){
 	char *ipKernel = config_get_string_value(auxConfig, "IP_KERNEL");
 	memcpy(config.IP_KERNEL, ipKernel, strlen(ipKernel)+1);
 	free (ipKernel);
+	config.PUERTO_MEMORIA = config_get_int_value(auxConfig, "PUERTO_MEMORIA");
+	char *ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
+	memcpy(config.IP_MEMORIA, ipMemoria, strlen(ipMemoria)+1);
+	free (ipMemoria);
 
 	config_destroy(auxConfig);
 

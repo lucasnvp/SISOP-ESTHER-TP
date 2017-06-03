@@ -3,6 +3,30 @@
 
 #include "servidor/servidor.h"
 #include <stdint.h>
+#include "primitivas/ansi_primit.h"
+
+AnSISOP_funciones functions = {
+		.AnSISOP_definirVariable		= definirVariable,
+//		.AnSISOP_imprimirTexto			= imprimirTexto,
+		.AnSISOP_obtenerPosicionVariable= obtenerPosicionVariable,
+		.AnSISOP_dereferenciar			= dereferenciar,
+		.AnSISOP_asignar				= asignar,
+		//.AnSISOP_imprimir				= imprimir,
+		.AnSISOP_irAlLabel				= irAlLabel,
+		.AnSISOP_asignarValorCompartida = asignarValorCompartida,
+//		.AnSISOP_entradaSalida 			= entradaSalida,
+//		.AnSISOP_obtenerValorCompartida	= obtenerValorCompartida,
+		.AnSISOP_llamarSinRetorno		= llamarSinRetorno,
+		.AnSISOP_llamarConRetorno		= llamarConRetorno,
+		.AnSISOP_finalizar				= finalizar,
+		.AnSISOP_retornar				= retornar,
+};
+
+AnSISOP_kernel kernel_functions = {
+		.AnSISOP_signal 				= semaforo_signal,
+		.AnSISOP_wait					= semaforo_wait,
+};
+
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;
