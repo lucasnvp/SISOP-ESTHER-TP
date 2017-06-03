@@ -103,7 +103,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	            memcpy((nodo->posMemHeap)+sizeof(metaData),datos,cuantoPuedoCopiar); //Copio los datos que me llegan
 
-	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/config.MARCO_SIZE)-1; //Aca antes iba 512
+	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/config.MARCO_SIZE); //Aca antes iba 512
 	          if (nPagina==-1) nPagina+=1;
 
 
@@ -172,7 +172,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	            tamProgramaAnterior=tamPrograma;
 	            tamPrograma+=heap.size;
-	            programa = calloc(programa,tamPrograma*sizeof(void*));
+	            programa = calloc(programa,tamPrograma*sizeof(void*));//TODO aca va un realloc pero no funciona, fijarse que no reserva espacio
 	            if(programa!='\0'){
 
 	           memmove((void *)(programa+tamProgramaAnterior),(void *)(EPI.matriz[i][3]+sizeof(heap)),heap.size);
@@ -185,7 +185,32 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	    return dato;
 	}
+	tDato obtenerMemoriaReducida(void * memoria,int PID,int posArranque,int desplazamiento){
+	    int i=0;
+	    void *programa;
+	    metadata heap;
 
+	    tDato dato;
+	    for(i;i<EPI.filas;i++){
+	        if (EPI.matriz[i][1]==PID){
+
+	            heap = obtengoHeapMetadata(memoria,EPI.matriz[i][3]);
+
+
+
+	            programa = calloc(programa,desplazamiento*sizeof(void*));
+	            if(programa!='\0'){
+	           memmove((void *)(programa),(void *)(EPI.matriz[i][3]+sizeof(heap)+posArranque),desplazamiento);
+
+	            }
+	        }
+	    }
+	    dato.dato=programa; // aca hay que hacer un memcpy
+	    dato.tamDatos=desplazamiento;
+	    return dato;
+
+
+	}
 
 	metadata obtengoHeapMetadata(void * pagina,int posicionDeArranque){
 	   metadata b;
@@ -366,18 +391,47 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	}
 	void connection_handler(uint32_t socket, uint32_t command){
 		switch(command){
-			case 5: //Me piden devolver Memoria
-				//Obtengo memoria
-				/*t_SerialString dato;
-				dato.dataString = "Holee";
-				dato.sizeString = 6;
-				serializar_string(socket,dato);*/
-				puts("ehhhh un 5");
+			case 5: //CPU me pide una instruccion
+				serializar_int(socket,5);//Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
+				t_SerialString* PATH = malloc(sizeof(t_SerialString));
+				deserializar_string(socket, PATH);
+				char * PID = memcpy((void*)PID,(void*)PATH->dataString,4);//Por convencion los primeros 4 bits son de PID
+				char * posInicio = memcpy((void*)posInicio,(void*)PATH->dataString+4,4);
+				char * offSet = memcpy((void*)deserializar_string,(void*)PATH->dataString+8,4);
+
+				int IPID = convertirCharAInt(PID, 4);
+				int IposInicio = convertirCharAInt(posInicio,4);
+				int IoffSet = convertirCharAInt(offSet, 4);
+
+				tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
+				t_SerialString * instruccionConvertida;
+				t_SerialString* instruccionConvertida = malloc(sizeof(t_SerialString));
+				instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
+				memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
+				instruccionConvertida->sizeString=instruccion.tamDatos;
+
+				serializar_string(socket,instruccionConvertida);
+
+
 				break;
 			default:
 				printf("Error de comando\n");
 				break;
 			}
+	}
+
+	int convertirCharAInt(char * numero,int tamChar){
+		int i;
+		int multiplicadorBase = 1;
+		int numeroInt=0;
+		tamChar -= 1;
+		while (tamChar>=0)
+		{
+			numeroInt+= numero[tamChar]*multiplicadorBase;
+			tamChar--;
+			multiplicadorBase*=10;
+		}
+		return numeroInt;
 	}
 
 
