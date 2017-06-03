@@ -405,7 +405,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 				tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
 				t_SerialString * instruccionConvertida;
-				t_SerialString* instruccionConvertida = malloc(sizeof(t_SerialString));
+				instruccionConvertida = malloc(sizeof(t_SerialString));
 				instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
 				memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
 				instruccionConvertida->sizeString=instruccion.tamDatos;
