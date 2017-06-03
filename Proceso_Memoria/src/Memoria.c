@@ -393,12 +393,45 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		switch(command){
 			case 5: //CPU me pide una instruccion
 				serializar_int(socket,5);//Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
+				t_SerialString* PATH = malloc(sizeof(t_SerialString));
+				deserializar_string(socket, PATH);
+				char * PID = memcpy((void*)PID,(void*)PATH->dataString,4);//Por convencion los primeros 4 bits son de PID
+				char * posInicio = memcpy((void*)posInicio,(void*)PATH->dataString+4,4);
+				char * offSet = memcpy((void*)deserializar_string,(void*)PATH->dataString+8,4);
+
+				int IPID = convertirCharAInt(PID, 4);
+				int IposInicio = convertirCharAInt(posInicio,4);
+				int IoffSet = convertirCharAInt(offSet, 4);
+
+				tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
+				t_SerialString * instruccionConvertida;
+				t_SerialString* instruccionConvertida = malloc(sizeof(t_SerialString));
+				instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
+				memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
+				instruccionConvertida->sizeString=instruccion.tamDatos;
+
+				serializar_string(socket,instruccionConvertida);
+
 
 				break;
 			default:
 				printf("Error de comando\n");
 				break;
 			}
+	}
+
+	int convertirCharAInt(char * numero,int tamChar){
+		int i;
+		int multiplicadorBase = 1;
+		int numeroInt=0;
+		tamChar -= 1;
+		while (tamChar>=0)
+		{
+			numeroInt+= numero[tamChar]*multiplicadorBase;
+			tamChar--;
+			multiplicadorBase*=10;
+		}
+		return numeroInt;
 	}
 
 
