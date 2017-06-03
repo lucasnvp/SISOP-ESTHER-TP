@@ -7,11 +7,6 @@ int main(void){
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
-
-    // variables para el servidor
-	int fdmax;        // número máximo de descriptores de fichero
-	fd_set master;   // conjunto maestro de descriptores de fichero
-
 	//Creacion del servidor
 	uint32_t servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
 
@@ -20,42 +15,37 @@ int main(void){
 		printf("Servidor Memoria Escuchando\n");
 	}
 
-	// seguir la pista del descriptor de fichero mayor
-	fdmax = servidor; // por ahora es éste
-
 	// bucle principal
 	while(1) {
-		if(fdmax == servidor){
-			// acepto una nueva conexion
-			uint32_t newfd = accept_conexion(servidor);
-			FD_SET(newfd, &master); // añadir al conjunto maestro
-			if (newfd > fdmax) {    // actualizar el máximo
-				fdmax = newfd;
-			}
-		}else{
-			//Recibo el comando
-			t_SerialString* command = malloc(sizeof(t_SerialString));
-			deserializar_string(fdmax, command);
-			uint32_t bytesRecibidos = command->sizeString;
-			// gestionar datos de un cliente
-			if(bytesRecibidos <= 0){
-				fdmax = servidor; // eliminar del conjunto maestro
-			} else{
-				//Muestro los datos
-				printf("Me llegaron %d bytes con %s\n", command->sizeString, command->dataString);
-			}
-
+		// acepto una nueva conexion
+		uint32_t newfd = accept_conexion(servidor);
+		if(newfd){
+			pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
+			pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
+			free(hiloConsola);
 		}
 	}
-
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
+
+
+void crearHilo(uint32_t * newfd){
+
+	t_SerialString* command = malloc(sizeof(t_SerialString));
+	deserializar_string(newfd, command);
+	uint32_t bytesRecibidos = command->sizeString;
+
+	//printf("Me llegaron %d bytes con %s\n", command->sizeString, command->dataString);
+	connection_handler(command->dataString);
+
+}
+
 
 void * nuevoBloqueDeMemoria()//Inicializo memora
 	{
 		void * memoria = malloc(config.MARCOS*config.MARCO_SIZE);
 
-	    dividoMemoria(memoria); //Divido el bloque en paginas de 512 con indicadores de inicio y fin de pagina
+	    dividoMemoria(memoria); //Divido el cant de marcos y marcossize con indicadores de inicio y fin de pagina
 
 	    inicializoEPI();
 
@@ -113,7 +103,7 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 
 	            memcpy((nodo->posMemHeap)+sizeof(metaData),datos,cuantoPuedoCopiar); //Copio los datos que me llegan
 
-	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/512)-1;
+	          int  nPagina=(((nodo->posMemHeap)+sizeof(metaData)- memoria)/config.MARCO_SIZE)-1; //Aca antes iba 512
 	          if (nPagina==-1) nPagina+=1;
 
 
@@ -286,6 +276,16 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	    return d;
 	}
 
+	void * borrarDatosMemoria(int PID){
+
+		/* -Buscar en tabla de paginacion donde esta
+		 * -Borrar en momoria segun posicion inicial que devuelve tabla y pararme para obtener heapMetada y saber cuanto borrar
+		 * -Eliminar el nodo de memoria ocupada, agregar el nodo de memoria libre
+		 * -eliminar de tabla de paginacion la entrada del programa en cuestion
+		 */
+
+	}
+
 	void dump(){
 	    BorrarLista(&listaMemoriaLibre);
 	    BorrarLista(&listaMemoriaOcupada);
@@ -319,4 +319,21 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		char c;
 		while ((c = getchar()) != '\n' && c != EOF) { }
 	}
+	void connection_handler(char* command){
+		if (!strcmp(command,"HAYMEMORIA")) //Kernel
+			{
+				bool puedoAlojar = puedoAlojarDatos(memoria,55);
+			}
+			if (!strcmp(command,"GUARDAENMEMORIA")) //Kernel
+			{
+
+			}
+			if (!strcmp(command,"DAMEMORIA")) //CPU
+			{
+
+			}else
+				printf("Error de comando\n");
+		return;
+	}
+
 
