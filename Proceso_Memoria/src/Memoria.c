@@ -32,12 +32,11 @@ int main(void){
 
 void crearHilo(uint32_t * newfd){
 
-	t_SerialString* command = malloc(sizeof(t_SerialString));
-	deserializar_string(newfd, command);
-	uint32_t bytesRecibidos = command->sizeString;
 
-	//printf("Me llegaron %d bytes con %s\n", command->sizeString, command->dataString);
-	connection_handler(command->dataString);
+	uint32_t command = deserializar_int(newfd);
+
+
+	connection_handler(newfd,command);
 
 }
 
@@ -365,24 +364,19 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		char c;
 		while ((c = getchar()) != '\n' && c != EOF) { }
 	}
-	void connection_handler(char* command){
-		if (!strcmp(command,"HAYMEMORIA")) //Kernel
-			{
-				bool puedoAlojar = puedoAlojarDatos(memoria,55);
-
-				//serializar_string()
-
-			}
-			if (!strcmp(command,"GUARDAENMEMORIA")) //Kernel
-			{
-
-			}
-			if (!strcmp(command,"DAMEMORIA")) //CPU
-			{
-
-			}else
+	void connection_handler(uint32_t socket, uint32_t command){
+		switch(command){
+			case 5: //Me piden devolver Memoria
+				//Obtengo memoria
+				t_SerialString dato;
+				dato.dataString = "Holee";
+				dato.sizeString = 6;
+				serializar_string(socket,dato);
+				break;
+			default:
 				printf("Error de comando\n");
-		return;
+				break;
+			}
 	}
 
 
