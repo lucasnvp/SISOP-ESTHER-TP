@@ -75,3 +75,4 @@ tDato creoDato(void * dato,unsigned int tamDatos);
 bool puedoAlojarDatos(void * memoria, int tamDatos);
 bool consola();
 tDato obtenerMemoria(void * memoria,int PID);
+void crearHilo(uint32_t * newfd);
