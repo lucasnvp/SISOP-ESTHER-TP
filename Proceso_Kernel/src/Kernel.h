@@ -22,7 +22,8 @@ pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION;
 sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene entradas
 sem_t SEM_READY; //Para que la lista de READYs se supenda si no tiene entradas
-sem_t SEM_STOP_PLANNING;
+sem_t SEM_STOP_PLANNING; //Para la planificacion
+sem_t SEM_COMMAND; //Espera a un nuevo comando
 
 uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
@@ -44,7 +45,7 @@ void procesarPCB(void* args);
 void server(void* args);
 void consola_kernel(void* args);
 void planificador(void* args);
-void connection_handler(uint32_t socket, char* command);
+void connection_handler(uint32_t socket, uint32_t command);
 
 void* queue_sync_pop(t_queue* self);
 void queue_sync_push(t_queue* self, void* element);

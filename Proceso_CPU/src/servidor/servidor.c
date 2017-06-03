@@ -83,7 +83,7 @@ void set_listen(uint32_t servidor, uint32_t sizeConexiones){
 }
 
 void send_data(uint32_t servidor, void* dataToSend, uint32_t bytesToSend){
-    if(send(servidor, dataToSend, sizeof(uint32_t) + bytesToSend, 0) < 0){
+    if(send(servidor, dataToSend, bytesToSend, 0) < 0){
         perror("Error al enviar data");
     }
 }
