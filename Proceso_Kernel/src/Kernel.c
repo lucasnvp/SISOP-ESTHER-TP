@@ -4,8 +4,8 @@ int main(void) {
 	puts("Proceso Kernel");
 
 	//Configuracion inicial
-	//config = load_config(PATH_CONFIG);
-	//print_config(config);
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
 	// Variables hilos
 	pthread_t thread_programa;
@@ -137,8 +137,8 @@ void server(void* args){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	//SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
-	SERVIDOR_KERNEL = build_server(5010, 10);
+	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	//SERVIDOR_KERNEL = build_server(5010, 10);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){
