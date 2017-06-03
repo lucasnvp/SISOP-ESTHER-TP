@@ -78,7 +78,6 @@ bool puedoAlojarDatos(void * memoria, int tamDatos);
 bool consola();
 tDato obtenerMemoria(void * memoria,int PID);
 void crearHilo(uint32_t * newfd);
-<<<<<<< HEAD
-=======
+
 void * buscarEnEPI(int PID);
->>>>>>> b0af0ca4947292a9997d7b4b17a59b1b90d2e52b
+

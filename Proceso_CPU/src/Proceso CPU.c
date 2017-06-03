@@ -34,6 +34,9 @@ int main(void) {
 		printf("Memoria Conectada\n");
 	}
 
+	serializar_int(memoria,5);
+
+
 	//Mutex que controlan estado de conexion con Kernel y Memoria.
 	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_t mutex_memoria = PTHREAD_MUTEX_INITIALIZER;
@@ -79,7 +82,7 @@ int main(void) {
 	mjeAEnviarMemoria.identificador_cpu = idCpu;
 	//enviar serializado el mensaje a Kernel
 	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.gen_msg.id_MSJ,&mjeMemoria);
-	send(memoria,"Hola",5,0);
+
 
 	//Se chequea el mensaje de memoria
 	//recibir un dato y deserializarlo

@@ -368,10 +368,11 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		switch(command){
 			case 5: //Me piden devolver Memoria
 				//Obtengo memoria
-				t_SerialString dato;
+				/*t_SerialString dato;
 				dato.dataString = "Holee";
 				dato.sizeString = 6;
-				serializar_string(socket,dato);
+				serializar_string(socket,dato);*/
+				puts("ehhhh un 5");
 				break;
 			default:
 				printf("Error de comando\n");
