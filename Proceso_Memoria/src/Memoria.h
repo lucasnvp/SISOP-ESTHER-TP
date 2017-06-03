@@ -71,6 +71,7 @@ typedef struct datosStruct tDato;
 void * nuevoBloqueDeMemoria();
 metadata obtengoHeapMetadata(void * pagina,int posicionDeArranque);
 void dividoMemoria(void * memoria);
+tDato obtenerMemoriaReducida(void * memoria,int PID,int posArranque,int desplazamiento);
 bool puedoAlojarDatosEnUnaPagina(metadata memoria, int tamDatos);
 void * agregarDatosABloqueDeMemoria(void * memoria, tDato datos);
 tDato creoDato(void * dato,unsigned int tamDatos);
