@@ -1,5 +1,6 @@
 #include "Memoria.h"
 
+
 int main(void){
     puts("Proceso Memoria");
 
@@ -22,7 +23,7 @@ int main(void){
 		if(newfd){
 			pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 			pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
-			free(hiloConsola);
+
 		}
 	}
 	return EXIT_SUCCESS;
@@ -31,12 +32,11 @@ int main(void){
 
 void crearHilo(uint32_t * newfd){
 
-	t_SerialString* command = malloc(sizeof(t_SerialString));
-	deserializar_string(newfd, command);
-	uint32_t bytesRecibidos = command->sizeString;
 
-	//printf("Me llegaron %d bytes con %s\n", command->sizeString, command->dataString);
-	connection_handler(command->dataString);
+	uint32_t command = deserializar_int(newfd);
+
+
+	connection_handler(newfd,command);
 
 }
 
@@ -174,12 +174,13 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	            tamPrograma+=heap.size;
 	            programa = calloc(programa,tamPrograma*sizeof(void*));
 	            if(programa!='\0'){
+
 	           memmove((void *)(programa+tamProgramaAnterior),(void *)(EPI.matriz[i][3]+sizeof(heap)),heap.size);
 
 	            }
 	        }
 	    }
-	    dato.dato=programa; // aca hay que hacer un memcpy
+	    dato.dato=programa; // TODO aca hay que hacer un memcpy
 	    dato.tamDatos=tamPrograma;
 
 	    return dato;
@@ -276,13 +277,57 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 	    return d;
 	}
 
-	void * borrarDatosMemoria(int PID){
+	void * borrarDatosMemoria(int PID){//todo FALTA TERMINAR
 
-		/* -Buscar en tabla de paginacion donde esta
+		/* -
+
 		 * -Borrar en momoria segun posicion inicial que devuelve tabla y pararme para obtener heapMetada y saber cuanto borrar
 		 * -Eliminar el nodo de memoria ocupada, agregar el nodo de memoria libre
 		 * -eliminar de tabla de paginacion la entrada del programa en cuestion
 		 */
+
+
+		void * programa = buscarEnEPI(PID);
+		metadata meta;
+
+		meta = obtengoHeapMetadata(memoria,PID);
+
+
+		int memoriaABorrar = meta.size;
+
+		Borrar(listaMemoriaOcupada,programa);
+
+		meta.size-=memoriaABorrar;
+		meta.isFree=true;
+
+		memcpy(memoria,&meta,sizeof(meta));
+
+		void Insertar(listaDeMemoriaLibre,memoria,PID);
+
+		while(programa!=NULL)
+		{
+
+			//char ** nuevaTabla = reorganizarTabla(PID);
+
+		}
+
+	}
+
+	/*todo char ** reorganizarTabla(int PID);
+	{
+
+	}*/
+	void * buscarEnEPI(int PID)
+	{
+		int i;
+		for(i=0;i<EPI.filas;i++)
+		{
+			if (PID==EPI.matriz[i][1])
+			{
+				return EPI.matriz[i][3];
+			}
+		}
+		return NULL;
 
 	}
 
@@ -319,21 +364,20 @@ void * nuevoBloqueDeMemoria()//Inicializo memora
 		char c;
 		while ((c = getchar()) != '\n' && c != EOF) { }
 	}
-	void connection_handler(char* command){
-		if (!strcmp(command,"HAYMEMORIA")) //Kernel
-			{
-				bool puedoAlojar = puedoAlojarDatos(memoria,55);
-			}
-			if (!strcmp(command,"GUARDAENMEMORIA")) //Kernel
-			{
-
-			}
-			if (!strcmp(command,"DAMEMORIA")) //CPU
-			{
-
-			}else
+	void connection_handler(uint32_t socket, uint32_t command){
+		switch(command){
+			case 5: //Me piden devolver Memoria
+				//Obtengo memoria
+				/*t_SerialString dato;
+				dato.dataString = "Holee";
+				dato.sizeString = 6;
+				serializar_string(socket,dato);*/
+				puts("ehhhh un 5");
+				break;
+			default:
 				printf("Error de comando\n");
-		return;
+				break;
+			}
 	}
 
 

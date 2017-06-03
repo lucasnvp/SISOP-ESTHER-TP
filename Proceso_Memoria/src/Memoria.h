@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,6 +10,7 @@
 #include "config/config_Memoria.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
+#include <pthread.h>
 
 char* PATH_CONFIG = "../src/config/config.txt";
 
@@ -76,3 +78,6 @@ bool puedoAlojarDatos(void * memoria, int tamDatos);
 bool consola();
 tDato obtenerMemoria(void * memoria,int PID);
 void crearHilo(uint32_t * newfd);
+
+void * buscarEnEPI(int PID);
+

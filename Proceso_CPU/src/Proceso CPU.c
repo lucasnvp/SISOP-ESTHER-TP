@@ -1,7 +1,7 @@
-#include "Proceso CPU.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "Proceso CPU.h"
 #include "config/config_CPU.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
@@ -16,8 +16,7 @@ int main(void) {
 
 	puts("Proceso CPU");
 
-	idCPU = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
-	cpuOcupado = 0; // No tengo programa asignado
+	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
@@ -34,6 +33,9 @@ int main(void) {
 	if (memoria > 0) {
 		printf("Memoria Conectada\n");
 	}
+
+	serializar_int(memoria,5);
+
 
 	//Mutex que controlan estado de conexion con Kernel y Memoria.
 	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
@@ -80,7 +82,7 @@ int main(void) {
 	mjeAEnviarMemoria.identificador_cpu = idCpu;
 	//enviar serializado el mensaje a Kernel
 	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.gen_msg.id_MSJ,&mjeMemoria);
-	send(memoria,"Hola",5,0);
+
 
 	//Se chequea el mensaje de memoria
 	//recibir un dato y deserializarlo
@@ -102,5 +104,8 @@ int main(void) {
 
 	}
 	free(mensajeRecMemoria);
+
+	return 0;
+
 }
 
