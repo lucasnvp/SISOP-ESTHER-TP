@@ -30,6 +30,7 @@ t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
 t_list * LIST_READY;
 t_list * LIST_CONSOLAS;
+t_list * LIST_CPUS;
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;

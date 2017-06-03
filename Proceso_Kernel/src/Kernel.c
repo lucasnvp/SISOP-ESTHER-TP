@@ -17,6 +17,7 @@ int main(void) {
 	QUEUE_NEW = queue_create();
 	LIST_READY = list_create();
 	LIST_CONSOLAS = list_create();
+	LIST_CPUS = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
@@ -199,6 +200,10 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//Almacenar la consola
 		Program* NewProgram = Program_new(socket, 0);
 		queue_sync_push(QUEUE_PCB, NewProgram);
+		break;
+	case 2:
+		printf("Nueva CPU\n");
+		list_add(LIST_CPUS,socket);
 		break;
 	default:
 		printf("Error de comando\n");
