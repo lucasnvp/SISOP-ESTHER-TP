@@ -12,73 +12,52 @@
 #include "serializador/serializador.h"
 #include <pthread.h>
 
-char* PATH_CONFIG = "../src/config/config.txt";
-
-Type_Config config;
-
-#include "Listash.h"
-
-#define TAM_BLOQUE 512
-#define TAM_PAGINA 512
-#define CANTCONECIONES 10 	// Si quiero el maximo de conexiones posibles en el sockect reemplazar por 'SOMAXCONN'
-#define TRUE 1
-#define FALSE 0
+#define N_FRAME 0
+#define N_PID 1
+#define N_PAGINA 2
 
 
 
+//-----------------------FUNCIONES MEMORIA--------------------------------//
+int inicializarPrograma(int PID, int cantPaginas);
+char* solicitarBytesPagina(int pid,int pagina, int offset, int size,char** buffer);
+int almacenarBytesPagina(int pid,int pagina, int offset,int size, char* buffer);
+int asignarPaginasAProceso(int PID, int cantPaginas);
+int finalizarPrograma(int pid);
+
+//-----------------------OTRAS FUNCIONES: EPI------------------------------//
+void inicializarTablaEPI();
+int agregarDatosTablaEPI(int PID,int nPagina); //1 si pudo escribir, 0 si no.
+void borrarDatosTablaEPI(int PID);
+int framesDisponibles();
+void imprimirEPI();
+void impirmirEPIaccediendoAMemoria();
+//-----------------------OTRAS FUNCIONES: MEMORIA--------------------------//
+void inicializarMemoria();
+
+//-----------------------OTRAS FUNCIONES: USO GENERAL----------------------//
+bool consola();
+void crearHilo(uint32_t * newfd);
 
 
-
-Lista listaMemoriaLibre = NULL;
-pNodo p;
-
-Lista listaMemoriaOcupada = NULL;
-pNodo q;
-
-void * memoria; //MARCOS * MARCOS_SIZE
-
-
-
-struct heapMetadata{
-    int size;
-	bool isFree;
-};
-
-//Creo esta estructura para guardar los datos con su tamanio por que si no no se puede saber con un sizeof por ser void
-struct datosStruct{
-    void * dato;
-    unsigned int tamDatos;
-    int pid;
-
-};
+void * bloque_Memoria;
 
 struct estructuraPaginacionInversa{
     int ** matriz;
     int filas;
-    int columnas;
-
 };
-typedef struct estructuraPaginacionInversa tEstructuraPaginacionInversa;
+typedef struct estructuraPaginacionInversa * t_EstructuraPaginacionInversa;
 
-tEstructuraPaginacionInversa EPI;
-
-typedef struct heapMetadata metadata;
-
-typedef struct datosStruct tDato;
+t_EstructuraPaginacionInversa tablaEPI;
 
 
 
-void * nuevoBloqueDeMemoria();
-metadata obtengoHeapMetadata(void * pagina,int posicionDeArranque);
-void dividoMemoria(void * memoria);
-tDato obtenerMemoriaReducida(void * memoria,int PID,int posArranque,int desplazamiento);
-bool puedoAlojarDatosEnUnaPagina(metadata memoria, int tamDatos);
-void * agregarDatosABloqueDeMemoria(void * memoria, tDato datos);
-tDato creoDato(void * dato,unsigned int tamDatos);
-bool puedoAlojarDatos(void * memoria, int tamDatos);
-bool consola();
-tDato obtenerMemoria(void * memoria,int PID);
-void crearHilo(uint32_t * newfd);
+char* PATH_CONFIG = "../src/config/config.txt";
 
-void * buscarEnEPI(int PID);
+Type_Config config;
+
+
+
+
+
 
