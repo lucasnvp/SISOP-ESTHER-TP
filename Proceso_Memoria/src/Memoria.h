@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <malloc.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -15,6 +16,29 @@
 #define N_FRAME 0
 #define N_PID 1
 #define N_PAGINA 2
+
+#define MARCOS 20
+#define MARCO_SIZE 256
+
+Type_Config config;
+
+
+void * bloque_Memoria;
+
+
+
+struct estructuraPaginacionInversa{
+    int ** matriz;
+    int filas;
+};
+typedef struct estructuraPaginacionInversa * t_EstructuraPaginacionInversa;
+
+t_EstructuraPaginacionInversa tablaEPI;
+
+
+
+char* PATH_CONFIG = "/home/utnso/git/tp-2017-1c-Blacklist/Proceso_Memoria/src/config/config.txt";
+
 
 
 
@@ -40,21 +64,6 @@ bool consola();
 void crearHilo(uint32_t * newfd);
 
 
-void * bloque_Memoria;
-
-struct estructuraPaginacionInversa{
-    int ** matriz;
-    int filas;
-};
-typedef struct estructuraPaginacionInversa * t_EstructuraPaginacionInversa;
-
-t_EstructuraPaginacionInversa tablaEPI;
-
-
-
-char* PATH_CONFIG = "../src/config/config.txt";
-
-Type_Config config;
 
 
 
