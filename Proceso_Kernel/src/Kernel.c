@@ -86,8 +86,8 @@ void procesarPCB(void* args){
 	while(true){
 		aProgram = (Program*) queue_sync_pop(QUEUE_PCB);
 
-		printf("Nuevo proceso PCB\n");
-		printf("El pid del proceso es: %d \n", PID_PCB);
+		log_info(log_Kernel, "Nuevo proceso PCB");
+		log_info(log_Kernel, "El pid del proceso es: %d", PID_PCB);
 
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
@@ -103,7 +103,7 @@ void procesarPCB(void* args){
 		serializar_int(aProgram->ID_Consola, PID_PCB);
 
 		//Muestro el PID Del proceso
-		print_PCB(newPCB);
+		//print_PCB(newPCB);
 
 		PID_PCB++;
 	}
@@ -118,7 +118,7 @@ void planificador(void* args){
 		//Semaforo para parar la planificacion
 		sem_wait(&SEM_STOP_PLANNING);
 		//Informo que ingresa un PCB al planificador
-		printf("Ingreso un PCB al panificador \n");
+		log_info(log_Kernel,"Ingreso un PCB al panificador");
 		//Sacar un PCB de la cola de NEWs
 		PCB_t* element = (PCB_t*) queue_pop(QUEUE_NEW);
 		//Agregar un PCB a la lista de READYs
@@ -197,11 +197,15 @@ void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
 	case 1:
-		printf("Nuevo Programa\n");
+		//printf("Nuevo Programa\n");
+		log_info(log_Console,"Nuevo Programa");
 		t_SerialString* PATH = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, PATH);
-		printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
-		printf("El mensaje es: %s\n", PATH->dataString);
+		log_info(log_Kernel,"El nuevo programa ocupa %d bytes", PATH->sizeString);
+		//Preguntar a memoria si hay lugar para almacenarlo
+			//Si tiene lugar enviarlo
+			//Si no tiene exit run
+		//Libero el programa en el kernel
 		free(PATH->dataString);
 		free(PATH);
 		//Almacenar la consola
@@ -224,10 +228,14 @@ void consola_kernel(void* args){
 	while(true) {
 		t_Consola consola = leerComandos();
 		consola.kernel = SERVIDOR_KERNEL;
-		if (!strcmp(consola.comando, "exit"))
+		if (!strcmp(consola.comando, "exit")){
 			exit(0);
-		else if (!strcmp(consola.comando, "clean"))
+			//Desconectar todo y esperar la reconexion.
+		}
+		else if (!strcmp(consola.comando, "clean")){
 			system("clear");
+			fflush(stdout);
+		}
 		else if (!strcmp(consola.comando, "list"))
 			list_process(LIST_READY);
 		else if (!strcmp(consola.comando, "stop"))
