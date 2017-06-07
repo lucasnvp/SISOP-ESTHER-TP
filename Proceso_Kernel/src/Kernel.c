@@ -213,7 +213,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 		queue_sync_push(QUEUE_PCB, NewProgram);
 		break;
 	case 2:
-		printf("Nueva CPU\n");
+		log_info(log_Kernel,"Nueva CPU");
 		list_add(LIST_CPUS,socket);
 		break;
 	default:
@@ -238,10 +238,14 @@ void consola_kernel(void* args){
 		}
 		else if (!strcmp(consola.comando, "list"))
 			list_process(LIST_READY);
-		else if (!strcmp(consola.comando, "stop"))
+		else if (!strcmp(consola.comando, "stop")){
 			sem_wait(&SEM_STOP_PLANNING);
-		else if (!strcmp(consola.comando, "start"))
+			log_info(log_Console,"Se detuvo la planificacion");
+		}
+		else if (!strcmp(consola.comando, "start")){
 			sem_post(&SEM_STOP_PLANNING);
+			log_info(log_Console,"Se reanudo la planificacion");
+		}
 		else if (!strcmp(consola.comando, "status"))
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);

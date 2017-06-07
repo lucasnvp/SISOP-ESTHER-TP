@@ -26,6 +26,7 @@ int main(void) {
 	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
 	if (kernel > 0) {
 		printf("Kernel conectado, Estoy escuchando\n");
+		serializar_int(kernel,2);
 	}
 
 	//Conexion a memoria
