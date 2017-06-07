@@ -26,7 +26,7 @@ void limpiarBufferDeEntrada() {
 void list_process(t_list * LIST_READY){
 	uint32_t elemn;
 	uint32_t cant_procesos = list_size(LIST_READY);
-	PCB * unPCB;
+	PCB_t* unPCB;
 
 	printf("Se estan ejecutando %d procesos \n", cant_procesos);
 
@@ -39,13 +39,13 @@ void list_process(t_list * LIST_READY){
 
 void kill_process(t_list * lista,uint32_t id_process){
 	//matar el proceso
-	PCB * unPCB = list_remove(lista, id_process);
+	PCB_t* unPCB = list_remove(lista, id_process);
 	PCB_free(unPCB);
 	//informar a la consola que se murio el proceso
 }
 
 void status_process(t_list * lista,uint32_t id_process){
-	PCB *unPCB = list_get(lista, id_process);
+	PCB_t* unPCB = list_get(lista, id_process);
 	print_PCB(unPCB);
 	PCB_free(unPCB);
 }

@@ -92,7 +92,7 @@ void procesarPCB(void* args){
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB * newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -120,7 +120,7 @@ void planificador(void* args){
 		//Informo que ingresa un PCB al planificador
 		printf("Ingreso un PCB al panificador \n");
 		//Sacar un PCB de la cola de NEWs
-		PCB* element = (PCB*) queue_pop(QUEUE_NEW);
+		PCB_t* element = (PCB_t*) queue_pop(QUEUE_NEW);
 		//Agregar un PCB a la lista de READYs
 		list_add(LIST_READY,element);
 		//vuelvo a liberar la planificacion
