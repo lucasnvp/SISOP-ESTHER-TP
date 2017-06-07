@@ -7,6 +7,9 @@ int main(void) {
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
+	//Inicializar Log
+	init_log(PATH_LOG);
+
 	// Variables hilos
 	pthread_t thread_programa;
 	pthread_t thread_server;
@@ -54,12 +57,14 @@ int main(void) {
 
 void connect_server_memoria(){
     //Conexion al servidor FileSystem
-	//SERVIDOR_MEMORIA = connect_server(ip_memoria(),puerto_memoria());
+	//SERVIDOR_MEMORIA = connect_server("127.0.0.1",5002);
 	SERVIDOR_MEMORIA = connect_server(config.IP_MEMORIA,config.PUERTO_MEMORIA);
 
 	//Si conecto, informo
-	if(SERVIDOR_MEMORIA > 0){
-		printf("Connect Memoria\n");
+	if(SERVIDOR_MEMORIA > 1){
+		log_info(log_Kernel, "Connect Memoria");
+	} else{
+		log_warning(log_Kernel, "No se puedo conectar al servidor de Memoria");
 	}
 }
 
@@ -68,8 +73,10 @@ void connect_server_filesystem(){
 	SERVIDOR_FILESYSTEM = connect_server(config.IP_FS,config.PUERTO_FS);
 
 	//Si conecto, informo
-	if(SERVIDOR_FILESYSTEM > 0){
-		printf("Connect File System\n");
+	if(SERVIDOR_FILESYSTEM > 1){
+		log_info(log_Kernel,"Connect File System");
+	} else{
+		log_warning(log_Kernel, "No se puedo conectar al servidor de File System");
 	}
 }
 
@@ -245,6 +252,12 @@ void consola_kernel(void* args){
 		else
 			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
 	}
+}
+
+void init_log(char* pathLog){
+	mkdir("/home/utnso/Blacklist/Logs",0755);
+	log_Console = log_create(pathLog, "Kernel", true, LOG_LEVEL_INFO);
+	log_Kernel = log_create(pathLog, "Kernel", false, LOG_LEVEL_INFO);
 }
 
 void* queue_sync_pop(t_queue* self) {
