@@ -18,9 +18,11 @@ int main(void) {
 
 	QUEUE_PCB = queue_create();
 	QUEUE_NEW = queue_create();
+	QUEUE_EXIT = queue_create();
 	LIST_READY = list_create();
 	LIST_CONSOLAS = list_create();
 	LIST_CPUS = list_create();
+	LIST_EXEC = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
@@ -234,10 +236,20 @@ void consola_kernel(void* args){
 		}
 		else if (!strcmp(consola.comando, "clean")){
 			system("clear");
-			fflush(stdout);
 		}
-		else if (!strcmp(consola.comando, "list"))
+		else if (!strcmp(consola.comando, "list")){
+			list_new(QUEUE_NEW);
 			list_process(LIST_READY);
+		}
+		else if (!strcmp(consola.comando, "list_ready")){
+			list_process(LIST_READY);
+		}
+		else if (!strcmp(consola.comando, "list_consolas")){
+			list_console(LIST_CONSOLAS);
+		}
+		else if (!strcmp(consola.comando, "list_new")){
+			list_new(QUEUE_NEW);
+		}
 		else if (!strcmp(consola.comando, "stop")){
 			sem_wait(&SEM_STOP_PLANNING);
 			log_info(log_Console,"Se detuvo la planificacion");
@@ -246,14 +258,15 @@ void consola_kernel(void* args){
 			sem_post(&SEM_STOP_PLANNING);
 			log_info(log_Console,"Se reanudo la planificacion");
 		}
-		else if (!strcmp(consola.comando, "status"))
+		else if (!strcmp(consola.comando, "status")){
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
 				status_process(LIST_READY,nroProceso);
 			}
-		else if (!strcmp(consola.comando, "kill"))
+		}
+		else if (!strcmp(consola.comando, "kill")){
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
@@ -261,6 +274,7 @@ void consola_kernel(void* args){
 				kill_process(LIST_READY,nroProceso);
 				sem_post(&SEM_MULTIPROGRAMACION);
 			}
+		}
 		else
 			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
 	}

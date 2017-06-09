@@ -30,12 +30,14 @@ sem_t SEM_COMMAND; //Espera a un nuevo comando
 uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
+t_queue * QUEUE_EXIT;
 t_list * LIST_READY;
+t_list * LIST_EXEC;
 t_list * LIST_CONSOLAS;
 t_list * LIST_CPUS;
 
-//char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_Kernel/src/config/config.txt";
-char* PATH_CONFIG = "../src/config/config.txt";
+char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_Kernel/src/config/config.txt";
+//char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
 
 char* PATH_LOG = "/home/utnso/Blacklist/Logs/logKernel.txt";
