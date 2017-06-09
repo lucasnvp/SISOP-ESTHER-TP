@@ -218,6 +218,10 @@ void connection_handler(uint32_t socket, uint32_t command){
 		log_info(log_Kernel,"Nueva CPU");
 		list_add(LIST_CPUS,socket);
 		break;
+	case 3:
+		//Finalizacion de ejecucion de rafaga de CPU
+		//deserializar_pcb();
+		break;
 	default:
 		printf("Error de comando\n");
 		break;
