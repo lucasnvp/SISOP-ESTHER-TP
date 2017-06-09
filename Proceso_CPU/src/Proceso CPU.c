@@ -3,8 +3,6 @@
 int main(void) {
 	puts("Proceso CPU");
 
-	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
-
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
 	print_config(config);
@@ -15,85 +13,58 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	//------------------------
+	while (true) {
 
-	// Realizar handshake con Kernel
-	t_KER_PRO_CPU_UMV mensajeAEnviar = obtener_nueva_shared_str();
-	mensajeAEnviar.gen_msg.id_MSJ = HANDSHAKE_CPU_KERNEL;
-	mensajeAEnviar.gen_msg.socket_descriptor = kernel;
-	mensajeAEnviar.gen_msg.socket_descriptor_server = kernel;
-	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(kernel,mensajeAEnviar.gen_msg.id_MSJ,&mensajeAEnviar);
+		//Quedo a la espera de recibir un PCB del Kernel
+		deserializar_pcb(kernel, pcbActivo);
 
-	//Se chequea el mensaje del kernel
-	//recibir un dato y deserializarlo
-	t_KER_PRO_CPU_UMV *mensajeRec;	// = recibirMjeSinConsola(kernel);
+		//Proceso de ejecucion de Primitivas Ansisop
+		ejecutar();
 
-	if (mensajeRec != NULL) {
+		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+		serializar_int(kernel, FIN_CORRECTO);
 
-		if ((mensajeRec->gen_msg.id_MSJ == HANDSHAKE_CPU_KERNEL)
-				&& (mensajeRec->OK == 1)) {
-
-			idCpu = mensajeRec->identificador_cpu; //asigno el id del cpu
-			printf("Se realizo Handshake con Kernel exitosamente");
-
-		} else {
-			printf("Error al realizar Handshake con Kernel");
-			return EXIT_FAILURE;
-		}
+		//Envio a kernel PCB actualizado
+		serializar_pcb(kernel, pcbActivo);
 
 	}
 
-	free(mensajeRec);
+	//Con el codigo doy inicio a la funcion ejecutar() para analizar linea por linea
 
-	// Realizar handshake con Memoria
-	t_KER_PRO_CPU_UMV mjeAEnviarMemoria = obtener_nueva_shared_str();
-	mjeAEnviarMemoria.gen_msg.id_MSJ = HANDSHAKE_CPU_MEMORIA;
-	mjeAEnviarMemoria.gen_msg.socket_descriptor = memoria;
-	mjeAEnviarMemoria.gen_msg.socket_descriptor_server = memoria;
-	mjeAEnviarMemoria.identificador_cpu = idCpu;
-	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.gen_msg.id_MSJ,&mjeMemoria);
-
-
-	//Se chequea el mensaje de memoria
-	//recibir un dato y deserializarlo
-
-	t_KER_PRO_CPU_UMV *mensajeRecMemoria; //= recibirMjeSinConsola(memoria);
-
-	if (mensajeRecMemoria != NULL) {
-
-		if ((mensajeRecMemoria->gen_msg.id_MSJ == HANDSHAKE_CPU_MEMORIA)
-				&& (mensajeRecMemoria->OK == 1)) {
-
-			printf("Recepcion de handshake de Memoria de tipo %i por socket %i",
-					mensajeRecMemoria->gen_msg.id_MSJ, memoria);
-		} else {
-			printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
-			return EXIT_FAILURE;
-		}
-
-	}
-	free(mensajeRecMemoria);
-
-	return 0;
+	return EXIT_SUCCESS;
 
 }
 
-void connect_server_kernel(){
+void ejecutar() {
+
+	//Quedo a la espera de que la memoria me devuelva el codigo
+
+	t_intructions indice; //tengo que pedirle el indice a memoria
+
+	printf("Ejecutando en CPU");
+
+	sleep(5);
+
+	char* sentencia; //tengo que asignarle la sentencia en base a la instruccion.
+	analizadorLinea(strdup(sentencia), &functions, &kernel_functions); //ejecucion de primitivas
+
+}
+
+void connect_server_kernel() {
 	//Conexion al kernel
 	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
 	if (kernel > 0) {
 		printf("Kernel conectado, Estoy escuchando\n");
-		serializar_int(kernel,2);
+		serializar_int(kernel, HANDSHAKE_CPU_KERNEL);
 	}
 }
 
-void connect_server_memoria(){
-	//Conexion a memoria
+void connect_server_memoria() {
+//Conexion a memoria
 	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
 	if (memoria > 0) {
 		printf("Memoria Conectada\n");
-		serializar_int(memoria,5);
+		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
 	}
 }
+
