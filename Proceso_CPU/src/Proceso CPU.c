@@ -1,19 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include "Proceso CPU.h"
-#include "config/config_CPU.h"
-
-char* PATH_CONFIG = "../src/config/config.txt";
-Type_Config config;
-
-uint32_t kernel;
-uint32_t memoria;
-uint32_t idCpu;
-
 
 int main(void) {
-
 	puts("Proceso CPU");
 
 	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
@@ -23,27 +10,12 @@ int main(void) {
 	print_config(config);
 
 	//Conexion al kernel
-	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
-	if (kernel > 0) {
-		printf("Kernel conectado, Estoy escuchando\n");
-		serializar_int(kernel,2);
-	}
+	connect_server_kernel();
 
 	//Conexion a memoria
-	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
-	if (memoria > 0) {
-		printf("Memoria Conectada\n");
-	}
+	connect_server_memoria();
 
-	serializar_int(memoria,5);
-
-
-	//Mutex que controlan estado de conexion con Kernel y Memoria.
-	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_memoria = PTHREAD_MUTEX_INITIALIZER;
-
-	pthread_mutex_lock(&mutex_kernel);
-	pthread_mutex_lock(&mutex_memoria);
+	//------------------------
 
 	// Realizar handshake con Kernel
 	t_KER_PRO_CPU_UMV mensajeAEnviar = obtener_nueva_shared_str();
@@ -63,7 +35,6 @@ int main(void) {
 				&& (mensajeRec->OK == 1)) {
 
 			idCpu = mensajeRec->identificador_cpu; //asigno el id del cpu
-			pthread_mutex_unlock(&mutex_kernel); //si recibi los datos bien desbloqueo el mutex.
 			printf("Se realizo Handshake con Kernel exitosamente");
 
 		} else {
@@ -97,7 +68,6 @@ int main(void) {
 
 			printf("Recepcion de handshake de Memoria de tipo %i por socket %i",
 					mensajeRecMemoria->gen_msg.id_MSJ, memoria);
-			pthread_mutex_unlock(&mutex_memoria); //si recibi los datos bien desbloqueo el mutex.
 		} else {
 			printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
 			return EXIT_FAILURE;
@@ -110,3 +80,20 @@ int main(void) {
 
 }
 
+void connect_server_kernel(){
+	//Conexion al kernel
+	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
+	if (kernel > 0) {
+		printf("Kernel conectado, Estoy escuchando\n");
+		serializar_int(kernel,2);
+	}
+}
+
+void connect_server_memoria(){
+	//Conexion a memoria
+	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
+	if (memoria > 0) {
+		printf("Memoria Conectada\n");
+		serializar_int(memoria,5);
+	}
+}

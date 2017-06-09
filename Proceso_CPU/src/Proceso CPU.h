@@ -1,9 +1,22 @@
 #ifndef PROCESO_CPU_H_
 #define PROCESO_CPU_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+#include <parser/parser.h>
+
 #include "servidor/servidor.h"
 #include "primitivas/ansi_primit.h"
-#include <parser/parser.h>
+#include "config/config_CPU.h"
+
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
+
+uint32_t kernel;
+uint32_t memoria;
+uint32_t idCpu;
 
 AnSISOP_funciones functions = {
 		.AnSISOP_definirVariable		= definirVariable,
@@ -150,5 +163,8 @@ t_KER_PRO_CPU_UMV obtener_nueva_shared_str() {
 	nueva.valor = 0;
 	return nueva;
 }
+
+void connect_server_kernel();
+void connect_server_memoria();
 
 #endif /* PROCESO_CPU_H_ */
