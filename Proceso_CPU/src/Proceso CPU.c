@@ -1,14 +1,6 @@
 #include "Proceso CPU.h"
 
-char* PATH_CONFIG = "../src/config/config.txt";
-Type_Config config;
-
-uint32_t kernel;
-uint32_t memoria;
-uint32_t idCpu;
-
 int main(void) {
-
 	puts("Proceso CPU");
 
 	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
@@ -18,25 +10,12 @@ int main(void) {
 	print_config(config);
 
 	//Conexion al kernel
-	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
-	if (kernel > 0) {
-		printf("Kernel conectado, Estoy escuchando\n");
-	}
+	connect_server_kernel();
 
 	//Conexion a memoria
-	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
-	if (memoria > 0) {
-		printf("Memoria Conectada\n");
-	}
+	connect_server_memoria();
 
-	//serializar_int(memoria,5);
-
-	//Mutex que controlan estado de conexion con Kernel y Memoria. Ver si realmente lo voy a necesitar
-	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_memoria = PTHREAD_MUTEX_INITIALIZER;
-
-	pthread_mutex_lock(&mutex_kernel);
-	pthread_mutex_lock(&mutex_memoria);
+	//------------------------
 
 	// Realizar handshake con Kernel
 	str_generica_msjs mensajeAEnviar = inicializar_str_msjs();
@@ -56,7 +35,6 @@ int main(void) {
 				&& (mensajeRec->OK == 1)) {
 
 			idCpu = mensajeRec->identificador_cpu; //asigno el id del cpu
-			pthread_mutex_unlock(&mutex_kernel); //si recibi los datos bien desbloqueo el mutex.
 			printf("Se realizo Handshake con Kernel exitosamente");
 
 		} else {
@@ -90,45 +68,63 @@ int main(void) {
 
 			printf("Recepcion de handshake de Memoria de tipo %i por socket %i",
 					mensajeRecMemoria->id_MSJ, memoria);
-			pthread_mutex_unlock(&mutex_memoria); //si recibi los datos bien desbloqueo el mutex.
-		} else {
-			printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
-			return EXIT_FAILURE;
-		}
 
+	} else {
+		printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
+		return EXIT_FAILURE;
 	}
-	free(mensajeRecMemoria);
-
-	while (1) {
-
-		//Quedo a la espera de recibir un PCB
-
-		//deserializar_int(kernel);
-
-		//Recibo el PCB y solicito a Memoria el stack con el codigo
-
-		//Quedo a la espera de que la memoria me devuelva el codigo
-
-		//Con el codigo doy inicio a la funcion ejecutar() para analizar linea por linea
-
-		//Los resultados los devuelvo al Kernel
-
-		//serializar_string(kernel);
-
-	}
-
-	return 0;
 
 }
+free(mensajeRecMemoria);
+
+while (1) {
+
+	//Quedo a la espera de recibir un PCB
+
+	//deserializar_int(kernel);
+
+	//Recibo el PCB y solicito a Memoria el stack con el codigo
+
+	//Quedo a la espera de que la memoria me devuelva el codigo
+
+	//Con el codigo doy inicio a la funcion ejecutar() para analizar linea por linea
+
+	//Los resultados los devuelvo al Kernel
+
+	//serializar_string(kernel);
+
+}
+
+return 0;
+
+}
+
 
 void ejecutar() {
 
-	t_intructions indice; //tengo que pedirle el indice a memoria
+t_intructions indice; //tengo que pedirle el indice a memoria
 
-	char* sentencia; //tengo que asignarle la sentencia en base a la instruccion.
-	analizadorLinea(strdup(sentencia), &functions, &kernel_functions); //ejecucion de primitivas
+char* sentencia;//tengo que asignarle la sentencia en base a la instruccion.
+analizadorLinea(strdup(sentencia), &functions, &kernel_functions);//ejecucion de primitivas
 
 }
 
 
+void connect_server_kernel() {
+	//Conexion al kernel
+	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
+	if (kernel > 0) {
+		printf("Kernel conectado, Estoy escuchando\n");
+		serializar_int(kernel,2);
+	}
+}
+
+void connect_server_memoria() {
+//Conexion a memoria
+memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
+if (memoria > 0) {
+	printf("Memoria Conectada\n");
+	serializar_int(memoria, 5);
+}
+}
 

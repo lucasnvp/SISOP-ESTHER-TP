@@ -4,11 +4,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "servidor/servidor.h"
-#include "primitivas/ansi_primit.h"
+
 #include <parser/parser.h>
 #include <parser/metadata_program.h>
+
+#include "servidor/servidor.h"
+#include "primitivas/ansi_primit.h"
 #include "config/config_CPU.h"
+
+char* PATH_CONFIG = "../src/config/config.txt";
+Type_Config config;
+
+uint32_t kernel;
+uint32_t memoria;
+uint32_t idCpu;
+
 
 AnSISOP_funciones functions = {
 		.AnSISOP_definirVariable = definirVariable,
@@ -91,5 +101,8 @@ str_generica_msjs inicializar_str_msjs() {
 
 	return nueva;
 }
+
+void connect_server_kernel();
+void connect_server_memoria();
 
 #endif /* PROCESO_CPU_H_ */

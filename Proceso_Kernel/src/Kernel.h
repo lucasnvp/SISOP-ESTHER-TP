@@ -10,6 +10,8 @@
 #include <semaphore.h>
 
 #include <commons/collections/queue.h>
+#include <commons/collections/list.h>
+#include <commons/log.h>
 
 #include "pcb/pcb.h"
 #include "programa/programa.h"
@@ -28,11 +30,19 @@ sem_t SEM_COMMAND; //Espera a un nuevo comando
 uint32_t PID_PCB = 1;
 t_queue * QUEUE_PCB;
 t_queue * QUEUE_NEW;
+t_queue * QUEUE_EXIT;
 t_list * LIST_READY;
+t_list * LIST_EXEC;
 t_list * LIST_CONSOLAS;
+t_list * LIST_CPUS;
 
-char* PATH_CONFIG = "../src/config/config.txt";
+char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_Kernel/src/config/config.txt";
+//char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
+
+char* PATH_LOG = "/home/utnso/Blacklist/Logs/logKernel.txt";
+t_log* log_Console;
+t_log* log_Kernel;
 
 uint32_t SERVIDOR_KERNEL;
 uint32_t SERVIDOR_MEMORIA;
@@ -46,6 +56,7 @@ void server(void* args);
 void consola_kernel(void* args);
 void planificador(void* args);
 void connection_handler(uint32_t socket, uint32_t command);
+void init_log(char* pathLog);
 
 void* queue_sync_pop(t_queue* self);
 void queue_sync_push(t_queue* self, void* element);

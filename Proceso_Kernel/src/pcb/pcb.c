@@ -1,8 +1,8 @@
 #include "pcb.h"
 
-PCB PCB_new(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode, uint32_t CodePointer,
+PCB_t PCB_new(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode, uint32_t CodePointer,
 				uint32_t TagsPointer, uint32_t StackPointer, uint32_t ExitCode){
-	PCB unPCB;
+	PCB_t unPCB;
 	unPCB.PID = PID;
 	unPCB.ProgramCounter = ProgramCounter;
 	unPCB.PageCode = PageCode;
@@ -13,9 +13,9 @@ PCB PCB_new(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode, uint32_t 
 	return unPCB;
 }
 
-PCB * PCB_new_pointer(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode, uint32_t CodePointer,
+PCB_t* PCB_new_pointer(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode, uint32_t CodePointer,
 						uint32_t TagsPointer, uint32_t StackPointer, uint32_t ExitCode){
-	PCB * unPCB = malloc(sizeof(PCB));
+	PCB_t * unPCB = malloc(sizeof(PCB_t));
 	unPCB->PID = PID;
 	unPCB->ProgramCounter = ProgramCounter;
 	unPCB->PageCode = PageCode;
@@ -26,11 +26,11 @@ PCB * PCB_new_pointer(	uint32_t PID, uint32_t ProgramCounter, uint32_t PageCode,
 	return unPCB;
 }
 
-void PCB_free(PCB *this){
+void PCB_free(PCB_t* this){
 	free(this);
 }
 
-void print_PCB(PCB * auxPCB){
+void print_PCB(PCB_t* auxPCB){
 	printf("PID: %d\n",auxPCB->PID);
 	printf("ProgramCounter: %d\n",auxPCB->ProgramCounter);
 	printf("PageCOde: %d\n",auxPCB->PageCode);

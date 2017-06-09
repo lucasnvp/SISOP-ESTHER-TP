@@ -4,8 +4,11 @@ int main(void) {
 	puts("Proceso Kernel");
 
 	//Configuracion inicial
-	//config = load_config(PATH_CONFIG);
-	//print_config(config);
+	config = load_config(PATH_CONFIG);
+	print_config(config);
+
+	//Inicializar Log
+	init_log(PATH_LOG);
 
 	// Variables hilos
 	pthread_t thread_programa;
@@ -15,8 +18,11 @@ int main(void) {
 
 	QUEUE_PCB = queue_create();
 	QUEUE_NEW = queue_create();
+	QUEUE_EXIT = queue_create();
 	LIST_READY = list_create();
 	LIST_CONSOLAS = list_create();
+	LIST_CPUS = list_create();
+	LIST_EXEC = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
@@ -53,12 +59,14 @@ int main(void) {
 
 void connect_server_memoria(){
     //Conexion al servidor FileSystem
-	//SERVIDOR_MEMORIA = connect_server(ip_memoria(),puerto_memoria());
+	//SERVIDOR_MEMORIA = connect_server("127.0.0.1",5002);
 	SERVIDOR_MEMORIA = connect_server(config.IP_MEMORIA,config.PUERTO_MEMORIA);
 
 	//Si conecto, informo
-	if(SERVIDOR_MEMORIA > 0){
-		printf("Connect Memoria\n");
+	if(SERVIDOR_MEMORIA > 1){
+		log_info(log_Kernel, "Connect Memoria");
+	} else{
+		log_warning(log_Kernel, "No se puedo conectar al servidor de Memoria");
 	}
 }
 
@@ -67,8 +75,10 @@ void connect_server_filesystem(){
 	SERVIDOR_FILESYSTEM = connect_server(config.IP_FS,config.PUERTO_FS);
 
 	//Si conecto, informo
-	if(SERVIDOR_FILESYSTEM > 0){
-		printf("Connect File System\n");
+	if(SERVIDOR_FILESYSTEM > 1){
+		log_info(log_Kernel,"Connect File System");
+	} else{
+		log_warning(log_Kernel, "No se puedo conectar al servidor de File System");
 	}
 }
 
@@ -78,13 +88,13 @@ void procesarPCB(void* args){
 	while(true){
 		aProgram = (Program*) queue_sync_pop(QUEUE_PCB);
 
-		printf("Nuevo proceso PCB\n");
-		printf("El pid del proceso es: %d \n", PID_PCB);
+		log_info(log_Kernel, "Nuevo proceso PCB");
+		log_info(log_Kernel, "El pid del proceso es: %d", PID_PCB);
 
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB * newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -95,7 +105,7 @@ void procesarPCB(void* args){
 		serializar_int(aProgram->ID_Consola, PID_PCB);
 
 		//Muestro el PID Del proceso
-		print_PCB(newPCB);
+		//print_PCB(newPCB);
 
 		PID_PCB++;
 	}
@@ -110,9 +120,9 @@ void planificador(void* args){
 		//Semaforo para parar la planificacion
 		sem_wait(&SEM_STOP_PLANNING);
 		//Informo que ingresa un PCB al planificador
-		printf("Ingreso un PCB al panificador \n");
+		log_info(log_Kernel,"Ingreso un PCB al panificador");
 		//Sacar un PCB de la cola de NEWs
-		PCB* element = (PCB*) queue_pop(QUEUE_NEW);
+		PCB_t* element = (PCB_t*) queue_pop(QUEUE_NEW);
 		//Agregar un PCB a la lista de READYs
 		list_add(LIST_READY,element);
 		//vuelvo a liberar la planificacion
@@ -137,8 +147,8 @@ void server(void* args){
 	FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
 	//Creacion del servidor consola
-	//SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
-	SERVIDOR_KERNEL = build_server(5010, 10);
+	SERVIDOR_KERNEL = build_server(config.PUERTO_KERNEL, config.CANTCONEXIONES);
+	//SERVIDOR_KERNEL = build_server(5010, 10);
 
 	//El socket esta listo para escuchar
 	if(SERVIDOR_KERNEL > 0){
@@ -189,16 +199,24 @@ void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
 	case 1:
-		printf("Nuevo Programa\n");
+		//printf("Nuevo Programa\n");
+		log_info(log_Console,"Nuevo Programa");
 		t_SerialString* PATH = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, PATH);
-		printf("Los bytes del mensaje mensaje son: %d\n", PATH->sizeString);
-		printf("El mensaje es: %s\n", PATH->dataString);
+		log_info(log_Kernel,"El nuevo programa ocupa %d bytes", PATH->sizeString);
+		//Preguntar a memoria si hay lugar para almacenarlo
+			//Si tiene lugar enviarlo
+			//Si no tiene exit run
+		//Libero el programa en el kernel
 		free(PATH->dataString);
 		free(PATH);
 		//Almacenar la consola
 		Program* NewProgram = Program_new(socket, 0);
 		queue_sync_push(QUEUE_PCB, NewProgram);
+		break;
+	case 2:
+		log_info(log_Kernel,"Nueva CPU");
+		list_add(LIST_CPUS,socket);
 		break;
 	default:
 		printf("Error de comando\n");
@@ -212,33 +230,60 @@ void consola_kernel(void* args){
 	while(true) {
 		t_Consola consola = leerComandos();
 		consola.kernel = SERVIDOR_KERNEL;
-		if (!strcmp(consola.comando, "exit"))
+		if (!strcmp(consola.comando, "exit")){
 			exit(0);
-		else if (!strcmp(consola.comando, "clean"))
+			//Desconectar todo y esperar la reconexion.
+		}
+		else if (!strcmp(consola.comando, "clean")){
 			system("clear");
-		else if (!strcmp(consola.comando, "list"))
+		}
+		else if (!strcmp(consola.comando, "list")){
+			list_new(QUEUE_NEW);
 			list_process(LIST_READY);
-		else if (!strcmp(consola.comando, "stop"))
+		}
+		else if (!strcmp(consola.comando, "list_ready")){
+			list_process(LIST_READY);
+		}
+		else if (!strcmp(consola.comando, "list_consolas")){
+			list_console(LIST_CONSOLAS);
+		}
+		else if (!strcmp(consola.comando, "list_new")){
+			list_new(QUEUE_NEW);
+		}
+		else if (!strcmp(consola.comando, "stop")){
 			sem_wait(&SEM_STOP_PLANNING);
-		else if (!strcmp(consola.comando, "start"))
+			log_info(log_Console,"Se detuvo la planificacion");
+		}
+		else if (!strcmp(consola.comando, "start")){
 			sem_post(&SEM_STOP_PLANNING);
-		else if (!strcmp(consola.comando, "status"))
+			log_info(log_Console,"Se reanudo la planificacion");
+		}
+		else if (!strcmp(consola.comando, "status")){
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
 				status_process(LIST_READY,nroProceso);
 			}
-		else if (!strcmp(consola.comando, "kill"))
+		}
+		else if (!strcmp(consola.comando, "kill")){
 			if (consola.argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
 				kill_process(LIST_READY,nroProceso);
+				sem_post(&SEM_MULTIPROGRAMACION);
 			}
+		}
 		else
 			printf("Comando incorrecto. Pruebe con: exit | clean | list | stop | start | status | kill \n");
 	}
+}
+
+void init_log(char* pathLog){
+	mkdir("/home/utnso/Blacklist/Logs",0755);
+	log_Console = log_create(pathLog, "Kernel", true, LOG_LEVEL_INFO);
+	log_Kernel = log_create(pathLog, "Kernel", false, LOG_LEVEL_INFO);
 }
 
 void* queue_sync_pop(t_queue* self) {

@@ -6,19 +6,28 @@ Type_Config load_config(char* path){
 	auxConfig = config_create(path);
 
 	config.PUERTO_KERNEL = config_get_int_value(auxConfig, "PUERTO_KERNEL");
-	char *ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
-	memcpy(config.IP_MEMORIA, ipMemoria, strlen(ipMemoria)+1);
-	free (ipMemoria);
+
+	char* ipMemoria = malloc(64);
+	ipMemoria = config_get_string_value(auxConfig, "IP_MEMORIA");
+	config.IP_MEMORIA = malloc(strlen(ipMemoria)+1);
+	strcpy(config.IP_MEMORIA,ipMemoria);
+
 	config.PUERTO_MEMORIA = config_get_int_value(auxConfig, "PUERTO_MEMORIA");
-	char *IP_FS = config_get_string_value(auxConfig, "IP_FS");
-	memcpy(config.IP_FS, IP_FS, strlen(IP_FS)+1);
-	free (IP_FS);
+
+	char* ipFS = malloc(64);
+	ipFS = config_get_string_value(auxConfig, "IP_FS");
+	config.IP_FS = malloc(strlen(ipFS)+1);
+	strcpy(config.IP_FS, ipFS);
+
 	config.PUERTO_FS = config_get_int_value(auxConfig, "PUERTO_FS");
 	config.QUANTUM = config_get_int_value(auxConfig, "QUANTUM");
 	config.QUANTUM_SLEEP = config_get_int_value(auxConfig, "QUANTUM_SLEEP");
-	char *ALGORITMO = config_get_string_value(auxConfig, "ALGORITMO");
-	memcpy(config.ALGORITMO, ALGORITMO, strlen(ALGORITMO)+1);
-	free (ALGORITMO);
+
+	char* ALGORITMO = malloc(64);
+	ALGORITMO = config_get_string_value(auxConfig, "ALGORITMO");
+	config.ALGORITMO = malloc(strlen(ALGORITMO)+1);
+	strcpy(config.ALGORITMO, ALGORITMO);
+
 	config.GRADO_MULTIPROG = config_get_int_value(auxConfig, "GRADO_MULTIPROG");
 	//SEM_IDS=[SEM1, SEM2, SEM3]
 	//SEM_INIT=[0, 0, 5]
