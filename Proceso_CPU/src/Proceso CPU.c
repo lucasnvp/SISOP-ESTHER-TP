@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include "Proceso CPU.h"
-#include "config/config_CPU.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
@@ -10,7 +6,6 @@ Type_Config config;
 uint32_t kernel;
 uint32_t memoria;
 uint32_t idCpu;
-
 
 int main(void) {
 
@@ -34,10 +29,9 @@ int main(void) {
 		printf("Memoria Conectada\n");
 	}
 
-	serializar_int(memoria,5);
+	//serializar_int(memoria,5);
 
-
-	//Mutex que controlan estado de conexion con Kernel y Memoria.
+	//Mutex que controlan estado de conexion con Kernel y Memoria. Ver si realmente lo voy a necesitar
 	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_t mutex_memoria = PTHREAD_MUTEX_INITIALIZER;
 
@@ -45,20 +39,20 @@ int main(void) {
 	pthread_mutex_lock(&mutex_memoria);
 
 	// Realizar handshake con Kernel
-	t_KER_PRO_CPU_UMV mensajeAEnviar = obtener_nueva_shared_str();
-	mensajeAEnviar.gen_msg.id_MSJ = HANDSHAKE_CPU_KERNEL;
-	mensajeAEnviar.gen_msg.socket_descriptor = kernel;
-	mensajeAEnviar.gen_msg.socket_descriptor_server = kernel;
+	str_generica_msjs mensajeAEnviar = inicializar_str_msjs();
+	mensajeAEnviar.id_MSJ = HANDSHAKE_CPU_KERNEL;
+	mensajeAEnviar.socket_descriptor = kernel;
+	mensajeAEnviar.socket_descriptor_server = kernel;
 	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(kernel,mensajeAEnviar.gen_msg.id_MSJ,&mensajeAEnviar);
+	//enviarMjeSinConsola(kernel,mensajeAEnviar.id_MSJ,&mensajeAEnviar);
 
 	//Se chequea el mensaje del kernel
 	//recibir un dato y deserializarlo
-	t_KER_PRO_CPU_UMV *mensajeRec;	// = recibirMjeSinConsola(kernel);
+	str_generica_msjs *mensajeRec;	// = recibirMjeSinConsola(kernel);
 
 	if (mensajeRec != NULL) {
 
-		if ((mensajeRec->gen_msg.id_MSJ == HANDSHAKE_CPU_KERNEL)
+		if ((mensajeRec->id_MSJ == HANDSHAKE_CPU_KERNEL)
 				&& (mensajeRec->OK == 1)) {
 
 			idCpu = mensajeRec->identificador_cpu; //asigno el id del cpu
@@ -74,28 +68,28 @@ int main(void) {
 
 	free(mensajeRec);
 
-	// Realizar handshake con Memoria
-	t_KER_PRO_CPU_UMV mjeAEnviarMemoria = obtener_nueva_shared_str();
-	mjeAEnviarMemoria.gen_msg.id_MSJ = HANDSHAKE_CPU_MEMORIA;
-	mjeAEnviarMemoria.gen_msg.socket_descriptor = memoria;
-	mjeAEnviarMemoria.gen_msg.socket_descriptor_server = memoria;
+	// Recibir mensaje de Memoria
+
+	str_generica_msjs mjeAEnviarMemoria = inicializar_str_msjs();
+	mjeAEnviarMemoria.id_MSJ = HANDSHAKE_CPU_MEMORIA;
+	mjeAEnviarMemoria.socket_descriptor = memoria;
+	mjeAEnviarMemoria.socket_descriptor_server = memoria;
 	mjeAEnviarMemoria.identificador_cpu = idCpu;
 	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.gen_msg.id_MSJ,&mjeMemoria);
-
+	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.id_MSJ,&mjeMemoria);
 
 	//Se chequea el mensaje de memoria
 	//recibir un dato y deserializarlo
 
-	t_KER_PRO_CPU_UMV *mensajeRecMemoria; //= recibirMjeSinConsola(memoria);
+	str_generica_msjs *mensajeRecMemoria; //= recibirMjeSinConsola(memoria);
 
 	if (mensajeRecMemoria != NULL) {
 
-		if ((mensajeRecMemoria->gen_msg.id_MSJ == HANDSHAKE_CPU_MEMORIA)
+		if ((mensajeRecMemoria->id_MSJ == HANDSHAKE_CPU_MEMORIA)
 				&& (mensajeRecMemoria->OK == 1)) {
 
 			printf("Recepcion de handshake de Memoria de tipo %i por socket %i",
-					mensajeRecMemoria->gen_msg.id_MSJ, memoria);
+					mensajeRecMemoria->id_MSJ, memoria);
 			pthread_mutex_unlock(&mutex_memoria); //si recibi los datos bien desbloqueo el mutex.
 		} else {
 			printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
@@ -105,7 +99,36 @@ int main(void) {
 	}
 	free(mensajeRecMemoria);
 
+	while (1) {
+
+		//Quedo a la espera de recibir un PCB
+
+		//deserializar_int(kernel);
+
+		//Recibo el PCB y solicito a Memoria el stack con el codigo
+
+		//Quedo a la espera de que la memoria me devuelva el codigo
+
+		//Con el codigo doy inicio a la funcion ejecutar() para analizar linea por linea
+
+		//Los resultados los devuelvo al Kernel
+
+		//serializar_string(kernel);
+
+	}
+
 	return 0;
 
 }
+
+void ejecutar() {
+
+	t_intructions indice; //tengo que pedirle el indice a memoria
+
+	char* sentencia; //tengo que asignarle la sentencia en base a la instruccion.
+	analizadorLinea(strdup(sentencia), &functions, &kernel_functions); //ejecucion de primitivas
+
+}
+
+
 
