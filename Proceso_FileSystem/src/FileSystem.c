@@ -61,10 +61,10 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					uint32_t bytesRecibidos = recive_data(i, &command, sizeof(command));
+					uint32_t command = deserializar_int(i);
 
 					// gestionar datos de un cliente
-					if(bytesRecibidos <= 0){
+					if(command <= 0){
 						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
@@ -78,12 +78,19 @@ void server(void* args){
 
 void connection_handler(uint32_t socket, uint32_t command){
 	switch(command){
-	case 'r':
-		printf("Me llegaron datos del Kernel");
+	case 1:
+		//Se conecto un kernel
+		printf("Se conecto el kernel");
 		break;
 	default:
 		printf("Error al recibir el comando");
 	}
 
 	return;
+}
+
+void init_log(char* pathLog){
+	mkdir("/home/utnso/Blacklist/Logs",0755);
+	log_Console = log_create(pathLog, "FileSystem", true, LOG_LEVEL_INFO);
+	log_FileSystem = log_create(pathLog, "FileSystem", false, LOG_LEVEL_INFO);
 }
