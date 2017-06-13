@@ -5,7 +5,7 @@ int main(void){
     puts("Proceso Memoria");
 
     //Configuracion inicial
-		config = load_config(PATH_CONFIG);
+		//config = load_config(PATH_CONFIG);
 	 	//print_config(config);
 
 	 	inicializarMemoria();
@@ -16,7 +16,7 @@ int main(void){
 		asignarPaginasAProceso(1,2);
 
 
-		imprimirEPI();
+		//imprimirEPI();
 
 		impirmirEPIaccediendoAMemoria();
 
@@ -84,13 +84,13 @@ void inicializarMemoria()
 void inicializarTablaEPI()
 {
     tablaEPI.filas=0;
-    tablaEPI.matriz = malloc(sizeof(tablaEPI.matriz));
+    tablaEPI.matriz = malloc(sizeof(int *));
 
 }
 int agregarDatosTablaEPI(int PID,int nPagina){
     int pudeEscribirTabla = 0;
     int i;
-    int cantMarcosOcupaMemoriaAdm = ((sizeof(int*)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
+
     int info[3];
     info[N_PID]=PID;
     info[N_PAGINA]=nPagina;

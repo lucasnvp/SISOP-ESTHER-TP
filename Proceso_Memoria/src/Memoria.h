@@ -17,7 +17,7 @@
 #define N_PID 1
 #define N_PAGINA 2
 
-#define MARCOS 2
+#define MARCOS 100
 #define MARCO_SIZE 256
 
 Type_Config config;
@@ -27,11 +27,12 @@ void * bloque_Memoria;
 
 
 
-struct estructuraPaginacionInversa{
+typedef struct estructuraPaginacionInversa{
     int ** matriz;
     int filas;
-};
-typedef struct estructuraPaginacionInversa t_EstructuraPaginacionInversa;
+}t_EstructuraPaginacionInversa;
+
+
 
 t_EstructuraPaginacionInversa tablaEPI;
 
