@@ -17,6 +17,7 @@
 
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
+#include "serializador/serializador.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;

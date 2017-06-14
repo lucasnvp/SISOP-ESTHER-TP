@@ -78,34 +78,39 @@ void server(void* args){
 
 void connection_handler(uint32_t socket, uint32_t command){
 	switch(command){
-	case 1:
+	case 1:{
 		//Se conecto un kernel
 		printf("Se conecto el kernel");
 		break;
-
-	case 2:
+	}
+	case 2:{
 		//validar archivo
 		t_SerialString* path = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, path);
 		validar_archivo(path);
+		free(path);
 		break;
-
-	case 3:
+	}
+	case 3: {
 		//crear archivo
-
-	case 4:
+		break;
+	}
+	case 4:{
 		//borrar archivo
-	case 5:
+		break;
+	}
+	case 5: {
 		//obtener datos
 		uint32_t offset = 0;
 		t_SerialString* path = malloc(sizeof(t_SerialString));
 		obtener_datos(path, offset);
+		free(path);
 		break;
-
-	case 6:
+	}
+	case 6: {
 		//guardar datos
-
-
+		break;
+	}
 	default:
 		printf("Error al recibir el comando");
 	}
@@ -114,7 +119,12 @@ void connection_handler(uint32_t socket, uint32_t command){
 }
 
 void obtener_datos(char* path, uint32_t offset){
- //ver con maxi
+	FILE *fd;
+	fd = fopen(path, "r");
+	uint32_t size = 0;
+	//leer size bytes desde posicion offset
+	//lseek(fd, offset, (offset + size)); -- no va en archivos mayores a 4Gb.
+
 }
 
 
