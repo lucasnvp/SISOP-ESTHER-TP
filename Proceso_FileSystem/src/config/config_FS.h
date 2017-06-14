@@ -9,7 +9,7 @@
 
 typedef struct ConfigType{
 	uint32_t PUERTO_FILESYSTEM;
-	char PUNTO_MONTAJE[64];
+	char* PUNTO_MONTAJE;
 	uint32_t CANTCONEXIONES;
 } Type_Config;
 
