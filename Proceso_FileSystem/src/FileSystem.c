@@ -61,10 +61,10 @@ void server(void* args){
 					}
 				} else {
 					//Recibo el comando
-					uint32_t bytesRecibidos = recive_data(i, &command, sizeof(command));
+					uint32_t command = deserializar_int(i);
 
 					// gestionar datos de un cliente
-					if(bytesRecibidos <= 0){
+					if(command <= 0){
 						close(i); // Close conexion
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}else {
@@ -78,12 +78,67 @@ void server(void* args){
 
 void connection_handler(uint32_t socket, uint32_t command){
 	switch(command){
-	case 'r':
-		printf("Me llegaron datos del Kernel");
+	case 1:{
+		//Se conecto un kernel
+		printf("Se conecto el kernel");
 		break;
+	}
+	case 2:{
+		//validar archivo
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		validar_archivo(path);
+		free(path);
+		break;
+	}
+	case 3: {
+		//crear archivo
+		break;
+	}
+	case 4:{
+		//borrar archivo
+		break;
+	}
+	case 5: {
+		//obtener datos
+		uint32_t offset = 0;
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		obtener_datos(path, offset);
+		free(path);
+		break;
+	}
+	case 6: {
+		//guardar datos
+		break;
+	}
 	default:
 		printf("Error al recibir el comando");
 	}
 
 	return;
+}
+
+void obtener_datos(char* path, uint32_t offset){
+	FILE *fd;
+	fd = fopen(path, "r");
+	uint32_t size = 0;
+	//leer size bytes desde posicion offset
+	//lseek(fd, offset, (offset + size)); -- no va en archivos mayores a 4Gb.
+
+}
+
+
+void validar_archivo (char* path){
+		if( access( path, F_OK ) != -1 ) {
+			printf( "El archivo existe\n" );
+		} else {
+			printf( "El archivo no existe\n" );
+		}
+	}
+
+
+void init_log(char* pathLog){
+	mkdir("/home/utnso/Blacklist/Logs",0755);
+	log_Console = log_create(pathLog, "FileSystem", true, LOG_LEVEL_INFO);
+	log_FileSystem = log_create(pathLog, "FileSystem", false, LOG_LEVEL_INFO);
 }
