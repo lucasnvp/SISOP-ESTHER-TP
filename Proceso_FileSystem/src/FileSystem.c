@@ -82,12 +82,50 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//Se conecto un kernel
 		printf("Se conecto el kernel");
 		break;
+
+	case 2:
+		//validar archivo
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		validar_archivo(path);
+		break;
+
+	case 3:
+		//crear archivo
+
+	case 4:
+		//borrar archivo
+	case 5:
+		//obtener datos
+		uint32_t offset = 0;
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		obtener_datos(path, offset);
+		break;
+
+	case 6:
+		//guardar datos
+
+
 	default:
 		printf("Error al recibir el comando");
 	}
 
 	return;
 }
+
+void obtener_datos(char* path, uint32_t offset){
+ //ver con maxi
+}
+
+
+void validar_archivo (char* path){
+		if( access( path, F_OK ) != -1 ) {
+			printf( "El archivo existe\n" );
+		} else {
+			printf( "El archivo no existe\n" );
+		}
+	}
+
 
 void init_log(char* pathLog){
 	mkdir("/home/utnso/Blacklist/Logs",0755);
