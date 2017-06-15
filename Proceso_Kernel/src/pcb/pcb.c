@@ -39,3 +39,18 @@ void print_PCB(PCB_t* auxPCB){
 	printf("StackPointer: %d\n",auxPCB->StackPointer);
 	printf("ExitCode: %d\n",auxPCB->ExitCode);
 }
+
+PCB_t* buscar_PCB(uint32_t pid,t_queue* QUEUE_PCB){
+	uint32_t elemn;
+	uint32_t sizeQueue = queue_size(QUEUE_PCB);
+	PCB_t* pcb;
+
+	for(elemn = 0;elemn < sizeQueue; elemn++){
+		pcb = (PCB_t*) queue_pop(QUEUE_PCB);
+		if(pcb->PID == pid){
+			return pcb;
+		}
+		queue_push(QUEUE_PCB, pcb);
+	}
+	return 0;
+}

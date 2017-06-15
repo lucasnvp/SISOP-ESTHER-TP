@@ -15,14 +15,15 @@ int main(void) {
 	pthread_t thread_server;
 	pthread_t thread_consola;
 	pthread_t thread_planificador;
+	pthread_t thread_ejecucion;
 
 	QUEUE_PCB = queue_create();
 	QUEUE_NEW = queue_create();
 	QUEUE_EXIT = queue_create();
-	LIST_READY = list_create();
+	QUEUE_CPUS = queue_create();
+	QUEUE_READY = queue_create();
+	QUEUE_EXEC = queue_create();
 	LIST_CONSOLAS = list_create();
-	LIST_CPUS = list_create();
-	LIST_EXEC = list_create();
 
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
@@ -30,6 +31,9 @@ int main(void) {
 	sem_init(&SEM_READY,0,0); //Avisa cuando ingresa un PCB a NEW
 	sem_init(&SEM_STOP_PLANNING,0,1); //Semaforo para detener la planificacion
 	sem_init(&SEM_COMMAND,0,0);
+	sem_init(&SEM_CPU,0,0); //Empieza a planificar si hay una cpu conectada
+	sem_init(&SEM_CPU_DISPONIBLE,0,0); //CPUs disponibles
+	sem_init(&SEM_EXECUTE,0,0);	//Hay procesos para ejecutar
 
 	//Conexion al servidor FileSystem
 	connect_server_memoria();
@@ -49,9 +53,13 @@ int main(void) {
 	//Hilo que planifica el paso de NEWs a READYs dependiendo del grado de multiprogramacion
 	pthread_create(&thread_planificador,NULL,(void*) planificador, NULL);
 
+	//Hilo que ejecuta procesos
+	pthread_create(&thread_ejecucion,NULL,(void*) ejecutar, NULL);
+
 	pthread_join(thread_server, (void**) NULL);
 	pthread_join(thread_programa, (void**) NULL);
 	pthread_join(thread_planificador, (void**) NULL);
+	pthread_join(thread_ejecucion, (void**) NULL);
 	pthread_join(thread_consola, (void**) NULL);
 
 	return EXIT_SUCCESS;
@@ -113,6 +121,8 @@ void procesarPCB(void* args){
 
 void planificador(void* args){
 	while(true){
+		//El planificador no empieza a planificar hasta que no tenga una cpu conectada.
+		sem_wait(&SEM_CPU);
 		//Semaforo de multiprogramacion, detiene el ingreso de PCBs a la lista de READYs
 		sem_wait(&SEM_MULTIPROGRAMACION);
 		//Levanto el signal de un nuevo PCB
@@ -123,18 +133,32 @@ void planificador(void* args){
 		log_info(log_Kernel,"Ingreso un PCB al panificador");
 		//Sacar un PCB de la cola de NEWs
 		PCB_t* element = (PCB_t*) queue_pop(QUEUE_NEW);
-		//Agregar un PCB a la lista de READYs
-		list_add(LIST_READY,element);
+		//Agregar un PCB a la cola de READYs
+		queue_push(QUEUE_READY, element);
+		//Ejecutar proceso
+		sem_post(&SEM_EXECUTE);
 		//vuelvo a liberar la planificacion
 		sem_post(&SEM_STOP_PLANNING);
+		//Sigue un CPU conectada
+		sem_post(&SEM_CPU);
 	}
+}
 
-	//Preguntar si algun CPU esta disponible
-	//Mandar el PCB a la CPU
-	//Respuesta de la CPU
-	//Semaforo de multiprogramacion, tiene que ir cuando se finaliza un PCB asi deja entrar otro en la lista.
+void ejecutar(void* args){
+	while(true){
+		//Hay procesos para ejecutar
+		sem_wait(&SEM_EXECUTE);
+		//Hay una CPU disponible
+		sem_wait(&SEM_CPU_DISPONIBLE);
 
-	//sem_post(&SEM_MULTIPROGRAMACION);
+		//Busco una CPU DISPONIBLE
+		CPU_t* cpu = (CPU_t*) queue_pop(QUEUE_CPUS);
+		PCB_t* pcb = (PCB_t*) queue_pop(QUEUE_READY);
+		AsignarPCB(cpu, pcb);
+		serializar_pcb(cpu->CPU_ID, pcb);
+		queue_push(QUEUE_CPUS,cpu);
+		queue_push(QUEUE_EXEC,pcb);
+	}
 }
 
 void server(void* args){
@@ -198,33 +222,64 @@ void server(void* args){
 void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
-	case 1:
-		//printf("Nuevo Programa\n");
-		log_info(log_Console,"Nuevo Programa");
-		t_SerialString* PATH = malloc(sizeof(t_SerialString));
-		deserializar_string(socket, PATH);
-		log_info(log_Kernel,"El nuevo programa ocupa %d bytes", PATH->sizeString);
-		//Preguntar a memoria si hay lugar para almacenarlo
-			//Si tiene lugar enviarlo
-			//Si no tiene exit run
-		//Libero el programa en el kernel
-		free(PATH->dataString);
-		free(PATH);
-		//Almacenar la consola
-		Program* NewProgram = Program_new(socket, 0);
-		queue_sync_push(QUEUE_PCB, NewProgram);
-		break;
-	case 2:
-		log_info(log_Kernel,"Nueva CPU");
-		list_add(LIST_CPUS,socket);
-		break;
-	case 3:
-		//Finalizacion de ejecucion de rafaga de CPU
-		//deserializar_pcb();
-		break;
-	default:
-		printf("Error de comando\n");
-		break;
+		case 1:{
+			//printf("Nuevo Programa\n");
+			log_info(log_Console,"Nuevo Programa");
+			t_SerialString* PATH = malloc(sizeof(t_SerialString));
+			deserializar_string(socket, PATH);
+			log_info(log_Kernel,"El nuevo programa ocupa %d bytes", PATH->sizeString);
+			//Preguntar a memoria si hay lugar para almacenarlo
+				//Si tiene lugar enviarlo
+				//Si no tiene exit run
+			//Libero el programa en el kernel
+			free(PATH->dataString);
+			free(PATH);
+			//Almacenar la consola
+			Program* NewProgram = Program_new(socket, 0);
+			queue_sync_push(QUEUE_PCB, NewProgram);
+			break;
+		}
+		case 2:{
+			//Nueva conexion de CPU
+			log_info(log_Kernel,"Nueva CPU");
+			//Nueva CPU
+			CPU_t* newCPU = CPU_new(socket);
+			//Envio la CPU a la pila de CPUs
+			queue_push(QUEUE_CPUS, newCPU);
+			//Habilito el semaforo de CPU activas para planificar.
+			sem_post(&SEM_CPU);
+			//Hay CPU disponible
+			sem_post(&SEM_CPU_DISPONIBLE);
+			break;
+		}
+		case 3:{
+			//Finalizacion de ejecucion de rafaga de CPU
+			log_info(log_Kernel,"Finalizacion de ejecucion de CPU");
+			//PCB a deserializar
+			PCB_t* pcbRecibido = malloc(sizeof(PCB_t));
+			deserializar_pcb(socket, pcbRecibido);
+			//Buscar el PCB en la cola de Exec.
+			PCB_t* pcbExec = buscar_PCB(pcbRecibido->PID, QUEUE_EXEC);
+			//Buscar la cpu
+			CPU_t* cpu = buscar_CPU(socket, QUEUE_CPUS);
+			//Libero la cpu
+			LiberarCPU(cpu);
+			//Agrego la cpu disponible a la pila
+			queue_push(QUEUE_CPUS,cpu);
+			//Libero el pcb en ejecucion.
+			PCB_free(pcbExec);
+			//Envio el PCB finalizado a la pila de exit
+			queue_push(QUEUE_EXIT,pcbRecibido);
+			//Libero el semaforo de multiprogramacion por finalizar un programa
+			sem_post(&SEM_MULTIPROGRAMACION);
+			//CPU lista para nuevo programa
+			sem_post(&SEM_CPU_DISPONIBLE);
+			break;
+		}
+		default:{
+			printf("Error de comando\n");
+			break;
+		}
 	}
 
 	return;
@@ -242,11 +297,13 @@ void consola_kernel(void* args){
 			system("clear");
 		}
 		else if (!strcmp(consola.comando, "list")){
-			list_new(QUEUE_NEW);
-			list_process(LIST_READY);
+			list_queue(QUEUE_NEW, 1);
+			list_queue(QUEUE_READY, 2);
+			list_queue(QUEUE_EXEC, 3);
+			list_queue(QUEUE_EXIT, 4);
 		}
 		else if (!strcmp(consola.comando, "list_ready")){
-			list_process(LIST_READY);
+			list_ready(QUEUE_READY);
 		}
 		else if (!strcmp(consola.comando, "list_consolas")){
 			list_console(LIST_CONSOLAS);
@@ -267,7 +324,7 @@ void consola_kernel(void* args){
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
-				status_process(LIST_READY,nroProceso);
+				status_process(QUEUE_READY,nroProceso);
 			}
 		}
 		else if (!strcmp(consola.comando, "kill")){
@@ -275,7 +332,7 @@ void consola_kernel(void* args){
 				printf("Falta el argumento de la funcion %s\n", consola.comando);
 			else {
 				uint32_t nroProceso = atoi(consola.argumento);
-				kill_process(LIST_READY,nroProceso);
+				kill_process(QUEUE_READY,nroProceso);
 				sem_post(&SEM_MULTIPROGRAMACION);
 			}
 		}
