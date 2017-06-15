@@ -17,8 +17,10 @@
 #define N_PID 1
 #define N_PAGINA 2
 
-#define MARCOS 20
+#define MARCOS 100
 #define MARCO_SIZE 256
+#define ENTRADAS_CACHE 15
+#define CACHE_X_PROCESO 3
 
 Type_Config config;
 
@@ -27,13 +29,29 @@ void * bloque_Memoria;
 
 
 
-struct estructuraPaginacionInversa{
+typedef struct estructuraPaginacionInversa{
     int ** matriz;
     int filas;
-};
-typedef struct estructuraPaginacionInversa * t_EstructuraPaginacionInversa;
+}t_EstructuraPaginacionInversa;
+
+
 
 t_EstructuraPaginacionInversa tablaEPI;
+
+typedef struct{
+    int PID;
+    int nPagina;
+    char contenido[MARCO_SIZE];
+}t_MemoriaCache;
+
+
+
+typedef struct{
+    t_MemoriaCache memoriaCache;
+    int tiempoEnCache;
+}t_cacheHandler;
+
+t_cacheHandler adminCache[ENTRADAS_CACHE];
 
 
 
@@ -42,23 +60,30 @@ char* PATH_CONFIG = "/home/utnso/git/tp-2017-1c-Blacklist/Proceso_Memoria/src/co
 
 
 
-//-----------------------FUNCIONES MEMORIA--------------------------------//
 int inicializarPrograma(int PID, int cantPaginas);
-char* solicitarBytesPagina(int pid,int pagina, int offset, int size,char** buffer);
-int almacenarBytesPagina(int pid,int pagina, int offset,int size, char* buffer);
+void* solicitarBytesPagina(int PID,int pagina, int offset, int size);
+int almacenarBytesPagina(int PID,int pagina, int offset,int size, void * buffer);
 int asignarPaginasAProceso(int PID, int cantPaginas);
-int finalizarPrograma(int pid);
-
-//-----------------------OTRAS FUNCIONES: EPI------------------------------//
-void inicializarTablaEPI();
-int agregarDatosTablaEPI(int PID,int nPagina); //1 si pudo escribir, 0 si no.
-void borrarDatosTablaEPI(int PID);
-int framesDisponibles();
-void imprimirEPI();
-void impirmirEPIaccediendoAMemoria();
+int liberarPaginaDeUnProceso(int PID, int pagina); //Falta Hacer
+int finalizarPrograma(int PID);
 //-----------------------OTRAS FUNCIONES: MEMORIA--------------------------//
 void inicializarMemoria();
+//-----------------------FUNCIONES: EPI--------------------------//
+void inicializarTablaEPI();
+int agregarDatosTablaEPI(int PID,int nPagina);
+int borrarDatosTablaEPI(int PID);
+int framesDisponibles();
+void imprimirEPI();
+void impirmirEPIaccediendoAMemoria(int inicio,int fin);
 
+//-----------------------FUNCIONES: CACHE--------------------------//
+void inicializarCache();
+int estaLaPaginaEnCache(int PID,int nPagina);
+void * solicitarBytesPaginaCache(int PID,int pagina, int offset, int size);
+void incrementarEnUnoTiempoEnCache();
+void imprimirCache();
+void actualizoCache(int PID,int pagina,int nFrame);
+int quitarProgramaDeCache(int PID);
 //-----------------------OTRAS FUNCIONES: USO GENERAL----------------------//
 bool consola();
 void crearHilo(uint32_t * newfd);

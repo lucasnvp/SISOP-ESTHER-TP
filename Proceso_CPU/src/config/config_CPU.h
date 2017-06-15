@@ -10,9 +10,9 @@
 
 typedef struct ConfigType{
 	uint32_t PUERTO_KERNEL;
-	char IP_KERNEL[16];
-	char IP_MEMORIA[16];
+	char* IP_KERNEL;
 	uint32_t PUERTO_MEMORIA;
+	char* IP_MEMORIA;
 } Type_Config;
 
 Type_Config load_config(char* path);

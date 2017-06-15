@@ -10,9 +10,12 @@ Type_Config load_config(char* path){
 	config.MARCO_SIZE = config_get_int_value(auxConfig, "MARCO_SIZE");
 	config.ENTRADAS_CACHE = config_get_int_value(auxConfig, "ENTRADAS_CACHE");
 	config.CACHE_X_PROC = config_get_int_value(auxConfig, "CACHE_X_PROC");
-	char *reemplazoCache = config_get_string_value(auxConfig, "REEMPLAZO_CACHE");
-	memcpy(config.REEMPLAZO_CACHE, reemplazoCache, strlen(reemplazoCache)+1);
-	free (reemplazoCache);
+
+	char* reemplazoCache = malloc(4);
+	reemplazoCache = config_get_string_value(auxConfig, "REEMPLAZO_CACHE");
+	config.REEMPLAZO_CACHE = malloc(strlen(reemplazoCache)+1);
+	strcpy(config.REEMPLAZO_CACHE,reemplazoCache);
+
 	config.RETARDO_MEMORIA = config_get_int_value(auxConfig, "RETARDO_MEMORIA");
 	config.CANTCONEXIONES = config_get_int_value(auxConfig, "CANTCONEXIONES");
 

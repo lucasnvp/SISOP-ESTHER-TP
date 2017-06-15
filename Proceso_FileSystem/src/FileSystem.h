@@ -12,11 +12,19 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include <commons/collections/list.h>
+#include <commons/log.h>
+
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
+#include "serializador/serializador.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
+
+char* PATH_LOG = "/home/utnso/Blacklist/Logs/logFileSystem.txt";
+t_log* log_Console;
+t_log* log_FileSystem;
 
 uint32_t SERVIDOR_FILESYSTEM;
 

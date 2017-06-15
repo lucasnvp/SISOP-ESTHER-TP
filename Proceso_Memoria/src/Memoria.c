@@ -5,22 +5,40 @@ int main(void){
     puts("Proceso Memoria");
 
     //Configuracion inicial
-		//config = load_config(PATH_CONFIG);
-	 	//print_config(config);
+		config = load_config(PATH_CONFIG);
+	 	print_config(config);
 
 	 	inicializarMemoria();
 
 
-		inicializarPrograma(1,3);
-		inicializarPrograma(2,1);
-		asignarPaginasAProceso(1,2);
+	 	inicializarPrograma(1,2);
+		inicializarPrograma(2,2);
+		inicializarPrograma(3,4);
+		almacenarBytesPagina(1,0,0,5,"hola");
+		almacenarBytesPagina(1,0,4,6," pepe");
+		almacenarBytesPagina(2,0,0,5,"chau");
+		almacenarBytesPagina(3,0,0,5,"1");
+		almacenarBytesPagina(3,1,0,5,"2");
+		almacenarBytesPagina(3,2,0,5,"3");
+		almacenarBytesPagina(3,3,0,5,"4");
+		solicitarBytesPagina(1,0,0,5);
+		solicitarBytesPagina(2,0,0,5);
+		solicitarBytesPagina(3,0,0,5);
+		solicitarBytesPagina(3,1,0,5);
+		solicitarBytesPagina(3,2,0,5);
+		solicitarBytesPagina(3,3,0,5);
+		solicitarBytesPagina(1,0,0,11);
+		finalizarPrograma(1);
+		almacenarBytesPagina(2,1,0,7,"prueba");
+		solicitarBytesPagina(2,1,0,7);
 
 
-		imprimirEPI();
 
-		impirmirEPIaccediendoAMemoria();
+		impirmirEPIaccediendoAMemoria(0,40);
 
+		 printf("\n");
 
+		 imprimirCache();
 		//Creacion del servidor
 		uint32_t servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
 
@@ -42,6 +60,7 @@ int main(void){
 				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 				pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
 
+
 			}
 		}
 		return EXIT_SUCCESS;
@@ -51,17 +70,28 @@ int main(void){
 void inicializarMemoria()
 {
     inicializarTablaEPI();
-    bloque_Memoria = malloc(sizeof(bloque_Memoria)*MARCOS*MARCO_SIZE);
+    bloque_Memoria = malloc(MARCOS*MARCO_SIZE);
 
     int i;
-    int cantMarcosOcupaMemoriaAdm = ((sizeof(int*)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
+    int cantMarcosOcupaMemoriaAdm = ((sizeof(int)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
     int aux[3];
-    aux[N_PID]=0;
+    aux[N_PID]=-1;
+
+    //Inicializo en memoria tabla que va a dar informacion de los procesos de sistema
+    for(i=0;i<cantMarcosOcupaMemoriaAdm;i++)
+    {
+        aux[N_PAGINA]=i;
+        aux[N_FRAME]=i;
+        memcpy(bloque_Memoria +(i*sizeof(aux)),&aux,sizeof(aux));
+
+    }
     aux[N_PAGINA]=0;
+    aux[N_PID]=0;
+    //Inicializo en memoria siguiente parte de tabla que va a dar informacion de los procesos de usuario
     for(i=0;i<MARCOS-cantMarcosOcupaMemoriaAdm;i++)
     {
         aux[N_FRAME]=i+cantMarcosOcupaMemoriaAdm;
-        memcpy(bloque_Memoria +(i*sizeof(aux)),&aux,sizeof(aux));//
+        memcpy((bloque_Memoria+cantMarcosOcupaMemoriaAdm*sizeof(aux)) +(i*sizeof(aux)),&aux,sizeof(aux));//TODO: no se esta copiando bien con ceros las cosas
 
     }
     for(i=0;i<cantMarcosOcupaMemoriaAdm;i++)
@@ -72,9 +102,8 @@ void inicializarMemoria()
 }
 void inicializarTablaEPI()
 {
-    tablaEPI = malloc(sizeof(t_EstructuraPaginacionInversa));
-    tablaEPI->filas=0;
-
+    tablaEPI.filas=0;
+    tablaEPI.matriz = malloc(sizeof(tablaEPI.matriz));
 
 }
 int agregarDatosTablaEPI(int PID,int nPagina){
@@ -84,48 +113,45 @@ int agregarDatosTablaEPI(int PID,int nPagina){
     int info[3];
     info[N_PID]=PID;
     info[N_PAGINA]=nPagina;
-    //Busco si hay marcos Libres y agrego
-    for (i=0;i<tablaEPI->filas && !pudeEscribirTabla ;i++)
+    //Busco si hay marcos Libres
+    for (i=0;i<tablaEPI.filas && !pudeEscribirTabla ;i++)
     {
-        if (tablaEPI->matriz[i][N_PID]==0 && tablaEPI->matriz[i][N_PAGINA]==0)
+        if (tablaEPI.matriz[i][N_PID]==0 && tablaEPI.matriz[i][N_PAGINA]==0)
         {
-            memcpy(&tablaEPI->matriz[i][N_PID],&PID,sizeof(PID));
-            memcpy(&tablaEPI->matriz[i][N_PAGINA],&nPagina,sizeof(nPagina));
+            memcpy(&tablaEPI.matriz[i][N_PID],&PID,sizeof(PID));
+            memcpy(&tablaEPI.matriz[i][N_PAGINA],&nPagina,sizeof(nPagina));
 
             //Copio En memoria la info de la estructura administrativa.
-            info[N_FRAME]=tablaEPI->matriz[i][N_FRAME];
-            memcpy(bloque_Memoria + (info[N_FRAME]-cantMarcosOcupaMemoriaAdm)*sizeof(info),&info,sizeof(info));
+            info[N_FRAME]=tablaEPI.matriz[i][N_FRAME];
+            memcpy(bloque_Memoria + (info[N_FRAME])*sizeof(info),&info,sizeof(info));
 
 
             pudeEscribirTabla = 1;
         }
     }
-    if (!pudeEscribirTabla && tablaEPI->filas<MARCOS)//agrando la tabla
+    if (!pudeEscribirTabla && tablaEPI.filas<MARCOS)//Esto lo voy a tener que borrar
     {
-
         int **aux;
-        aux = (int **) realloc(tablaEPI->matriz,sizeof(int*)*((tablaEPI->filas)+1));//TODO: aca deberia sumar uno y no diez para aumentar una fila
+        aux = realloc(tablaEPI.matriz,sizeof(int)*(tablaEPI.filas+1));
 
         if (aux!='\0')
             {
 
-        aux[tablaEPI->filas] =(int*) malloc(sizeof(aux[tablaEPI->filas])*3);
-        memcpy(&tablaEPI->matriz,&aux,sizeof(aux));
+        aux[tablaEPI.filas] =(int*) malloc(sizeof(aux[tablaEPI.filas])*3);
+        memcpy(&tablaEPI.matriz,&aux,sizeof(aux));
 
-        memcpy(&tablaEPI->matriz[tablaEPI->filas][N_FRAME],&tablaEPI->filas,sizeof(tablaEPI->filas));
-        memcpy(&tablaEPI->matriz[tablaEPI->filas][N_PID],&PID,sizeof(PID));
-        memcpy(&tablaEPI->matriz[tablaEPI->filas][N_PAGINA],&nPagina,sizeof(nPagina));
+        memcpy(&tablaEPI.matriz[tablaEPI.filas][N_FRAME],&tablaEPI.filas,sizeof(tablaEPI.filas));
+        memcpy(&tablaEPI.matriz[tablaEPI.filas][N_PID],&PID,sizeof(PID));
+        memcpy(&tablaEPI.matriz[tablaEPI.filas][N_PAGINA],&nPagina,sizeof(nPagina));
 
         //Copio En memoria la info de la estructura administrativa.
-        info[N_FRAME]=tablaEPI->matriz[tablaEPI->filas][N_FRAME];
-        memcpy(bloque_Memoria + (info[N_FRAME]-cantMarcosOcupaMemoriaAdm)*sizeof(info),&info,sizeof(info));
+        info[N_FRAME]=tablaEPI.matriz[tablaEPI.filas][N_FRAME];
+        memcpy(bloque_Memoria + (info[N_FRAME])*sizeof(info),&info,sizeof(info));
 
 
-        tablaEPI->filas++;
+        tablaEPI.filas+=1;
         pudeEscribirTabla=1;
-
             }
-
 
         }
 
@@ -134,7 +160,7 @@ int agregarDatosTablaEPI(int PID,int nPagina){
 
 
 
-void borrarDatosTablaEPI(int PID){
+int borrarDatosTablaEPI(int PID){
 
     int i;
 
@@ -143,19 +169,24 @@ void borrarDatosTablaEPI(int PID){
     info[N_PID]=0;
     info[N_PAGINA]=0;
 
-    for (i=0;i<tablaEPI->filas;i++)
-    {
-        if (PID == tablaEPI->matriz[i][N_PID])
-        {
-            tablaEPI->matriz[i][N_PID]=0;
-            tablaEPI->matriz[i][N_PAGINA]=0;
+    int pudeBorrar = 0;
 
-        info[N_FRAME]=tablaEPI->matriz[i][N_FRAME];
-        memcpy(bloque_Memoria + (info[N_FRAME]-cantMarcosOcupaMemoriaAdm)*sizeof(info),&info,sizeof(info));
+    for (i=0;i<tablaEPI.filas;i++)
+    {
+        if (PID == tablaEPI.matriz[i][N_PID])
+        {
+            tablaEPI.matriz[i][N_PID]=0;
+            tablaEPI.matriz[i][N_PAGINA]=0;
+
+        info[N_FRAME]=tablaEPI.matriz[i][N_FRAME];
+
+        memcpy(bloque_Memoria + (info[N_FRAME])*sizeof(info),&info,sizeof(info));
+
+        pudeBorrar = 1;
         }
     }
 
-    return;
+    return pudeBorrar;
 }
 
 int framesDisponibles()
@@ -165,14 +196,14 @@ int framesDisponibles()
     int i;
     int framesDisponibles=0;
     //Busco si hay marcos Libres
-    for (i=0;i<tablaEPI->filas;i++)
+    for (i=0;i<tablaEPI.filas;i++)
     {
-        if (tablaEPI->matriz[i][N_PID]==0 && tablaEPI->matriz[i][N_PAGINA]==0)
+        if (tablaEPI.matriz[i][N_PID]==0 && tablaEPI.matriz[i][N_PAGINA]==0)
         {
             framesDisponibles++;
         }
     }
-    return (MARCOS-tablaEPI->filas+framesDisponibles);
+    return (MARCOS-tablaEPI.filas+framesDisponibles);
 }
 
 
@@ -180,24 +211,25 @@ int framesDisponibles()
 void imprimirEPI()
 {
     int i;
-    for (i=0;i<tablaEPI->filas;i++)
+    for (i=0;i<tablaEPI.filas;i++)
     {
-        printf("#FRAME:%d  PID:%d  #PAGINA:%d \n" ,tablaEPI->matriz[i][N_FRAME],tablaEPI->matriz[i][N_PID],tablaEPI->matriz[i][N_PAGINA]);
+        printf("#FRAME:%d  PID:%d  #PAGINA:%d \n" ,tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA]);
     }
 
     printf("Los frames disponibles son: %d",framesDisponibles());
 }
 
-void impirmirEPIaccediendoAMemoria()
+void impirmirEPIaccediendoAMemoria(int inicio,int fin)
 {
 int a[3];
     int i;
-     int cantMarcosOcupaMemoriaAdm = ((sizeof(int*)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
-    for(i=0;i<MARCOS-cantMarcosOcupaMemoriaAdm;i++)
+if(fin<MARCOS){
+    for(i=inicio;i<=fin;i++)
     {
         memcpy(&a,bloque_Memoria+12*i,sizeof(int)*3);
 
     printf("\nIMPRIMIENDO DESDE MEMORIA EPI FRAME:%d PID:%d PAGINA:%d",a[0],a[1],a[2]);
+    }
     }
 
 }
@@ -242,16 +274,213 @@ int obtenerUltimaPaginaUtilizada(PID)
     info[N_PID]=0;
     info[N_PAGINA]=0;
 
-    for (i=cantMarcosOcupaMemoriaAdm;i<tablaEPI->filas;i++)
+    for (i=cantMarcosOcupaMemoriaAdm;i<tablaEPI.filas;i++)
     {
-        if (PID == tablaEPI->matriz[i][N_PID])
+        if (PID == tablaEPI.matriz[i][N_PID])
         {
-            ultimaPaginaUtilizada=tablaEPI->matriz[i][N_PAGINA];
+            ultimaPaginaUtilizada=tablaEPI.matriz[i][N_PAGINA];
         }
     }
 
     return ultimaPaginaUtilizada;;
 }
+
+int almacenarBytesPagina(int PID,int pagina, int offset,int size, void * buffer) //TODO: Si ya esta en cache, actualizar contenido
+{
+    int cantMarcosOcupaMemoriaAdm = ((sizeof(int*)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
+    int encontrePagina = 0;
+    int i;
+
+        for (i=cantMarcosOcupaMemoriaAdm;i<tablaEPI.filas && !encontrePagina;i++)
+        {
+            if (PID == tablaEPI.matriz[i][N_PID] && pagina == tablaEPI.matriz[i][N_PAGINA])
+            {
+                memcpy(bloque_Memoria + tablaEPI.matriz[i][N_FRAME]*MARCO_SIZE + offset,buffer,size);
+                encontrePagina=1;
+                if (estaLaPaginaEnCache(PID,pagina))
+                {
+                    actualizoCache(PID,pagina,tablaEPI.matriz[i][N_FRAME]);
+                }
+            }
+
+    }
+    return encontrePagina;
+}
+void* solicitarBytesPagina(int PID,int pagina, int offset, int size)
+{
+    return solicitarBytesPaginaCache(PID,pagina,offset,size);
+}
+int finalizarPrograma(int PID)
+{
+       quitarProgramaDeCache(PID);
+    return borrarDatosTablaEPI(PID);
+}
+
+void inicializarCache()
+{
+    int i;
+
+    for(i=0;i<ENTRADAS_CACHE;i++)
+    {
+        adminCache[i].tiempoEnCache=0;
+        adminCache[i].memoriaCache.nPagina=0;
+        adminCache[i].memoriaCache.PID=0;
+
+    }
+}
+void incrementarEnUnoTiempoEnCache()
+{
+    int i;
+
+    for(i=0;i<ENTRADAS_CACHE;i++)
+    {
+        if (adminCache[i].memoriaCache.PID!=0)
+            adminCache[i].tiempoEnCache+=1;
+    }
+}
+void * solicitarBytesPaginaCache(int PID,int pagina, int offset, int size)
+{
+    int i;
+    void * aux;
+    aux='\0';
+    int encontreEnCache=0;
+    int cantMarcosOcupaMemoriaAdm = ((sizeof(int*)*3*MARCOS)+MARCO_SIZE-1)/MARCO_SIZE;
+    int encontrePagina = 0;
+    incrementarEnUnoTiempoEnCache();
+
+    for(i=0;i<ENTRADAS_CACHE && !encontreEnCache;i++)//Busco en cache primero
+    {
+        if(adminCache[i].memoriaCache.nPagina==pagina && adminCache[i].memoriaCache.PID==PID)
+        {
+            aux=malloc(size);
+            memcpy(aux,&adminCache[i].memoriaCache.contenido[offset],size);
+            encontreEnCache=1;
+        }
+    }
+    //Busco en memoria y lo traigo a cache
+    for (i=cantMarcosOcupaMemoriaAdm;i<tablaEPI.filas && !encontreEnCache && !encontrePagina;i++)
+    {
+        if (PID == tablaEPI.matriz[i][N_PID] && pagina == tablaEPI.matriz[i][N_PAGINA])
+        {
+            aux=malloc(size);
+            memcpy(aux,bloque_Memoria + tablaEPI.matriz[i][N_FRAME]*MARCO_SIZE+offset,size);
+            encontrePagina=1;
+            actualizoCache(PID,pagina,tablaEPI.matriz[i][N_FRAME]);
+        }
+    }
+
+   return aux;
+}
+void actualizoCache(int PID,int pagina,int nFrame)
+{
+    int i;
+    int encontreEnCache=0;
+    int entradasCachePorPID=0;
+    int entraMasVieja=0;
+    int primeraEntradaVacia=-1;
+    for(i=0;i<ENTRADAS_CACHE;i++)//Reemplazo contenido viejo de la cache por nuevo si ya existe la pagina
+    {
+        if(adminCache[i].memoriaCache.PID==0 && adminCache[i].memoriaCache.nPagina==0 && primeraEntradaVacia==-1)
+        {
+            primeraEntradaVacia=i;
+
+        }
+        if(adminCache[i].memoriaCache.PID==PID)
+        {
+            entradasCachePorPID++;
+        }
+        if(adminCache[i].memoriaCache.nPagina==pagina && adminCache[i].memoriaCache.PID==PID)
+        {
+
+            memcpy(&adminCache[i].memoriaCache.contenido,bloque_Memoria+nFrame*MARCO_SIZE,MARCO_SIZE);
+            adminCache[i].tiempoEnCache=0;
+        }
+    }
+    if (entradasCachePorPID==CACHE_X_PROCESO)
+    {
+         for(i=0;i<ENTRADAS_CACHE;i++)
+         {
+             if(adminCache[i].memoriaCache.PID==PID)
+             {
+                 if(entraMasVieja<adminCache[i].tiempoEnCache)
+                 {
+                     entraMasVieja=i;
+                 }
+             }
+         }
+        adminCache[entraMasVieja].memoriaCache.nPagina=pagina;
+
+        memcpy(&adminCache[entraMasVieja].memoriaCache.contenido,bloque_Memoria+nFrame*MARCO_SIZE,MARCO_SIZE);
+        adminCache[entraMasVieja].tiempoEnCache=0;
+    }
+    if (entradasCachePorPID<CACHE_X_PROCESO)
+    {
+
+        if(primeraEntradaVacia!=-1)
+        {
+
+            adminCache[primeraEntradaVacia].memoriaCache.nPagina=pagina;
+            adminCache[primeraEntradaVacia].memoriaCache.PID=PID;
+            memcpy(&adminCache[primeraEntradaVacia].memoriaCache.contenido,bloque_Memoria+(nFrame*MARCO_SIZE),MARCO_SIZE);
+            adminCache[primeraEntradaVacia].tiempoEnCache=0;
+        }
+        else
+        {
+
+            for(i=0;i<ENTRADAS_CACHE;i++)
+             {
+
+                 if(entraMasVieja<adminCache[i].tiempoEnCache)
+                 {
+                     entraMasVieja=i;
+                 }
+             }
+            adminCache[entraMasVieja].memoriaCache.nPagina=pagina;
+            adminCache[entraMasVieja].memoriaCache.PID=PID;
+            memcpy(&adminCache[entraMasVieja].memoriaCache.contenido,bloque_Memoria+nFrame*MARCO_SIZE,MARCO_SIZE);
+            adminCache[entraMasVieja].tiempoEnCache=0;
+        }
+    }
+}
+void imprimirCache()
+{
+    int i;
+    printf("MEMORIA CACHE \n");
+    for(i=0;i<ENTRADAS_CACHE;i++)
+     {
+         printf("PID:%d NPAGINA:%d VIGENCIA_EN_CACHE:%d CONTENIDO:%s\n",adminCache[i].memoriaCache.PID,adminCache[i].memoriaCache.nPagina,adminCache[i].tiempoEnCache,adminCache[i].memoriaCache.contenido);
+     }
+}
+int estaLaPaginaEnCache(int PID,int nPagina)
+{
+    int i;
+    int estaEnCache=0;
+    for(i=0;i<ENTRADAS_CACHE && !estaEnCache;i++)
+     {
+
+         if(adminCache[i].memoriaCache.PID==PID && adminCache[i].memoriaCache.nPagina==nPagina)
+         {
+             estaEnCache=1;
+         }
+     }
+     return estaEnCache;
+}
+int quitarProgramaDeCache(int PID)
+{
+    int i;
+     for(i=0;i<ENTRADAS_CACHE;i++)
+    {
+        if(adminCache[i].memoriaCache.PID==PID)
+        {
+            adminCache[i].memoriaCache.PID=0;
+            adminCache[i].memoriaCache.nPagina=0;
+            adminCache[i].tiempoEnCache=0;
+        }
+    }
+
+}
+
+
 
 void crearHilo(uint32_t * newfd){
 
