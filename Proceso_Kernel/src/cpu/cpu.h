@@ -18,6 +18,7 @@ typedef struct CPUType{
 
 CPU_t* CPU_new(uint32_t CPU_ID);
 CPU_t* buscar_CPU(uint32_t idCPU, t_queue* QUEUE_CPUS);
+CPU_t* buscar_CPU_Disponible(t_queue* QUEUE_CPUS);
 
 void print_CPU(CPU_t* auxCPU);
 void CPU_free(CPU_t* this);

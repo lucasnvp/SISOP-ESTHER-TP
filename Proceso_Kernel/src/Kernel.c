@@ -152,7 +152,7 @@ void ejecutar(void* args){
 		sem_wait(&SEM_CPU_DISPONIBLE);
 
 		//Busco una CPU DISPONIBLE
-		CPU_t* cpu = (CPU_t*) queue_pop(QUEUE_CPUS);
+		CPU_t* cpu = buscar_CPU_Disponible(QUEUE_CPUS);
 		PCB_t* pcb = (PCB_t*) queue_pop(QUEUE_READY);
 		AsignarPCB(cpu, pcb);
 		serializar_pcb(cpu->CPU_ID, pcb);
