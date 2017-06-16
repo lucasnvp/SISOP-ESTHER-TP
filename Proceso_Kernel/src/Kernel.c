@@ -150,13 +150,17 @@ void ejecutar(void* args){
 		sem_wait(&SEM_EXECUTE);
 		//Hay una CPU disponible
 		sem_wait(&SEM_CPU_DISPONIBLE);
-
 		//Busco una CPU DISPONIBLE
 		CPU_t* cpu = buscar_CPU_Disponible(QUEUE_CPUS);
+		//Saco un PCB de la pila de ready
 		PCB_t* pcb = (PCB_t*) queue_pop(QUEUE_READY);
+		//Asigno el PCB a la cpu
 		AsignarPCB(cpu, pcb);
+		//Envio a ejecutar el pcb
 		serializar_pcb(cpu->CPU_ID, pcb);
+		//Agrego la CPU asignada a la pila de CPUs
 		queue_push(QUEUE_CPUS,cpu);
+		//Agrego el PCB a la pila de Ejecucion
 		queue_push(QUEUE_EXEC,pcb);
 	}
 }

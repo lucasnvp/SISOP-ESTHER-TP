@@ -17,12 +17,14 @@ typedef struct ConfigType{
 	uint32_t QUANTUM_SLEEP;
 	char* ALGORITMO;
 	uint32_t GRADO_MULTIPROG;
-	//SEM_IDS=[SEM1, SEM2, SEM3]
-	//SEM_INIT=[0, 0, 5]
-	//SHARED_VARS=[!Global, !UnaVar, !tiempo3]
+	char** SEM_IDS;
+	char** SEM_INIT;
+	char** SHARED_VARS;
 	uint32_t STACK_SIZE;
 	uint32_t CANTCONEXIONES;
 } Type_Config;
+
+uint32_t i;
 
 Type_Config load_config(char* path);
 void print_config(Type_Config auxConfig);

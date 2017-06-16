@@ -29,9 +29,11 @@ Type_Config load_config(char* path){
 	strcpy(config.ALGORITMO, ALGORITMO);
 
 	config.GRADO_MULTIPROG = config_get_int_value(auxConfig, "GRADO_MULTIPROG");
-	//SEM_IDS=[SEM1, SEM2, SEM3]
-	//SEM_INIT=[0, 0, 5]
-	//SHARED_VARS=[!Global, !UnaVar, !tiempo3]
+
+	config.SEM_IDS = config_get_array_value(auxConfig, "SEM_IDS");
+	config.SEM_INIT = config_get_array_value(auxConfig, "SEM_INIT");
+	config.SHARED_VARS = config_get_array_value(auxConfig, "SHARED_VARS");
+
 	config.STACK_SIZE = config_get_int_value(auxConfig, "STACK_SIZE");
 	config.CANTCONEXIONES = config_get_int_value(auxConfig, "CANTCONEXIONES");
 
@@ -53,9 +55,17 @@ void print_config(Type_Config auxConfig){
 	printf("QUANTUM_SLEEP = %d \n", auxConfig.QUANTUM_SLEEP);
 	printf("ALGORITMO = %s \n", auxConfig.ALGORITMO);
 	printf("GRADO_MULTIPROG = %d \n", auxConfig.GRADO_MULTIPROG);
-	//SEM_IDS=[SEM1, SEM2, SEM3]
-	//SEM_INIT=[0, 0, 5]
-	//SHARED_VARS=[!Global, !UnaVar, !tiempo3]
+
+	printf("SEM_IDS, SEM_INIT: \n");
+	for(i=0 ; auxConfig.SEM_IDS[i] != NULL ; i++){
+		printf("SEM_IDS[%d]: %s , SEM_INIT[%d]: %s \n", i, auxConfig.SEM_IDS[i], i, auxConfig.SEM_INIT[i]);
+	}
+
+	printf("SHARED_VARS:\n");
+	for(i=0 ; auxConfig.SHARED_VARS[i] != NULL ; i++){
+	    printf("[%d]: %s\n", i, auxConfig.SHARED_VARS[i]);
+	}
+
 	printf("STACK_SIZE = %d \n", auxConfig.STACK_SIZE);
 	printf("CANTCONEXIONES = %d \n", auxConfig.CANTCONEXIONES);
 	puts("----------------------");
