@@ -19,7 +19,7 @@ Type_Config config;
 uint32_t kernel;
 uint32_t memoria;
 
-PCB_t *pcbActivo;
+PCB_t* pcbActivo;
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;
