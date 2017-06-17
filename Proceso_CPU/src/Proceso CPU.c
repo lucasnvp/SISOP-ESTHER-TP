@@ -1,13 +1,11 @@
 #include "Proceso CPU.h"
 
 AnSISOP_funciones functions = {  //TODAS LAS PRIMITIVAS TIENEN QUE ESTAR ACA
-		.AnSISOP_finalizar = finalizarCodigo,
-
-		};
+		.AnSISOP_finalizar = finalizarProceso };
 
 AnSISOP_kernel kernel_functions = {
 
-};  //Syscalls
+.AnSISOP_wait = kernel_wait };  //Syscalls
 
 static const char* PROGRAMA = "begin\n"
 		"variables a, b\n"
@@ -59,7 +57,7 @@ void ejecutar() {
 
 	int programCounter = 0;	//deberia ser el del PCB
 
-	while (!programaFinalizado()) {
+	while (!codigoFinalizado()) {
 
 		//instancio para utilizar
 		t_puntero_instruccion start =
@@ -72,7 +70,7 @@ void ejecutar() {
 		char* const instruccion = solicitarInstruccionAMemoria(1, start,
 				offset); //falta la pagina en donde esta la instruccion.
 
-		analizadorLinea(instruccion, functions, kernel_functions); //ejecuta las primitivas
+		analizadorLinea(instruccion, &functions, &kernel_functions); //ejecuta las primitivas
 
 		free(instruccion);
 
@@ -114,13 +112,5 @@ void connect_server_memoria() {
 		printf("Memoria Conectada\n");
 		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
 	}
-}
-
-void finalizarCodigo(void) {
-	termino = true;
-	printf("Finalizar\n");
-}
-bool programaFinalizado(void) {
-	return termino;
 }
 
