@@ -12,15 +12,42 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+
+#include <commons/collections/list.h>
+#include <commons/log.h>
+
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
+#include "serializador/serializador.h"
 
 char* PATH_CONFIG = "../src/config/config.txt";
 Type_Config config;
+
+char* PATH_LOG = "/home/utnso/Blacklist/Logs/logFileSystem.txt";
+t_log* log_Console;
+t_log* log_FileSystem;
 
 uint32_t SERVIDOR_FILESYSTEM;
 
 void server(void* args);
 void connection_handler(uint32_t socket, uint32_t command);
+
+char* PATH_METADATA;
+char* PATH_ARCHIVO;
+char* METADATA= "Metadata/Metadata.bin";
+char* ARCHIVO= "Archivos/";
+char* BITMAP= "Metadata/Bitmap.bin";
+char* PATH_BITMAP;
+int CANT_BLOQUES;
+int TAMANIO_BLOQUES;
+char* CANT_BLOQUES_STRING;
+
+void inicializar_bitmap();
+
+
+t_config* metadata;
+
+
+
 
 #endif /* FILESYSTEM_H_ */

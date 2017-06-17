@@ -3,7 +3,6 @@
 	<name>Proceso_Consola</name>
 	<comment></comment>
 	<projects>
-		<project>commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

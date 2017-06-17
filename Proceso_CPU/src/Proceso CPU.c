@@ -1,131 +1,115 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include "Proceso CPU.h"
-#include "config/config_CPU.h"
 
-char* PATH_CONFIG = "../src/config/config.txt";
-Type_Config config;
+AnSISOP_funciones functions = {  //TODAS LAS PRIMITIVAS TIENEN QUE ESTAR ACA
+		.AnSISOP_finalizar = finalizarProceso };
 
-uint32_t kernel;
-uint32_t memoria;
-uint32_t idCpu;
+AnSISOP_kernel kernel_functions = {
 
+.AnSISOP_wait = kernel_wait };  //Syscalls
+
+static const char* PROGRAMA = "begin\n"
+		"variables a, b\n"
+		"a = 3\n"
+		"b = 5\n"
+		"a = b + 12\n"
+		"end\n";
 
 int main(void) {
-
 	puts("Proceso CPU");
-
-	idCpu = 1; //Asigno id a la Cpu. 50 es que no fue asignado su valor
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
 	//Conexion al kernel
-	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
-	if (kernel > 0) {
-		printf("Kernel conectado, Estoy escuchando\n");
-	}
+	connect_server_kernel();
 
 	//Conexion a memoria
-	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
-	if (memoria > 0) {
-		printf("Memoria Conectada\n");
-	}
+	connect_server_memoria();
 
-	serializar_int(memoria,5);
+	while (true) {
 
+		//Quedo a la espera de recibir un PCB del Kernel
+		deserializar_pcb(kernel, pcbActivo);
 
-	//Mutex que controlan estado de conexion con Kernel y Memoria. Ver si realmente lo voy a necesitar
-	pthread_mutex_t mutex_kernel = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_t mutex_memoria = PTHREAD_MUTEX_INITIALIZER;
+		//Proceso de ejecucion de Primitivas Ansisop
+		ejecutar();
 
-	pthread_mutex_lock(&mutex_kernel);
-	pthread_mutex_lock(&mutex_memoria);
+		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+		serializar_int(kernel, FIN_CORRECTO);
 
-	// Realizar handshake con Kernel
-	str_generica_msjs mensajeAEnviar = inicializar_str_msjs();
-	mensajeAEnviar.id_MSJ = HANDSHAKE_CPU_KERNEL;
-	mensajeAEnviar.socket_descriptor = kernel;
-	mensajeAEnviar.socket_descriptor_server = kernel;
-	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(kernel,mensajeAEnviar.gen_msg.id_MSJ,&mensajeAEnviar);
-
-	//Se chequea el mensaje del kernel
-	//recibir un dato y deserializarlo
-	str_generica_msjs *mensajeRec;	// = recibirMjeSinConsola(kernel);
-
-	if (mensajeRec != NULL) {
-
-		if ((mensajeRec->id_MSJ == HANDSHAKE_CPU_KERNEL)
-				&& (mensajeRec->OK == 1)) {
-
-			idCpu = mensajeRec->identificador_cpu; //asigno el id del cpu
-			pthread_mutex_unlock(&mutex_kernel); //si recibi los datos bien desbloqueo el mutex.
-			printf("Se realizo Handshake con Kernel exitosamente");
-
-		} else {
-			printf("Error al realizar Handshake con Kernel");
-			return EXIT_FAILURE;
-		}
+		//Envio a kernel PCB actualizado
+		serializar_pcb(kernel, pcbActivo);
 
 	}
 
-	free(mensajeRec);
-
-	// Realizar handshake con Memoria
-	str_generica_msjs mjeAEnviarMemoria = inicializar_str_msjs();
-	mjeAEnviarMemoria.id_MSJ = HANDSHAKE_CPU_MEMORIA;
-	mjeAEnviarMemoria.socket_descriptor = memoria;
-	mjeAEnviarMemoria.socket_descriptor_server = memoria;
-	mjeAEnviarMemoria.identificador_cpu = idCpu;
-	//enviar serializado el mensaje a Kernel
-	//enviarMjeSinConsola(memoria,mjeAEnviarMemoria.gen_msg.id_MSJ,&mjeMemoria);
-
-
-	//Se chequea el mensaje de memoria
-	//recibir un dato y deserializarlo
-
-	str_generica_msjs *mensajeRecMemoria; //= recibirMjeSinConsola(memoria);
-
-	if (mensajeRecMemoria != NULL) {
-
-		if ((mensajeRecMemoria->id_MSJ == HANDSHAKE_CPU_MEMORIA)
-				&& (mensajeRecMemoria->OK == 1)) {
-
-			printf("Recepcion de handshake de Memoria de tipo %i por socket %i",
-					mensajeRecMemoria->id_MSJ, memoria);
-			pthread_mutex_unlock(&mutex_memoria); //si recibi los datos bien desbloqueo el mutex.
-		} else {
-			printf("Error en handshake UMV: %s", mensajeRecMemoria->mensaje);
-			return EXIT_FAILURE;
-		}
-
-	}
-	free(mensajeRecMemoria);
-
-	while(1){
-
-		//Quedo a la espera de recibir un PCB
-
-		//deserializar_int(kernel);
-
-		//Recibo el PCB y solicito a Memoria el stack con el codigo
-
-		//Quedo a la espera de que la memoria me devuelva el codigo
-
-		//Con el codigo doy inicio a la funcion ejecutar() para analizar linea por linea
-
-		//Los resultados los devuelvo al Kernel
-
-		//serializar_string(kernel);
-
-
-	}
-
-
-	return 0;
+	return EXIT_SUCCESS;
 
 }
 
+void ejecutar() {
+
+	printf("Ejecutando en CPU");
+
+	char *programa = strdup(PROGRAMA); //copia el programa entero en esa variable, lo hace el Kernel
+
+	t_metadata_program *metadata = metadata_desde_literal(programa); //lo hace el Kernel
+
+	int programCounter = 0;	//deberia ser el del PCB
+
+	while (!codigoFinalizado()) {
+
+		//instancio para utilizar
+		t_puntero_instruccion start =
+				metadata->instrucciones_serializado[programCounter].start;
+		//instancio para utilizar
+		t_size offset =
+				metadata->instrucciones_serializado[programCounter].offset;	//que me devuelva la siguiente linea la memoria
+
+		//solicito a memoria la instruccion.
+		char* const instruccion = solicitarInstruccionAMemoria(1, start,
+				offset); //falta la pagina en donde esta la instruccion.
+
+		analizadorLinea(instruccion, &functions, &kernel_functions); //ejecuta las primitivas
+
+		free(instruccion);
+
+		programCounter++;
+
+	}
+
+	metadata_destruir(metadata); //esto lo hace el kernel tambien.
+
+	sleep(5);
+
+}
+
+char* const solicitarInstruccionAMemoria(uint32_t pid,
+		t_puntero_instruccion offset, t_size size) {
+
+	//Serializo la estructura para enviar a Memoria
+
+	//Quedo a la espera de deserializar la instruccion de Memoria.
+	char* const ret;
+
+	return ret; //para que no quede le warning ja
+
+}
+
+void connect_server_kernel() {
+//Conexion al kernel
+	kernel = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
+	if (kernel > 0) {
+		printf("Kernel conectado, Estoy escuchando\n");
+		serializar_int(kernel, HANDSHAKE_CPU_KERNEL);
+	}
+}
+
+void connect_server_memoria() {
+//Conexion a memoria
+	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
+	if (memoria > 0) {
+		printf("Memoria Conectada\n");
+		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
+	}
+}

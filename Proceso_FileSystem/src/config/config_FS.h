@@ -9,11 +9,14 @@
 
 typedef struct ConfigType{
 	uint32_t PUERTO_FILESYSTEM;
-	char PUNTO_MONTAJE[64];
+	char* PUNTO_MONTAJE;
 	uint32_t CANTCONEXIONES;
 } Type_Config;
 
+
+
 Type_Config load_config(char* path);
 void print_config(Type_Config auxConfig);
+
 
 #endif /* CONFIG_FS_H_ */

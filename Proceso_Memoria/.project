@@ -3,8 +3,6 @@
 	<name>Proceso_Memoria</name>
 	<comment></comment>
 	<projects>
-		<project>commons</project>
-		<project>ansisop</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
