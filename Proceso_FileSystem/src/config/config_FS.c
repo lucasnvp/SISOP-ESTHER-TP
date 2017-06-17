@@ -19,6 +19,8 @@ Type_Config load_config(char* path){
 	return config;
 }
 
+
+
 void print_config(Type_Config auxConfig){
 
 	puts("----------------------");

@@ -7,6 +7,35 @@ int main(void){
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
+
+	//Path Metadata
+	PATH_METADATA = string_new();
+	string_append(&PATH_METADATA,config.PUNTO_MONTAJE);
+	string_append(&PATH_METADATA,METADATA);
+	printf ("La ruta es:%s\n", PATH_METADATA);
+
+	//Path Archivos
+	PATH_ARCHIVO = string_new();
+	string_append(&PATH_ARCHIVO, config.PUNTO_MONTAJE);
+	string_append(&PATH_ARCHIVO, ARCHIVO);
+	printf ("La ruta de Archivos es:%s\n", PATH_ARCHIVO);
+
+	//Obtener Datos Metadata
+	metadata = config_create(PATH_METADATA);
+	CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
+	TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
+	printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
+
+	//Bitmap
+	PATH_BITMAP= string_new();
+	string_append(&PATH_BITMAP, config.PUNTO_MONTAJE);
+	string_append(&PATH_BITMAP, BITMAP);
+	printf("La ruta del bitmap es:%s\n", PATH_BITMAP);
+
+	//inicializar_bitmap();
+
+
+
 	// Variables hilos
 	pthread_t thread_server;
 
@@ -135,6 +164,24 @@ void validar_archivo (char* path){
 			printf( "El archivo no existe\n" );
 		}
 	}
+
+
+//Funciones de uso particular
+void inicializar_bitmap(){
+	char* comando = string_new();
+	string_append(&comando, "dd if=/dev/zero of=");
+	string_append(&comando, PATH_BITMAP);
+	string_append(&comando, " bs=1 count=10"); //necesito pasar el numemro de bloques como string
+	system(comando);
+
+	FILE * f_bit;
+	f_bit = fopen(PATH_BITMAP, "w");
+	int i;
+	for (i == 0; i < CANT_BLOQUES; i++){
+		fwrite("0",1 , 1, f_bit);
+	}
+	fclose(f_bit);
+}
 
 
 void init_log(char* pathLog){

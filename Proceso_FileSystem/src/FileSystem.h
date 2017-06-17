@@ -31,4 +31,21 @@ uint32_t SERVIDOR_FILESYSTEM;
 void server(void* args);
 void connection_handler(uint32_t socket, uint32_t command);
 
+char* PATH_METADATA;
+char* PATH_ARCHIVO;
+char* METADATA= "Metadata/Metadata.bin";
+char* ARCHIVO= "Archivos/";
+char* BITMAP= "Metadata/Bitmap.bin";
+char* PATH_BITMAP;
+int CANT_BLOQUES;
+int TAMANIO_BLOQUES;
+
+void inicializar_bitmap();
+
+
+t_config* metadata;
+
+
+
+
 #endif /* FILESYSTEM_H_ */
