@@ -33,7 +33,7 @@ int main(void){
 	string_append(&PATH_BITMAP, BITMAP);
 	printf("La ruta del bitmap es:%s\n", PATH_BITMAP);
 
-	inicializar_bitmap();
+	//inicializar_bitmap();
 
 	//Datos
 
@@ -42,6 +42,7 @@ int main(void){
 	string_append(&PATH_DATOS, DATOS);
 	printf("La ruta de los datos es: %s\n", PATH_DATOS);
 
+	//crear_archivo_por_bloque();
 
 
 
@@ -181,7 +182,6 @@ void inicializar_bitmap(){
 	char* comando = string_new();
 	string_append(&comando, "dd if=/dev/zero of=");
 	string_append(&comando, PATH_BITMAP);
-	//tostring(CANT_BLOQUES_STRING, CANT_BLOQUES);
 	string_append(&comando, " bs=1 count=10"); //necesito pasar el numemro de bloques como string
 	system(comando);
 
@@ -195,24 +195,12 @@ void inicializar_bitmap(){
 }
 
 
-void tostring(char str[], int num)
-{
-    int i, rem, len = 0, n;
+void crear_archivo_por_bloque(){
 
-    n = num;
-    while (n != 0)
-    {
-        len++;
-        n /= 10;
-    }
-    for (i = 0; i < len; i++)
-    {
-        rem = num % 10;
-        num = num / 10;
-        str[len - (i + 1)] = rem + '0';
-    }
-    str[len] = '\0';
+
 }
+
+
 
 
 
