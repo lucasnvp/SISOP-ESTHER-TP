@@ -32,6 +32,8 @@ uint32_t SERVIDOR_FILESYSTEM;
 void server(void* args);
 void connection_handler(uint32_t socket, uint32_t command);
 void init_fs_folder();
+void inicializar_bitmap();
+
 
 char* PATH_METADATA;
 char* PATH_ARCHIVO;
@@ -54,7 +56,6 @@ int TAMANIO_BLOQUES;
 
 
 
-void inicializar_bitmap();
 
 
 t_config* metadata;

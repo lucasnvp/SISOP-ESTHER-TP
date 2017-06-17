@@ -5,7 +5,7 @@ int main(void){
     puts("Proceso FileSystem");
 
     //Configuracion inicial
-    init_fs_folder();
+    //init_fs_folder();
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
@@ -23,10 +23,10 @@ int main(void){
 	printf ("La ruta de Archivos es:%s\n", PATH_ARCHIVO);
 
 	//Obtener Datos Metadata
-	metadata = config_create(PATH_METADATA);
-	CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
-	TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
-	printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
+	//metadata = config_create(PATH_METADATA);
+	//CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
+	//TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
+	//printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
 
 	//Bitmap
 	PATH_BITMAP= string_new();
@@ -186,18 +186,12 @@ void inicializar_bitmap(){
 	string_append(&comando, " bs=1 count=10"); //necesito pasar el numemro de bloques como string
 	system(comando);
 
-	//FILE * f_bit;
-	//f_bit = fopen(PATH_BITMAP, "wb");
-	//int i;
-	//for (i == 0; i < CANT_BLOQUES; i++){
-	//	fwrite("0",1 , 1, f_bit);
-	//}
-	//fclose(f_bit);
 }
 
 
 void init_fs_folder(){
-	mkdir("/home/utnso/Blacklist/mnt/SADICA_FS/Metada",0755);
+	mkdir("/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_FileSystem/Debug/mnt/SADICA_FS/Metada",0755);
+
 }
 
 
