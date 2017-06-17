@@ -196,7 +196,6 @@ void inicializar_bitmap(){
 }
 
 
-
 void init_fs_folder(){
 	mkdir("/home/utnso/Blacklist/mnt/SADICA_FS/Metada",0755);
 }
