@@ -55,7 +55,7 @@ t_cacheHandler adminCache[ENTRADAS_CACHE];
 
 
 
-char* PATH_CONFIG = "/home/utnso/git/tp-2017-1c-Blacklist/Proceso_Memoria/src/config/config.txt";
+char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_Memoria/src/config/config.txt";
 
 
 

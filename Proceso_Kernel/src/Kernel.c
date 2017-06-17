@@ -226,7 +226,7 @@ void server(void* args){
 void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
-		case 1:{
+		case NUEVO_PROCESO:{
 			//printf("Nuevo Programa\n");
 			log_info(log_Console,"Nuevo Programa");
 			t_SerialString* PATH = malloc(sizeof(t_SerialString));
@@ -243,7 +243,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			queue_sync_push(QUEUE_PCB, NewProgram);
 			break;
 		}
-		case 2:{
+		case NUEVA_CONEXION_CPU:{
 			//Nueva conexion de CPU
 			log_info(log_Kernel,"Nueva CPU");
 			//Nueva CPU
@@ -256,7 +256,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			sem_post(&SEM_CPU_DISPONIBLE);
 			break;
 		}
-		case 3:{
+		case FIN_EJECUCION_CPU:{
 			//Finalizacion de ejecucion de rafaga de CPU
 			log_info(log_Kernel,"Finalizacion de ejecucion de CPU");
 			//PCB a deserializar
