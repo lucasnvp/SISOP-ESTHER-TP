@@ -7,9 +7,8 @@
 
 #include <parser/parser.h>
 #include <parser/metadata_program.h>
-
 #include "servidor/servidor.h"
-#include "primitivas/ansi_primit.h"
+#include "primitivas/ansisop_primitivas.h"
 #include "config/config_CPU.h"
 #include "serializador/serializador.h"
 #include "pcb/pcb.h"
@@ -20,25 +19,11 @@ Type_Config config;
 uint32_t kernel;
 uint32_t memoria;
 
-PCB_t *pcbActivo;
-
-bool termino = false;
-
-AnSISOP_funciones functions = { .AnSISOP_definirVariable = definirVariable,
-//		.AnSISOP_imprimirTexto			= imprimirTexto,
-		.AnSISOP_obtenerPosicionVariable = obtenerPosicionVariable,
-		.AnSISOP_dereferenciar = dereferenciar, .AnSISOP_asignar = asignar,
-//.AnSISOP_imprimir	= imprimir,
-
-		};
-
-AnSISOP_kernel kernel_functions = { .AnSISOP_signal = semaforo_signal,
-		.AnSISOP_wait = semaforo_wait, };
+PCB_t* pcbActivo;
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;
 #define IMPRIMIR_VALOR 2;
-
 
 // USAR ESTOS MENSAJES
 #define HANDSHAKE_CPU_KERNEL 2
@@ -48,8 +33,6 @@ AnSISOP_kernel kernel_functions = { .AnSISOP_signal = semaforo_signal,
 void ejecutar();
 void connect_server_kernel();
 void connect_server_memoria();
-void finalizarCodigo(void);
-bool programaFinalizado(void);
-
+char* const solicitarInstruccionAMemoria();
 
 #endif /* PROCESO_CPU_H_ */
