@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+
 #include <commons/collections/list.h>
 #include <commons/log.h>
 
@@ -39,6 +40,7 @@ char* BITMAP= "Metadata/Bitmap.bin";
 char* PATH_BITMAP;
 int CANT_BLOQUES;
 int TAMANIO_BLOQUES;
+char* CANT_BLOQUES_STRING;
 
 void inicializar_bitmap();
 

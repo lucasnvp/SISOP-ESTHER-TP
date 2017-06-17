@@ -1,5 +1,6 @@
 #include "FileSystem.h"
 
+
 int main(void){
     puts("Proceso FileSystem");
 
@@ -32,7 +33,7 @@ int main(void){
 	string_append(&PATH_BITMAP, BITMAP);
 	printf("La ruta del bitmap es:%s\n", PATH_BITMAP);
 
-	//inicializar_bitmap();
+	inicializar_bitmap();
 
 
 
@@ -167,21 +168,44 @@ void validar_archivo (char* path){
 
 
 //Funciones de uso particular
+
 void inicializar_bitmap(){
 	char* comando = string_new();
 	string_append(&comando, "dd if=/dev/zero of=");
 	string_append(&comando, PATH_BITMAP);
+	//tostring(CANT_BLOQUES_STRING, CANT_BLOQUES);
 	string_append(&comando, " bs=1 count=10"); //necesito pasar el numemro de bloques como string
 	system(comando);
 
-	FILE * f_bit;
-	f_bit = fopen(PATH_BITMAP, "w");
-	int i;
-	for (i == 0; i < CANT_BLOQUES; i++){
-		fwrite("0",1 , 1, f_bit);
-	}
-	fclose(f_bit);
+	//FILE * f_bit;
+	//f_bit = fopen(PATH_BITMAP, "wb");
+	//int i;
+	//for (i == 0; i < CANT_BLOQUES; i++){
+	//	fwrite("0",1 , 1, f_bit);
+	//}
+	//fclose(f_bit);
 }
+
+
+void tostring(char str[], int num)
+{
+    int i, rem, len = 0, n;
+
+    n = num;
+    while (n != 0)
+    {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
+
 
 
 void init_log(char* pathLog){
