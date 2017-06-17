@@ -17,6 +17,11 @@ char* PATH_CONFIG =
 		"/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_CPU/src/config/config.txt";
 Type_Config config;
 
+//VARIABLES PARA LOGS
+char* PATH_LOG = "/home/utnso/Blacklist/Logs/logCPU.txt";
+t_log* log_Console;  //MUESTRA POR PANTALLA
+t_log* log_CPU; //REGISTRA
+
 //SOCKETS DE CONEXION
 uint32_t kernel;
 uint32_t memoria;
@@ -26,10 +31,6 @@ PCB_t *pcbActivo;
 
 //TAMANIO DE PAGINA
 uint32_t tamanio_pagina;
-
-//VARIABLES PARA LOGS
-t_log* log_Console;  //MUESTRA POR PANTALLA
-t_log* log_CPU; //REGISTRA
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;

@@ -18,17 +18,20 @@ static const char* PROGRAMA = "begin\n"
 		"end\n";
 
 int main(void) {
-	log_info(log_Console, "Se conecta una CPU");
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
+	//Inicializar Log
+	init_log(PATH_LOG);
+	log_info(log_Console, "Nueva CPU");
+
 	//Conexion al kernel
 	connect_server_kernel();
 
 	//Conexion a memoria
-	connect_server_memoria();
+	//connect_server_memoria();
 
 	//Reservar memoria para el PCB
 	pcbActivo = malloc(sizeof(PCB_t));
@@ -140,7 +143,7 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 void init_log(char* pathLog) {
 	mkdir("/home/utnso/Blacklist/Logs", 0755);
-	log_Console = log_create(pathLog, "Kernel", true, LOG_LEVEL_INFO);
+	log_Console = log_create(pathLog, "CPU", true, LOG_LEVEL_INFO);
 	log_CPU = log_create(pathLog, "CPU", false, LOG_LEVEL_INFO);
 }
 
