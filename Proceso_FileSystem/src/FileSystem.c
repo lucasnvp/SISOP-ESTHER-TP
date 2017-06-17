@@ -5,6 +5,7 @@ int main(void){
     puts("Proceso FileSystem");
 
     //Configuracion inicial
+    init_fs_folder();
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
@@ -195,16 +196,13 @@ void inicializar_bitmap(){
 }
 
 
-void crear_archivo_por_bloque(){
 
-
+void init_fs_folder(){
+	mkdir("/home/utnso/Blacklist/mnt/SADICA_FS/Metada",0755);
 }
 
 
-
-
-
-void init_log(char* pathLog){
+void init_log_FS(char* pathLog){
 	mkdir("/home/utnso/Blacklist/Logs",0755);
 	log_Console = log_create(pathLog, "FileSystem", true, LOG_LEVEL_INFO);
 	log_FileSystem = log_create(pathLog, "FileSystem", false, LOG_LEVEL_INFO);
