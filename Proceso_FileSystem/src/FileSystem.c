@@ -35,6 +35,14 @@ int main(void){
 
 	inicializar_bitmap();
 
+	//Datos
+
+	PATH_DATOS= string_new();
+	string_append(&PATH_DATOS, config.PUNTO_MONTAJE);
+	string_append(&PATH_DATOS, DATOS);
+	printf("La ruta de los datos es: %s\n", PATH_DATOS);
+
+
 
 
 	// Variables hilos

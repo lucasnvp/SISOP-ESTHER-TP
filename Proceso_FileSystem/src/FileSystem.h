@@ -38,6 +38,8 @@ char* METADATA= "Metadata/Metadata.bin";
 char* ARCHIVO= "Archivos/";
 char* BITMAP= "Metadata/Bitmap.bin";
 char* PATH_BITMAP;
+char* DATOS= "Bloques/";
+char* PATH_DATOS;
 int CANT_BLOQUES;
 int TAMANIO_BLOQUES;
 char* CANT_BLOQUES_STRING;
