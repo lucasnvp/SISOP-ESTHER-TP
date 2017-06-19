@@ -13,6 +13,8 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
+
+
 	//Reservar memoria para el PCB
 	pcbActivo = malloc(sizeof(PCB_t));
 
@@ -59,6 +61,7 @@ void connect_server_memoria() {
 	if (memoria > 0) {
 		printf("Memoria Conectada\n");
 		serializar_int(memoria, 5);
+		serializar_int(memoria,1);
 	}
 }
 

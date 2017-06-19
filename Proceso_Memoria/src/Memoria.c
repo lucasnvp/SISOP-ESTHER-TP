@@ -462,15 +462,21 @@ void limpiarBufferDeEntrada() {
 }
 
 void crearHilo(uint32_t * newfd) {
-	uint32_t command;
-
+	uint32_t command=-1;
+	uint32_t auxCommand=0;
 	command = deserializar_int(newfd);
-
-	connection_handler(newfd, command);
-
-
+	while(1){
+		if(auxCommand!=command)
+		{
+			connection_handler(newfd, command);
+			auxCommand=command;
+		}
+		 command=deserializar_int(newfd);
+		}
 
 }
+
+
 
 void inicializoServidor() {
 
@@ -483,9 +489,10 @@ void inicializoServidor() {
 	while (1) {
 	uint32_t newfd = accept_conexion(servidor);
 	 if(newfd){
+
 	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
-	 			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
-	 			free(hilo);
+			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
+			free(hilo);
 	 }
 
 	 newfd=0;
@@ -539,9 +546,11 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 		serializar_int(socket, hayMemoria);
 	}*/
-	default:
-		printf("Error de comando\n");
+	default:{
+		 printf("Ningun Comando\n");
 		break;
+	}
+
 	}
 	return;
 }
