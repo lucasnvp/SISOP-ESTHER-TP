@@ -8,7 +8,6 @@
 
 #include "../servidor/servidor.h"
 
-
 //CREAR PATH
 typedef struct{
 	uint32_t sizeString;
@@ -18,14 +17,6 @@ typedef struct{
 
 void serializar_int(uint32_t socket, uint32_t number);
 uint32_t deserializar_int(uint32_t socket);
-<<<<<<< HEAD
-=======
-
-void serializar_string(int client, t_SerialString* PATH);
-void deserializar_string(int servidor, t_SerialString* PATH);
-
-
->>>>>>> 005a864f25b4d50c392387b9027ae6a6530e1791
 
 void serializar_string(int client, t_SerialString* PATH);
 void deserializar_string(int servidor, t_SerialString* PATH);
