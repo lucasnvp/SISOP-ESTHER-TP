@@ -73,6 +73,7 @@ void connect_server_memoria(){
 	//Si conecto, informo
 	if(SERVIDOR_MEMORIA > 1){
 		log_info(log_Kernel, "Connect Memoria");
+		serializar_int(SERVIDOR_MEMORIA,1);
 	} else{
 		log_warning(log_Kernel, "No se puedo conectar al servidor de Memoria");
 	}

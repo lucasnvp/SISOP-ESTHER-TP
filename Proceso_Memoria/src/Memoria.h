@@ -22,6 +22,8 @@
 #define ENTRADAS_CACHE 15
 #define CACHE_X_PROCESO 3
 
+uint32_t servidor;
+
 Type_Config config;
 
 
@@ -51,7 +53,7 @@ typedef struct{
     int tiempoEnCache;
 }t_cacheHandler;
 
-t_cacheHandler adminCache[ENTRADAS_CACHE];
+t_cacheHandler * adminCache;
 
 
 
