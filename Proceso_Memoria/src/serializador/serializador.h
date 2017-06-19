@@ -15,10 +15,10 @@ typedef struct{
 
 }__attribute__((packed)) t_SerialString;
 
-void serializar_string(int client, t_SerialString* PATH);
-void deserializar_string(int servidor, t_SerialString* PATH);
-
 void serializar_int(uint32_t socket, uint32_t number);
 uint32_t deserializar_int(uint32_t socket);
+
+void serializar_string(int client, t_SerialString* PATH);
+void deserializar_string(int servidor, t_SerialString* PATH);
 
 #endif /* SERIALIZADOR_H_ */

@@ -27,7 +27,7 @@ void serializar_string(int client, t_SerialString* PATH){
 	offset += size_to_send;
 
 	send_data(client, ENVIAR, offset);
-	//free(ENVIAR);
+	free(ENVIAR);
 }
 
 void deserializar_string(int servidor, t_SerialString* PATH){
