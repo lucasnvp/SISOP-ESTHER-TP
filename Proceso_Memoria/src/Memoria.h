@@ -53,7 +53,7 @@ typedef struct{
     int tiempoEnCache;
 }t_cacheHandler;
 
-t_cacheHandler adminCache[ENTRADAS_CACHE];
+t_cacheHandler * adminCache;
 
 
 

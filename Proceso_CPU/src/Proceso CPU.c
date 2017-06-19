@@ -58,7 +58,7 @@ void connect_server_memoria() {
 	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
 	if (memoria > 0) {
 		printf("Memoria Conectada\n");
-		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
+		serializar_int(memoria, 5);
 	}
 }
 

@@ -1,5 +1,7 @@
 #include "Memoria.h"
 
+
+
 int main(void) {
 	puts("Proceso Memoria");
 
@@ -7,9 +9,9 @@ int main(void) {
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
-	inicializarMemoria();
+	/*inicializarMemoria();
 
-	/*inicializarPrograma(1,2);
+	inicializarPrograma(1,2);
 	 inicializarPrograma(2,2);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
@@ -38,60 +40,14 @@ int main(void) {
 
 	 imprimirCache();*/
 
-	fd_set master;   	// conjunto maestro de descriptores de fichero
-	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
-	uint32_t fdmax;			// número máximo de descriptores de fichero
-	int i;				// variable para el for
-	FD_ZERO(&master);	// borra los conjuntos maestro
-	FD_ZERO(&read_fds);	// borra los conjuntos temporal
-
-	//Creacion del servidor
-	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
-	//El socket esta listo para escuchar
-	if (servidor > 0) {
-		printf("Servidor Memoria Escuchando\n");
-	}
-	FD_SET(servidor, &master);
-	// seguir la pista del descriptor de fichero mayor
-	fdmax = servidor; // por ahora es éste
-	// bucle principal
-	while (1) {
-		// acepto una nueva conexion
-
-		for (i = 0; i <= fdmax; i++) {
-			if (FD_ISSET(i, &read_fds)) { // ¡¡tenemos datos!!
-				if (i == servidor) {
-					// acepto una nueva conexion
-					uint32_t newfd = accept_conexion(servidor);
-					FD_SET(newfd, &master); // añadir al conjunto maestro
-					if (newfd > fdmax) {    // actualizar el máximo
-						fdmax = newfd;
-					}
-					pthread_t* hiloConsola = (pthread_t *) malloc(
-							sizeof(pthread_t));
-					pthread_create(hiloConsola, NULL, (void*) crearHilo,
-							(void*) &newfd);
-				} else {
-					//Recibo el comando
-					uint32_t command = deserializar_int(i);
-
-					// gestionar datos de un cliente
-					if (command <= 0) {
-						close(i); // Close conexion
-						FD_CLR(i, &master); // eliminar del conjunto maestro
-					} else {
-						connection_handler(i, command);
-					}
-				}
-			}
-		}
-	}
+	inicializoServidor();
 	return EXIT_SUCCESS;
 
 }
 
 void inicializarMemoria() {
 	inicializarTablaEPI();
+	inicializarCache();
 	bloque_Memoria = malloc(MARCOS * MARCO_SIZE);
 
 	int i;
@@ -326,8 +282,9 @@ int finalizarPrograma(int PID) {
 }
 
 void inicializarCache() {
-	int i;
 
+	adminCache = malloc (sizeof(t_cacheHandler)*ENTRADAS_CACHE);
+	int i;
 	for (i = 0; i < ENTRADAS_CACHE; i++) {
 		adminCache[i].tiempoEnCache = 0;
 		adminCache[i].memoriaCache.nPagina = 0;
@@ -476,14 +433,6 @@ int quitarProgramaDeCache(int PID) {
 
 }
 
-void crearHilo(uint32_t * newfd) {
-
-	uint32_t command = deserializar_int(newfd);
-
-	connection_handler(newfd, command);
-
-}
-
 bool consola() {
 	int salir = 0;
 	while (!salir) {
@@ -511,10 +460,48 @@ void limpiarBufferDeEntrada() {
 	while ((c = getchar()) != '\n' && c != EOF) {
 	}
 }
+
+void crearHilo(uint32_t * newfd) {
+	uint32_t command;
+
+	command = deserializar_int(newfd);
+
+	connection_handler(newfd, command);
+
+
+
+}
+
+void inicializoServidor() {
+
+
+	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
+	//El socket esta listo para escuchar
+	if (servidor > 0) {
+		printf("Servidor Memoria Escuchando\n");
+	}
+	while (1) {
+	uint32_t newfd = accept_conexion(servidor);
+	 if(newfd){
+	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
+	 			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
+	 			free(hilo);
+	 }
+
+	 newfd=0;
+
+	}
+}
 void connection_handler(uint32_t socket, uint32_t command) {
+
 	switch (command) {
+	case 1:{
+		printf("Conectado con KERNEL \n");
+		break;
+	}
 	case 5: { //CPU me pide una instruccion
 		serializar_int(socket, MARCO_SIZE); //Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
+		printf("Conectado con CPU \n");
 		/*t_SerialString* PATH = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, PATH);
 		char * PID = memcpy((void*) PID, (void*) PATH->dataString, 4); //Por convencion los primeros 4 bits son de PID
@@ -556,6 +543,7 @@ void connection_handler(uint32_t socket, uint32_t command) {
 		printf("Error de comando\n");
 		break;
 	}
+	return;
 }
 
 int convertirCharAInt(char * numero, int tamChar) {
