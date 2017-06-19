@@ -89,6 +89,7 @@ int quitarProgramaDeCache(int PID);
 //-----------------------OTRAS FUNCIONES: USO GENERAL----------------------//
 bool consola();
 void crearHilo(uint32_t * newfd);
+void connection_handler(uint32_t socket, uint32_t command);
 
 
 
