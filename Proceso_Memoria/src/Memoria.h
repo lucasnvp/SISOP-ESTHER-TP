@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "Listash.h"
 #include "config/config_Memoria.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
@@ -16,11 +17,15 @@
 #define N_FRAME 0
 #define N_PID 1
 #define N_PAGINA 2
-
+#define BLOQUEADO -1
+#define SOY_KERNEL 100
 #define MARCOS 100
 #define MARCO_SIZE 256
 #define ENTRADAS_CACHE 15
 #define CACHE_X_PROCESO 3
+
+Lista listaConexiones;
+pNodo p;
 
 uint32_t servidor;
 
@@ -28,7 +33,6 @@ Type_Config config;
 
 
 void * bloque_Memoria;
-
 
 
 typedef struct estructuraPaginacionInversa{

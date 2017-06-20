@@ -461,18 +461,18 @@ void limpiarBufferDeEntrada() {
 	}
 }
 
+/**
+
 void crearHilo(uint32_t * newfd) {
-	uint32_t command=-1;
-	uint32_t auxCommand=0;
-	command = deserializar_int(newfd);
-	while(1){
-		if(auxCommand!=command)
-		{
+
+
+	uint32_t command;
+	uint32_t cantidad=deserializar_int(newfd);//Cantidad De Veces que voy a leer.
+	int i;
+	//for(i=0;i<cantidad;i++){
+			command=deserializar_int(newfd);
 			connection_handler(newfd, command);
-			auxCommand=command;
-		}
-		 command=deserializar_int(newfd);
-		}
+		//}
 
 }
 
@@ -486,22 +486,67 @@ void inicializoServidor() {
 	if (servidor > 0) {
 		printf("Servidor Memoria Escuchando\n");
 	}
+
 	while (1) {
 	uint32_t newfd = accept_conexion(servidor);
-	 if(newfd){
+	if (existeNodo(&listaConexiones,newfd))
+			{
+		newfd = accept_conexion(servidor);
+
+				pthread_join(listaConexiones->hilo,0);
+
+			}
+	else{
 
 	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
 			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
-			free(hilo);
+			Insertar(&listaConexiones,hilo,newfd,0);
+
+			//free(hilo);
+
 	 }
 
-	 newfd=0;
+
+	}
+}*/
+
+void crearHilo(uint32_t * newfd) {
+	uint32_t command;
+		while(1){
+			command=deserializar_int(newfd);
+			if (command!=BLOQUEADO)
+			{
+			connection_handler(newfd, command);
+			}
+
+		}
+}
+
+
+
+void inicializoServidor() {
+
+
+	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
+	//El socket esta listo para escuchar
+	if (servidor > 0) {
+		printf("Servidor Memoria Escuchando\n");
+	}
+	int yaAcepteKernel=0;
+	while (1) {
+	uint32_t newfd;
+
+			newfd = accept_conexion(servidor);
+	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
+			pthread_create(hilo, NULL, (void*) crearHilo, (void*) newfd);
+			free(hilo);
+
 
 	}
 }
 void connection_handler(uint32_t socket, uint32_t command) {
-
 	switch (command) {
+
 	case 1:{
 		printf("Conectado con KERNEL \n");
 		break;
@@ -547,6 +592,7 @@ void connection_handler(uint32_t socket, uint32_t command) {
 		serializar_int(socket, hayMemoria);
 	}*/
 	default:{
+		serializar_int(socket, MARCO_SIZE);
 		 printf("Ningun Comando\n");
 		break;
 	}
