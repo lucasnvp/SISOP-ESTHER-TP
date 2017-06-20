@@ -16,7 +16,7 @@
 #define N_FRAME 0
 #define N_PID 1
 #define N_PAGINA 2
-#define BLOQUEADO -1
+#define BLOQUEADO 150
 #define SOY_KERNEL 100
 #define MARCOS 100
 #define MARCO_SIZE 256

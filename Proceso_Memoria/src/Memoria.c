@@ -514,10 +514,15 @@ void crearHilo(uint32_t * newfd) {
 	uint32_t command;
 		while(1){
 			command=deserializar_int(newfd);
-			if (command!=BLOQUEADO)
+			if (command!=BLOQUEADO && command>0)
 			{
 			connection_handler(newfd, command);
 			}
+			if(command<=0)
+			{
+				pthread_exit(NULL);
+			}
+
 
 		}
 }
@@ -545,6 +550,7 @@ void inicializoServidor() {
 	}
 }
 void connection_handler(uint32_t socket, uint32_t command) {
+
 	switch (command) {
 
 	case 1:{
