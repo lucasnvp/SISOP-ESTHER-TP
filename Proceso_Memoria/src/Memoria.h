@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "Listash.h"
 #include "config/config_Memoria.h"
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
@@ -24,8 +23,6 @@
 #define ENTRADAS_CACHE 15
 #define CACHE_X_PROCESO 3
 
-Lista listaConexiones;
-pNodo p;
 
 uint32_t servidor;
 
