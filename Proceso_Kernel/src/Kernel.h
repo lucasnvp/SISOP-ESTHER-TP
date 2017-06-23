@@ -21,6 +21,8 @@
 #include "config/config_kernel.h"
 #include "cpu/cpu.h"
 
+#include "dummy-componets/dummy-program.h"
+
 #define NUEVO_PROCESO 1
 #define NUEVA_CONEXION_CPU 2
 #define FIN_EJECUCION_CPU 3
