@@ -102,7 +102,11 @@ void procesarPCB(void* args){
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+		//Creo el metadata program del proceso
+		char* programa = strdup(PROGRAMA);
+		t_metadata_program* metadata = metadata_desde_literal(programa);
+
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, metadata, 0, 0, 0);
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
