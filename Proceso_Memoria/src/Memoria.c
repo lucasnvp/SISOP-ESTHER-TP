@@ -35,9 +35,7 @@ int main(void) {
 
 
 	 /*impirmirEPIaccediendoAMemoria(0,40);
-
 	 printf("\n");
-
 	 imprimirCache();*/
 	lanzoHiloConsolaComandos();
 	inicializoServidor();
@@ -596,6 +594,38 @@ void limpiarBufferDeEntrada() {
 	}
 }
 
+/**
+void crearHilo(uint32_t * newfd) {
+	uint32_t command;
+	uint32_t cantidad=deserializar_int(newfd);//Cantidad De Veces que voy a leer.
+	int i;
+	//for(i=0;i<cantidad;i++){
+			command=deserializar_int(newfd);
+			connection_handler(newfd, command);
+		//}
+}
+void inicializoServidor() {
+	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
+	//El socket esta listo para escuchar
+	if (servidor > 0) {
+		printf("Servidor Memoria Escuchando\n");
+	}
+	while (1) {
+	uint32_t newfd = accept_conexion(servidor);
+	if (existeNodo(&listaConexiones,newfd))
+			{
+		newfd = accept_conexion(servidor);
+				pthread_join(listaConexiones->hilo,0);
+			}
+	else{
+	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
+			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
+			Insertar(&listaConexiones,hilo,newfd,0);
+			//free(hilo);
+	 }
+	}
+}*/
+
 void hiloConexion(uint32_t * newfd) {
 	uint32_t command;
 		while(1){
@@ -675,23 +705,20 @@ void connection_handler(uint32_t socket, uint32_t command) {
 				(void*) PATH->dataString + 4, 4);
 		char * offSet = memcpy((void*) deserializar_string,
 				(void*) PATH->dataString + 8, 4);
-
 		int IPID = convertirCharAInt(PID, 4);
 		int IposInicio = convertirCharAInt(posInicio, 4);
 		int IoffSet = convertirCharAInt(offSet, 4);
-
 		/*tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
 		 t_SerialString * instruccionConvertida;
 		 instruccionConvertida = malloc(sizeof(t_SerialString));
 		 instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
 		 memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
 		 instruccionConvertida->sizeString=instruccion.tamDatos;
-
 		 serializar_string(socket,instruccionConvertida);*/
 
 		break;
 	}
-	/*case 10: { //KERNEL me pregunta si hay memoria
+	/**case 10: { //KERNEL me pregunta si hay memoria
 		int cantidadDePaginas = convretirBitsAPAginas();
 		int hayMemoria = hayMemoria(cantidadDePaginas);
 		serializar_int(socket, hayMemoria);
@@ -702,7 +729,6 @@ void connection_handler(uint32_t socket, uint32_t command) {
 		char * datos;
 		deserializar_string(socket,&datos);
 		asignarPaginasAProceso(PID,sizeof(datos)/MARCO_SIZE);
-
 		serializar_int(socket, hayMemoria);
 	}*/
 
@@ -727,4 +753,3 @@ int convertirCharAInt(char * numero, int tamChar) {
 	}
 	return numeroInt;
 }
-
