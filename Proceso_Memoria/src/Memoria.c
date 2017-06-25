@@ -12,7 +12,7 @@ int main(void) {
 	inicializarMemoria();
 
 	inicializarPrograma(1,2);
-	 inicializarPrograma(2,2);
+	 inicializarPrograma(2,1);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
 	 almacenarBytesPagina(1,0,4,6," pepe");
@@ -23,15 +23,6 @@ int main(void) {
 	 almacenarBytesPagina(3,3,0,5,"4");
 	 solicitarBytesPagina(1,0,0,5);
 	 solicitarBytesPagina(2,0,0,5);
-	 solicitarBytesPagina(3,0,0,5);
-	 solicitarBytesPagina(3,1,0,5);
-	 solicitarBytesPagina(3,2,0,5);
-	 solicitarBytesPagina(3,3,0,5);
-	 solicitarBytesPagina(1,0,0,11);
-	 finalizarPrograma(1);
-	 almacenarBytesPagina(2,1,0,7,"prueba");
-	 solicitarBytesPagina(2,1,0,7);
-
 
 
 	 /*impirmirEPIaccediendoAMemoria(0,40);
@@ -694,6 +685,50 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 		break;
 	}
+	case 3:{
+			int hayMemoria=0;
+			int memoriaRequerida=0;
+			int cantPaginas;
+			memoriaRequerida=deserializar_int(socket);
+			if(memoriaRequerida%MARCO_SIZE!=0)
+				cantPaginas=(memoriaRequerida/MARCO_SIZE)+1;
+			else
+				cantPaginas=(memoriaRequerida/MARCO_SIZE);
+
+			if (cantPaginas<=framesDisponibles())
+			{
+				hayMemoria=1;
+			}
+			serializar_int(socket,hayMemoria);
+			break;
+		}
+	case 4:{
+				char * cadena=NULL;
+				int largoCadena;
+				int cantPaginas;
+				int i;
+				int PID=deserializar_int(socket);
+
+				deserializar_string(socket,cadena);
+
+				largoCadena=strlen(cadena);
+
+				if(largoCadena>0)
+				{
+					if(largoCadena%MARCO_SIZE!=0)
+						cantPaginas=(largoCadena/MARCO_SIZE)+1;
+					else
+						cantPaginas=(largoCadena/MARCO_SIZE);
+
+					asignarPaginasAProceso(PID,cantPaginas);
+
+					for (i=0;i<cantPaginas;i++)
+						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena);
+				}
+
+				break;
+
+			}
 	case 5: { //CPU me pide una instruccion
 		serializar_int(socket, MARCO_SIZE); //Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
 		printf("Conectado con CPU \n");
