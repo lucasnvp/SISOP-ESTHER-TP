@@ -723,7 +723,7 @@ void connection_handler(uint32_t socket, uint32_t command) {
 					asignarPaginasAProceso(PID,cantPaginas);
 
 					for (i=0;i<cantPaginas;i++)
-						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena);
+						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena+i*MARCO_SIZE);
 				}
 
 				break;
