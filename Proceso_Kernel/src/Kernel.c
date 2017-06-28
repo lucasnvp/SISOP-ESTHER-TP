@@ -108,6 +108,23 @@ void procesarPCB(void* args){
 
 		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, metadata, 0, 0, 0);
 
+		//Pido Memoria
+		serializar_int(SERVIDOR_MEMORIA, 3);
+		serializar_int(SERVIDOR_MEMORIA, sizeof(programa));
+
+		uint32_t respuestaMemoria = deserializar_int(SERVIDOR_MEMORIA);
+
+		if(respuestaMemoria == true){
+			log_info(log_Kernel, "Hay memoria");
+			// Acepto el programa
+			//serializar_int(SERVIDOR_MEMORIA, 4);
+			//serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
+			//serializar_string(SERVIDOR_MEMORIA, programa);
+		} else{
+			log_info(log_Kernel, "No hay memoria");
+			// No acepto el programa
+		}
+
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
 		//Aviso que hay un nuevo PCB
