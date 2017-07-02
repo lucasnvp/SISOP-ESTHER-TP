@@ -9,7 +9,6 @@ int main(void){
 	config = load_config(PATH_CONFIG);
 	print_config(config);
 
-
 	//Path Metadata
 	PATH_METADATA = string_new();
 	string_append(&PATH_METADATA,config.PUNTO_MONTAJE);
@@ -23,10 +22,10 @@ int main(void){
 	printf ("La ruta de Archivos es:%s\n", PATH_ARCHIVO);
 
 	//Obtener Datos Metadata
-	//metadata = config_create(PATH_METADATA);
-	//CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
-	//TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
-	//printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
+	metadata = config_create(PATH_METADATA);
+	CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
+	TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
+	printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
 
 	//Bitmap
 	PATH_BITMAP= string_new();
