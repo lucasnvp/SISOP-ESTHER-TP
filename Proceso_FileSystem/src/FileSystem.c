@@ -148,7 +148,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 		break;
 	}
 	case 6: {
-		//guardar datos
+		//guardar datos .
 		break;
 	}
 	default:
