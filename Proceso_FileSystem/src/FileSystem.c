@@ -5,9 +5,11 @@ int main(void){
     puts("Proceso FileSystem");
 
     //Configuracion inicial
-    //init_fs_folder();
 	config = load_config(PATH_CONFIG);
 	print_config(config);
+
+	//Config. inicial de FS
+	setup();
 
 	//Path Metadata
 	PATH_METADATA = string_new();
@@ -188,8 +190,8 @@ void inicializar_bitmap(){
 }
 
 
-void init_fs_folder(){
-	mkdir("/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_FileSystem/Debug/mnt/SADICA_FS/Metada",0755);
+void setup(){
+	mkdir("/mnt/SADICA_FS",0755);
 
 }
 
