@@ -21,6 +21,12 @@
 #include "config/config_kernel.h"
 #include "cpu/cpu.h"
 
+#include "dummy-componets/dummy-program.h"
+
+#define NUEVO_PROCESO 1
+#define NUEVA_CONEXION_CPU 2
+#define FIN_EJECUCION_CPU 3
+
 pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION; // semaforo de multiprogramacion
 sem_t SEM_PCB; //Para que la cola de PCB se suspenda si no tiene entradas

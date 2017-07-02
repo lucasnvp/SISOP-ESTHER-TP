@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#define KERNEL 8888
+
 uint32_t connect_server(char* IP , uint32_t Port);
 uint32_t build_server(uint32_t Port, uint32_t quantityConexions);
 uint32_t accept_conexion(uint32_t servidor);
@@ -20,5 +22,7 @@ void send_data(uint32_t servidor, void* dataToSend, uint32_t bytesToSend);
 void send_string(uint32_t socket, char* mensaje);
 void massive_send(uint32_t fdmax, fd_set *master, void* buffer, uint32_t cantToSend, uint32_t servidor);
 
+int conexionesActivas;
+int kernelConectado;
 
 #endif

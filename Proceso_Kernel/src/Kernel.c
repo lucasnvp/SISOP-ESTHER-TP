@@ -102,7 +102,28 @@ void procesarPCB(void* args){
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+		//Creo el metadata program del proceso
+		char* programa = strdup(PROGRAMA);
+		t_metadata_program* metadata = metadata_desde_literal(programa);
+
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, metadata, 0, 0, 0);
+
+		//Pido Memoria
+		serializar_int(SERVIDOR_MEMORIA, 3);
+		serializar_int(SERVIDOR_MEMORIA, sizeof(programa));
+
+		uint32_t respuestaMemoria = deserializar_int(SERVIDOR_MEMORIA);
+
+		if(respuestaMemoria == true){
+			log_info(log_Kernel, "Hay memoria");
+			// Acepto el programa
+			//serializar_int(SERVIDOR_MEMORIA, 4);
+			//serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
+			//serializar_string(SERVIDOR_MEMORIA, programa);
+		} else{
+			log_info(log_Kernel, "No hay memoria");
+			// No acepto el programa
+		}
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -226,7 +247,7 @@ void server(void* args){
 void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
-		case 1:{
+		case NUEVO_PROCESO:{
 			//printf("Nuevo Programa\n");
 			log_info(log_Console,"Nuevo Programa");
 			t_SerialString* PATH = malloc(sizeof(t_SerialString));
@@ -243,7 +264,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			queue_sync_push(QUEUE_PCB, NewProgram);
 			break;
 		}
-		case 2:{
+		case NUEVA_CONEXION_CPU:{
 			//Nueva conexion de CPU
 			log_info(log_Kernel,"Nueva CPU");
 			//Nueva CPU
@@ -256,7 +277,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			sem_post(&SEM_CPU_DISPONIBLE);
 			break;
 		}
-		case 3:{
+		case FIN_EJECUCION_CPU:{
 			//Finalizacion de ejecucion de rafaga de CPU
 			log_info(log_Kernel,"Finalizacion de ejecucion de CPU");
 			//PCB a deserializar

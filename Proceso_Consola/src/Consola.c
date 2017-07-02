@@ -37,23 +37,23 @@ void connect_server_kernel(){
 
 void consola_comandos(){
 	while(true) {
-		t_Consola consola = leerComandos();
-		consola.kernel = SERVIDOR_KERNEL;
-		if (!strcmp(consola.comando, "run") /*|| !strcmp(consola.comando, "stop")*/) {
-			if (consola.argumento == NULL)
-				printf("Falta el argumento de la funcion %s\n\n> ", consola.comando);
+		t_Consola* consola = (t_Consola *) malloc(sizeof(t_Consola));
+		consola = leerComandos();
+		consola->kernel = SERVIDOR_KERNEL;
+		if (!strcmp(consola->comando, "run")) {
+			if (consola->argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n\n> ", consola->comando);
 			else {
 				//Envio el mensaje
 				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
-				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) &consola);
-				//free(hiloConsola);
+				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) consola);
 			}
 		}
-		else if (!strcmp(consola.comando, "close"))
+		else if (!strcmp(consola->comando, "close"))
 			printf("> ");
-		else if (!strcmp(consola.comando, "exit"))
+		else if (!strcmp(consola->comando, "exit"))
 			exit(0);
-		else if (!strcmp(consola.comando, "clean")) {
+		else if (!strcmp(consola->comando, "clean")) {
 			system("clear");
 			printf("> ");
 			fflush(stdout);

@@ -16,17 +16,20 @@
 #define N_FRAME 0
 #define N_PID 1
 #define N_PAGINA 2
-
+#define BLOQUEADO 150
+#define SOY_KERNEL 100
 #define MARCOS 100
 #define MARCO_SIZE 256
 #define ENTRADAS_CACHE 15
 #define CACHE_X_PROCESO 3
 
+
+uint32_t servidor;
+
 Type_Config config;
 
 
 void * bloque_Memoria;
-
 
 
 typedef struct estructuraPaginacionInversa{
@@ -51,11 +54,11 @@ typedef struct{
     int tiempoEnCache;
 }t_cacheHandler;
 
-t_cacheHandler adminCache[ENTRADAS_CACHE];
+t_cacheHandler * adminCache;
 
 
 
-char* PATH_CONFIG = "/home/utnso/git/tp-2017-1c-Blacklist/Proceso_Memoria/src/config/config.txt";
+char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_Memoria/src/config/config.txt";
 
 
 
@@ -68,6 +71,7 @@ int liberarPaginaDeUnProceso(int PID, int pagina); //Falta Hacer
 int finalizarPrograma(int PID);
 //-----------------------OTRAS FUNCIONES: MEMORIA--------------------------//
 void inicializarMemoria();
+int paginasQueOcupaProceso(int PID);
 //-----------------------FUNCIONES: EPI--------------------------//
 void inicializarTablaEPI();
 int agregarDatosTablaEPI(int PID,int nPagina);
@@ -84,9 +88,13 @@ void incrementarEnUnoTiempoEnCache();
 void imprimirCache();
 void actualizoCache(int PID,int pagina,int nFrame);
 int quitarProgramaDeCache(int PID);
+void borrarCache();
 //-----------------------OTRAS FUNCIONES: USO GENERAL----------------------//
 bool consola();
-void crearHilo(uint32_t * newfd);
+void hiloConexion(uint32_t * newfd);
+void connection_handler(uint32_t socket, uint32_t command);
+void lanzoHiloConsolaComandos();
+void inicializoServidor() ;
 
 
 
