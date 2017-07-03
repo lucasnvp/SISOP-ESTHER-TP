@@ -14,7 +14,9 @@ typedef struct {
 pthread_mutex_t sem_consola;
 
 void limpiarBufferDeEntrada();
-char* substr(char* cadena, int comienzo, int longitud);
+char* substr(char* cadena, uint32_t comienzo, uint32_t longitud);
+void imprimirEstadisticas(time_t inicio, time_t fin, uint32_t cantLineas);
+char* calcularDiferencia(time_t inicio, time_t fin);
 t_Consola* leerComandos();
 void crearHiloConsola(t_Consola* consola);
 
@@ -24,12 +26,86 @@ void limpiarBufferDeEntrada() {
 	}
 }
 
-char* substr(char* cadena, int comienzo, int longitud) {
+char* substr(char* cadena, uint32_t comienzo, uint32_t longitud) {
 	char *nuevo = (char*) malloc(sizeof(char) * (longitud + 1));
 	nuevo[longitud] = '\0';
 	strncpy(nuevo, cadena + comienzo, longitud);
 
 	return nuevo;
+}
+
+void imprimirEstadisticas(time_t inicio, time_t fin, uint32_t cantLineas) {
+	char* diferencia = (char *) malloc(sizeof(char) * 128);
+	diferencia = calcularDiferencia(inicio, fin);
+
+	printf("\n*********************** ESTADISTICAS ***********************\n");
+
+	struct tm *tlocali = localtime(&inicio);
+	char* strInicio = (char *) malloc(sizeof(char) * 128);
+	strftime(strInicio, 128, "%d/%m/%y %H:%M:%S", tlocali);
+
+	printf("Fecha y hora de inicio de ejecucion: %s\n", strInicio);
+
+	struct tm *tlocalf = localtime(&fin);
+	char* strFin = (char *) malloc(sizeof(char) * 128);
+	strftime(strFin, 128, "%d/%m/%y %H:%M:%S", tlocalf);
+
+	printf("Fecha y hora de fin de ejecucion: %s\n", strFin);
+
+	printf("Cantidad de impresiones por pantalla: %i\n", cantLineas);
+	printf("Tiempo total de ejecucion: %s\n", diferencia);
+	printf(
+			"************************************************************\n\n> ");
+
+	fflush(stdout);
+	free(diferencia);
+	free(strInicio);
+	free(strFin);
+}
+
+char* calcularDiferencia(time_t inicio, time_t fin) {
+	uint32_t diferencia = (uint32_t) difftime(fin, inicio);
+	uint32_t horas = (diferencia / 60) / 60;
+	uint32_t minutos = (diferencia / 60) % 60;
+	uint32_t segundos = diferencia % 60;
+
+	char* strRetorno = (char *) malloc(sizeof(char) * 128);
+	strcpy(strRetorno, "");
+
+	if (horas > 0) {
+		char* strHoras = (char *) malloc(sizeof(char) * 3);
+		sprintf(strHoras, "%d", horas);
+		strcat(strRetorno, strHoras);
+		free(strHoras);
+		if (horas > 1)
+			strcat(strRetorno, " horas ");
+		else
+			strcat(strRetorno, " hora ");
+	}
+
+	if (minutos > 0) {
+		char* strMinutos = (char *) malloc(sizeof(char) * 3);
+		sprintf(strMinutos, "%d", minutos);
+		strcat(strRetorno, strMinutos);
+		free(strMinutos);
+		if (minutos > 1)
+			strcat(strRetorno, " minutos ");
+		else
+			strcat(strRetorno, " minuto ");
+	}
+
+	if (segundos > 0) {
+		char* strSegundos = (char *) malloc(sizeof(char) * 3);
+		sprintf(strSegundos, "%d", segundos);
+		strcat(strRetorno, strSegundos);
+		free(strSegundos);
+		if (segundos > 1)
+			strcat(strRetorno, " segundos");
+		else
+			strcat(strRetorno, " segundo");
+	}
+
+	return strRetorno;
 }
 
 t_Consola* leerComandos() {
@@ -51,6 +127,7 @@ t_Consola* leerComandos() {
 
 void crearHiloConsola(t_Consola* consola) {
 	t_Consola* param = consola;
+	uint32_t PID_Datos;
 
 	if (strcmp(substr(param->argumento, 0, 1), "/")
 			&& strcmp(substr(param->argumento, 0, 1), ".")) {
@@ -106,6 +183,18 @@ void crearHiloConsola(t_Consola* consola) {
 	printf("El PID del programa es: %d \n\n> ", PID_PCB);
 	fflush(stdout);
 	pthread_mutex_unlock(&sem_consola);
+
+	time_t tiempoInicio = time(0);
+	uint32_t contadorLineas = 0;
+
+	while (1) {
+		//Recibo datos
+		PID_Datos = deserializar_int(param->kernel);
+
+		if (PID_PCB == PID_Datos) {
+
+		}
+	}
 
 	pthread_exit(NULL);
 }
