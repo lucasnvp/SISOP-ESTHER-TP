@@ -191,7 +191,20 @@ void inicializar_bitmap(){
 
 
 void setup(){
-	mkdir("/mnt/SADICA_FS",0755);
+	//Crea la carpeta de montaje
+	mkdir(config.PUNTO_MONTAJE, 0777 );
+	//Crea la carpeta Metadata
+	char* carp_metadata = string_new();
+	string_append(&carp_metadata, config.PUNTO_MONTAJE);
+	string_append(&carp_metadata, "Metadata");
+	mkdir(carp_metadata, 0777);
+	//Crea archivo Metadata.bin
+	char* pmontaje = string_new();
+	string_append(&pmontaje, config.PUNTO_MONTAJE);
+	string_append(&pmontaje, METADATA);
+	fopen( "/home/utnso/Blacklist/SADICA_FS/Metadata/Metadata.bin", "wb");
+	//Crea archivo Bitmap.bin
+	fopen("/home/utnso/Blacklist/SADICA_FS/Metadata/Bitmap.bin", "wb");
 
 }
 
