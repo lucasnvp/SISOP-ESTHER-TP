@@ -11,7 +11,7 @@ int main(void) {
 
 	inicializarMemoria();
 
-	inicializarPrograma(1,2);
+	/*inicializarPrograma(1,2);
 	 inicializarPrograma(2,1);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
@@ -29,6 +29,7 @@ int main(void) {
 	 printf("\n");
 	 imprimirCache();*/
 	lanzoHiloConsolaComandos();
+	sem_init(&SEM_hiloServidor,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	inicializoServidor();
 	return EXIT_SUCCESS;
 
@@ -132,8 +133,6 @@ int borrarDatosTablaEPI(int PID) {
 
 	int i;
 
-	int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE
-			- 1) / MARCO_SIZE;
 	int info[3];
 	info[N_PID] = 0;
 	info[N_PAGINA] = 0;
@@ -619,13 +618,18 @@ void inicializoServidor() {
 
 void hiloConexion(uint32_t * newfd) {
 	uint32_t command;
+
 		while(1){
+
+
 			command=deserializar_int(newfd);
+
+
 			if(command==KERNEL && kernelConectado)
 			{
 				while(deserializar_int(newfd))
 				command=-1;
-				printf("ERROR: No se puede conectar mas de un kernel\n");
+				printf("ERROR: No se puede conectar mas de un kernel");
 				pthread_exit(NULL);
 
 			}
@@ -636,11 +640,14 @@ void hiloConexion(uint32_t * newfd) {
 
 			}
 
+
 			if ( command>0 && command!=KERNEL && command!=BLOQUEADO)//command!=BLOQUEADO &&
 			{
+
 			connection_handler(newfd, command);
 
 			}
+
 			if(command<=0)
 			{
 			conexionesActivas--;
@@ -648,7 +655,10 @@ void hiloConexion(uint32_t * newfd) {
 			}
 
 
+			//sem_wait(&SEM_hiloServidor);
+
 		}
+
 }
 
 
@@ -680,12 +690,13 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 	switch (command) {
 
-	case 1:{
+	case 100:{
 		printf("Conectado con KERNEL \n");
 
 		break;
 	}
 	case 3:{
+
 			int hayMemoria=0;
 			int memoriaRequerida=0;
 			int cantPaginas;
@@ -698,20 +709,29 @@ void connection_handler(uint32_t socket, uint32_t command) {
 			if (cantPaginas<=framesDisponibles())
 			{
 				hayMemoria=1;
+				 printf("Me pidieron memoria, y hay.");
 			}
 			serializar_int(socket,hayMemoria);
 			break;
+
 		}
 	case 4:{
-				char * cadena=NULL;
+		        printf("Voy a reservar ese espacio\n");
+		        t_SerialString* cadena = malloc(sizeof(t_SerialString));
 				int largoCadena;
 				int cantPaginas;
 				int i;
-				int PID=deserializar_int(socket);
 
+				int PID=deserializar_int(socket);
+				printf("El pid que voy a asignar es: %d\n",PID);
 				deserializar_string(socket,cadena);
 
-				largoCadena=strlen(cadena);
+
+				largoCadena=cadena->sizeString;
+
+				printf("El largo de la cadena es: %d\n",largoCadena);
+
+
 
 				if(largoCadena>0)
 				{
@@ -723,9 +743,10 @@ void connection_handler(uint32_t socket, uint32_t command) {
 					asignarPaginasAProceso(PID,cantPaginas);
 
 					for (i=0;i<cantPaginas;i++)
-						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena+i*MARCO_SIZE);
+						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena->dataString+i*MARCO_SIZE);
 				}
 
+				printf("La cadena es: %s\n",cadena->dataString);
 				break;
 
 			}
@@ -753,26 +774,17 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 		break;
 	}
-	/**case 10: { //KERNEL me pregunta si hay memoria
-		int cantidadDePaginas = convretirBitsAPAginas();
-		int hayMemoria = hayMemoria(cantidadDePaginas);
-		serializar_int(socket, hayMemoria);
-	}
-	case 15: { //KERNEL me pregunta si hay memoria
-		uint32_t PID;
-		deserializar_int(socket,PID);
-		char * datos;
-		deserializar_string(socket,&datos);
-		asignarPaginasAProceso(PID,sizeof(datos)/MARCO_SIZE);
-		serializar_int(socket, hayMemoria);
-	}*/
+
 
 	default:{
-		 printf("Ningun Comando\n");
+		pthread_exit(NULL);
+		 //printf("Ningun Comando\n");
+		// sem_wait(&SEM_hiloServidor);
 		break;
 	}
 
 	}
+
 	return;
 }
 

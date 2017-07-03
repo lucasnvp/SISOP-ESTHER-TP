@@ -12,6 +12,7 @@
 #include "servidor/servidor.h"
 #include "serializador/serializador.h"
 #include <pthread.h>
+#include <semaphore.h>
 
 #define N_FRAME 0
 #define N_PID 1
@@ -28,6 +29,7 @@ uint32_t servidor;
 
 Type_Config config;
 
+sem_t SEM_hiloServidor; //Para que la cola de PCB se suspenda si no tiene entradas
 
 void * bloque_Memoria;
 

@@ -43,3 +43,5 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 	//---------------------
 
 }
+
+
