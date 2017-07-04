@@ -14,7 +14,7 @@ int main(void) {
 
 	inicializarMemoria();
 
-	inicializarPrograma(1,2);
+	/*inicializarPrograma(1,2);
 	 inicializarPrograma(2,1);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
@@ -25,7 +25,7 @@ int main(void) {
 	 almacenarBytesPagina(3,2,0,5,"3");
 	 almacenarBytesPagina(3,3,0,5,"4");
 	 solicitarBytesPagina(1,0,0,5);
-	 solicitarBytesPagina(2,0,0,5);
+	 solicitarBytesPagina(2,0,0,5);*/
 	 /*impirmirEPIaccediendoAMemoria(0,40);
 	 printf("\n");
 	 imprimirCache();*/
@@ -756,27 +756,27 @@ void connection_handler(uint32_t socket, uint32_t command) {
 			if (cantPaginas<=framesDisponibles())
 			{
 				hayMemoria=1;
-				 printf("Me pidieron memoria, y hay.");
+				 //printf("Me pidieron memoria, y hay.");
 			}
 			serializar_int(socket,hayMemoria);
 			break;
 
 		}
 	case 4:{
-		        printf("Voy a reservar ese espacio\n");
+		        //printf("Voy a reservar ese espacio\n");
 		        t_SerialString* cadena = malloc(sizeof(t_SerialString));
 				int largoCadena;
 				int cantPaginas;
 				int i;
 
 				int PID=deserializar_int(socket);
-				printf("El pid que voy a asignar es: %d\n",PID);
+				//printf("El pid que voy a asignar es: %d\n",PID);
 				deserializar_string(socket,cadena);
 
 
 				largoCadena=cadena->sizeString;
 
-				printf("El largo de la cadena es: %d\n",largoCadena);
+				//printf("El largo de la cadena es: %d\n",largoCadena);
 
 
 
@@ -787,13 +787,14 @@ void connection_handler(uint32_t socket, uint32_t command) {
 					else
 						cantPaginas=(largoCadena/MARCO_SIZE);
 
-					asignarPaginasAProceso(PID,cantPaginas);
+					inicializarPrograma(PID,cantPaginas);
+
 
 					for (i=0;i<cantPaginas;i++)
 						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena->dataString+i*MARCO_SIZE);
 				}
-
-				printf("La cadena es: %s\n",cadena->dataString);
+				solicitarBytesPagina(PID,0,0,largoCadena);
+				//printf("La cadena es: %s\n",cadena->dataString);
 				break;
 
 			}
