@@ -116,10 +116,19 @@ void procesarPCB(void* args){
 
 		if(respuestaMemoria == true){
 			log_info(log_Kernel, "Hay memoria");
+			//printf("Programa a enviar: %s \n", programa);
 			// Acepto el programa
-			//serializar_int(SERVIDOR_MEMORIA, 4);
-			//serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
-			//serializar_string(SERVIDOR_MEMORIA, programa);
+			serializar_int(SERVIDOR_MEMORIA, 4);
+			serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
+
+			t_SerialString* program_to_send = malloc(sizeof(t_SerialString));
+			program_to_send->sizeString = strlen(programa);
+			program_to_send->dataString = malloc(program_to_send->sizeString);
+			program_to_send->dataString = programa;
+			printf("La cadena es: %s\n",program_to_send->dataString);
+			//Serializo el path
+			serializar_string(SERVIDOR_MEMORIA, program_to_send);
+//			free(program_to_send);
 		} else{
 			log_info(log_Kernel, "No hay memoria");
 			// No acepto el programa

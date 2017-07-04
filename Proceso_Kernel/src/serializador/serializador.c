@@ -38,8 +38,8 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 	recive_data(servidor, buffer, sizeof(PATH->sizeString));
 	memcpy(&PATH->sizeString, buffer, buffer_size);
 	PATH->dataString = (char*) malloc(sizeof(char) * PATH->sizeString);
-	PATH->dataString = '\0';
 	recive_data(servidor, PATH->dataString, PATH->sizeString);
+	PATH->dataString[PATH->sizeString] = '\0';
 	//---------------------
 
 }
