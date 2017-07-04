@@ -14,7 +14,7 @@ uint32_t deserializar_int(uint32_t socket){
 }
 
 void serializar_string(int client, t_SerialString* PATH){
-	void* ENVIAR = malloc(PATH->sizeString);
+	void* ENVIAR = malloc( sizeof(t_SerialString) + PATH->sizeString);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
@@ -42,4 +42,5 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 	PATH->dataString[PATH->sizeString] = '\0';
 	//---------------------
 
+	free(buffer);
 }

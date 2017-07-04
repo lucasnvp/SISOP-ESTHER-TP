@@ -124,9 +124,10 @@ void procesarPCB(void* args){
 			t_SerialString* program_to_send = malloc(sizeof(t_SerialString));
 			program_to_send->sizeString = strlen(programa);
 			program_to_send->dataString = malloc(program_to_send->sizeString);
-			program_to_send->dataString = programa;
+			strcpy(program_to_send->dataString, programa);
 			//Serializo el path
 			serializar_string(SERVIDOR_MEMORIA, program_to_send);
+			free(program_to_send->dataString);
 			free(program_to_send);
 		} else{
 			log_info(log_Kernel, "No hay memoria");
