@@ -14,6 +14,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+
 #define N_FRAME 0
 #define N_PID 1
 #define N_PAGINA 2
