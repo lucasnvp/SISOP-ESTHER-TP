@@ -125,10 +125,9 @@ void procesarPCB(void* args){
 			program_to_send->sizeString = strlen(programa);
 			program_to_send->dataString = malloc(program_to_send->sizeString);
 			program_to_send->dataString = programa;
-			printf("La cadena es: %s\n",program_to_send->dataString);
 			//Serializo el path
 			serializar_string(SERVIDOR_MEMORIA, program_to_send);
-//			free(program_to_send);
+			free(program_to_send);
 		} else{
 			log_info(log_Kernel, "No hay memoria");
 			// No acepto el programa
