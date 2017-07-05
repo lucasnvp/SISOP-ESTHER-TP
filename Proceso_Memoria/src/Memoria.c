@@ -793,7 +793,9 @@ void connection_handler(uint32_t socket, uint32_t command) {
 					for (i=0;i<cantPaginas;i++)
 						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena->dataString+i*MARCO_SIZE);
 				}
-				solicitarBytesPagina(PID,0,0,largoCadena);
+				free(cadena);
+				serializar_int(socket,cantPaginas);
+				//solicitarBytesPagina(PID,0,0,largoCadena);
 				//printf("La cadena es: %s\n",cadena->dataString);
 				break;
 
