@@ -1,5 +1,5 @@
 
-#include "/home/utnso/Blacklist/so-funcion-hash/src/funciones.c"
+//#include "/home/utnso/Blacklist/so-funcion-hash/src/funciones.c"
 
 #include "Memoria.h"
 
@@ -39,8 +39,8 @@ int main(void) {
 
 
 void inicializarMemoria() {
-	CANTIDAD_DE_MARCOS = MARCOS;
-	inicializarOverflow(CANTIDAD_DE_MARCOS);
+//	CANTIDAD_DE_MARCOS = MARCOS;
+	//inicializarOverflow(CANTIDAD_DE_MARCOS);
 	inicializarTablaEPI();
 	inicializarCache();
 	bloque_Memoria = malloc(MARCOS * MARCO_SIZE);
