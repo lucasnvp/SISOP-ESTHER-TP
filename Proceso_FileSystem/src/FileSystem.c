@@ -1,6 +1,5 @@
 #include "FileSystem.h"
 
-
 int main(void){
     puts("Proceso FileSystem");
 
@@ -9,44 +8,7 @@ int main(void){
 	print_config(config);
 
 	//Config. inicial de FS
-	setup();
-
-	//Path Metadata
-	PATH_METADATA = string_new();
-	string_append(&PATH_METADATA,config.PUNTO_MONTAJE);
-	string_append(&PATH_METADATA,METADATA);
-	printf ("La ruta es:%s\n", PATH_METADATA);
-
-	//Path Archivos
-	PATH_ARCHIVO = string_new();
-	string_append(&PATH_ARCHIVO, config.PUNTO_MONTAJE);
-	string_append(&PATH_ARCHIVO, ARCHIVO);
-	printf ("La ruta de Archivos es:%s\n", PATH_ARCHIVO);
-
-	//Obtener Datos Metadata
-	metadata = config_create(PATH_METADATA);
-	CANT_BLOQUES = config_get_int_value(metadata, "CANTIDAD_BLOQUES");
-	TAMANIO_BLOQUES = config_get_int_value(metadata, "TAMANIO_BLOQUES");
-	printf("Bloques: %d\n Tamanio: %d\n", CANT_BLOQUES, TAMANIO_BLOQUES);
-
-	//Bitmap
-	PATH_BITMAP= string_new();
-	string_append(&PATH_BITMAP, config.PUNTO_MONTAJE);
-	string_append(&PATH_BITMAP, BITMAP);
-	printf("La ruta del bitmap es:%s\n", PATH_BITMAP);
-
-	//inicializar_bitmap();
-
-	//Datos
-
-	PATH_DATOS= string_new();
-	string_append(&PATH_DATOS, config.PUNTO_MONTAJE);
-	string_append(&PATH_DATOS, DATOS);
-	printf("La ruta de los datos es: %s\n", PATH_DATOS);
-
-	//crear_archivo_por_bloque();
-
-
+	punto_montaje_setup(config.PUNTO_MONTAJE);
 
 	// Variables hilos
 	pthread_t thread_server;
@@ -128,7 +90,6 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//validar archivo
 		t_SerialString* path = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, path);
-		validar_archivo(path);
 		free(path);
 		break;
 	}
@@ -142,10 +103,6 @@ void connection_handler(uint32_t socket, uint32_t command){
 	}
 	case 5: {
 		//obtener datos
-		uint32_t offset = 0;
-		t_SerialString* path = malloc(sizeof(t_SerialString));
-		obtener_datos(path, offset);
-		free(path);
 		break;
 	}
 	case 6: {
@@ -159,55 +116,98 @@ void connection_handler(uint32_t socket, uint32_t command){
 	return;
 }
 
-void obtener_datos(char* path, uint32_t offset){
-	FILE *fd;
-	fd = fopen(path, "r");
-	uint32_t size = 0;
-	//leer size bytes desde posicion offset
-	//lseek(fd, offset, (offset + size)); -- no va en archivos mayores a 4Gb.
-
+uint32_t ValidarArchivo(char* path){
+	uint32_t archivo_existente;
+	if(access(path, F_OK) != -1){
+		archivo_existente = true;
+	} else{
+		archivo_existente = false;
+	}
+	return archivo_existente;
 }
 
+void CrearArchivo(char* path){
+	if(ValidarArchivo(path) == false){
+		FILE * newFD;
+		newFD = fopen(path, "w+");
+		fwrite(TAMANIO_BLOQUE_NULL,1,strlen(TAMANIO_BLOQUE_NULL),newFD);
+		//Agregar el bloque
+	 	int32_t bloque_to_add = bloque_libre(bitarray);
+		if(bloque_to_add != -1){
+			char* bloquesDelArchivo = string_new();
+			string_append(&bloquesDelArchivo, "BLOQUES=[");
+			string_append(&bloquesDelArchivo, string_itoa(bloque_to_add));
+			string_append(&bloquesDelArchivo, "]\n");
+			fwrite(bloquesDelArchivo,1,strlen(bloquesDelArchivo),newFD);
 
-void validar_archivo (char* path){
-		if( access( path, F_OK ) != -1 ) {
-			printf( "El archivo existe\n" );
-		} else {
-			printf( "El archivo no existe\n" );
+			bitarray_set_bit(bitarray, bloque_to_add);
+		} else{
+			//No hay bloques
+		}
+		fclose(newFD);
+	}
+}
+
+int32_t bloque_libre(t_bitarray* auxBitArray){
+	bool testBit;
+	for(i = 0; i <= bitarray_get_max_bit(auxBitArray); i++){
+		if(bitarray_test_bit(auxBitArray, i) == false){
+			return i;
 		}
 	}
-
-
-//Funciones de uso particular
-
-void inicializar_bitmap(){
-	char* comando = string_new();
-	string_append(&comando, "dd if=/dev/zero of=");
-	string_append(&comando, PATH_BITMAP);
-	string_append(&comando, " bs=1 count=10"); //necesito pasar el numemro de bloques como string
-	system(comando);
-
+	//No hay bloques
+	return -1;
 }
 
+void Borrar(char* path){
+	char** bloquestodelete = get_bloques_array(path);
+	for(i=0 ; bloquestodelete[i] != NULL ; i++){
+		bitarray_clean_bit(bitarray, atoi(bloquestodelete[i]));
+	}
+	free(bloquestodelete);
 
-void setup(){
-	//Crea la carpeta de montaje
-	mkdir(config.PUNTO_MONTAJE, 0777 );
-	//Crea la carpeta Metadata
-	char* carp_metadata = string_new();
-	string_append(&carp_metadata, config.PUNTO_MONTAJE);
-	string_append(&carp_metadata, "Metadata");
-	mkdir(carp_metadata, 0777);
-	//Crea archivo Metadata.bin
-	char* pmontaje = string_new();
-	string_append(&pmontaje, config.PUNTO_MONTAJE);
-	string_append(&pmontaje, METADATA);
-	fopen( "/home/utnso/Blacklist/SADICA_FS/Metadata/Metadata.bin", "wb");
-	//Crea archivo Bitmap.bin
-	fopen("/home/utnso/Blacklist/SADICA_FS/Metadata/Bitmap.bin", "wb");
-
+	if(remove(path) == 0){
+		printf("Se elimino el archivo exitosamente\n");
+	} else{
+		printf("Error al eliminar el archivo\n");
+	}
 }
 
+char* ObtenerDatos(char* path, uint32_t offset, uint32_t size){
+	char** bloquestoread = get_bloques_array(path);
+	char* pathDato = strdup(get_bloque_from_int(atoi(bloquestoread[offset])));
+	FILE * fileToRead = fopen(pathDato,"r");
+	char* datosObtenidos = malloc( sizeof(char) * size);
+	fgets(datosObtenidos,size + 1,fileToRead);
+	fclose(fileToRead);
+	return datosObtenidos;
+}
+
+void GuardarDatos(char* path, uint32_t offset, uint32_t size, char* buffer){
+	char** bloquestosave = get_bloques_array(path);
+	//en el offset tiene que ir el resultado de una formula para calcular en que bloque esta.
+	char* pathDato = strdup(get_bloque_from_int(atoi(bloquestosave[offset])));
+//	printf("%s\n", pathDato);
+	FILE * fileToWrite = fopen(pathDato, "w+b");
+	fwrite(buffer, sizeof(char), size, fileToWrite);
+	fclose(fileToWrite);
+	free(bloquestosave);
+}
+
+char** get_bloques_array(char* path){
+	t_config* filetogetbloques = config_create(path);
+	char** bloquesarray = config_get_array_value(filetogetbloques, "BLOQUES");
+	config_destroy(filetogetbloques);
+	return bloquesarray;
+}
+
+char* get_bloque_from_int(uint32_t nroDeBloque){
+	char* nroBloque = string_new();
+	string_append(&nroBloque, montajeBloques);
+	string_append(&nroBloque, string_itoa(nroDeBloque));
+	string_append(&nroBloque, ".bin");
+	return nroBloque;
+}
 
 void init_log_FS(char* pathLog){
 	mkdir("/home/utnso/Blacklist/Logs",0755);
