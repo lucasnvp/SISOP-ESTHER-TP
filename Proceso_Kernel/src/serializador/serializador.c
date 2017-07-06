@@ -14,7 +14,7 @@ uint32_t deserializar_int(uint32_t socket){
 }
 
 void serializar_string(int client, t_SerialString* PATH){
-	void* ENVIAR = malloc(PATH->sizeString);
+	void* ENVIAR = malloc( sizeof(t_SerialString) + PATH->sizeString);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
@@ -38,10 +38,11 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 	recive_data(servidor, buffer, sizeof(PATH->sizeString));
 	memcpy(&PATH->sizeString, buffer, buffer_size);
 	PATH->dataString = (char*) malloc(sizeof(char) * PATH->sizeString);
-	PATH->dataString = '\0';
 	recive_data(servidor, PATH->dataString, PATH->sizeString);
+	PATH->dataString[PATH->sizeString] = '\0';
 	//---------------------
 
+	free(buffer);
 }
 
 void serializar_pcb(int client, PCB_t* PCB){

@@ -8,6 +8,7 @@
 
 #include "../servidor/servidor.h"
 
+
 //CREAR PATH
 typedef struct{
 	uint32_t sizeString;

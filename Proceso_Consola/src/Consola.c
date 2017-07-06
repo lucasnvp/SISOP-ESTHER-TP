@@ -1,6 +1,6 @@
 #include "Consola.h"
 
-int main (void){
+int main(void) {
 	puts("Proceso Consola");
 
 	//Configuracion inicial
@@ -16,27 +16,27 @@ int main (void){
 	connect_server_kernel();
 
 	//Hilo de consola
-	pthread_create(&thread_comandos,NULL,(void*) consola_comandos,"Consola Comandos");
+	pthread_create(&thread_comandos, NULL, (void*) consola_comandos, "Consola Comandos");
 
 	pthread_join(thread_comandos, (void**) NULL);
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 
 }
 
-void connect_server_kernel(){
+void connect_server_kernel() {
 	//Me conecto al servidor
 	//SERVIDOR_KERNEL = connect_server(config.IP_KERNEL,config.PUERTO_KERNEL);
-	SERVIDOR_KERNEL = connect_server("127.0.0.1",5010);
+	SERVIDOR_KERNEL = connect_server("127.0.0.1", 5010);
 
 	//Si conecto, informo
-	if(SERVIDOR_KERNEL > 0){
+	if (SERVIDOR_KERNEL > 0) {
 		printf("Ready to send \n> ");
 	}
 }
 
-void consola_comandos(){
-	while(true) {
+void consola_comandos() {
+	while (true) {
 		t_Consola* consola = (t_Consola *) malloc(sizeof(t_Consola));
 		consola = leerComandos();
 		consola->kernel = SERVIDOR_KERNEL;
@@ -48,17 +48,26 @@ void consola_comandos(){
 				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) consola);
 			}
-		}
-		else if (!strcmp(consola->comando, "close"))
-			printf("> ");
+		} else if (!strcmp(consola->comando, "close"))
+			if (consola->argumento == NULL)
+				printf("Falta el argumento de la funcion %s\n\n> ", consola->comando);
+			else {
+				uint32_t Arg_PID = atoi(consola->argumento);
+				if (Arg_PID > 0) {
+					//Ejecuto el comando close en el servidor
+					serializar_int(consola->kernel, 2);
+					//TODO: Serializar el PID del proceso que se quiere terminar
+				}
+				else
+					printf("Error de argumento o tipo desconocido en %s\n\n> ", consola->comando);
+			}
 		else if (!strcmp(consola->comando, "exit"))
 			exit(0);
 		else if (!strcmp(consola->comando, "clean")) {
 			system("clear");
 			printf("> ");
 			fflush(stdout);
-		}
-		else
+		} else
 			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n\n> ");
 	}
 }

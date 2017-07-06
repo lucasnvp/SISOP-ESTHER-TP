@@ -1,3 +1,6 @@
+
+#include "/home/utnso/Blacklist/so-funcion-hash/src/funciones.c"
+
 #include "Memoria.h"
 
 
@@ -11,7 +14,7 @@ int main(void) {
 
 	inicializarMemoria();
 
-	inicializarPrograma(1,2);
+	/*inicializarPrograma(1,2);
 	 inicializarPrograma(2,1);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
@@ -22,13 +25,12 @@ int main(void) {
 	 almacenarBytesPagina(3,2,0,5,"3");
 	 almacenarBytesPagina(3,3,0,5,"4");
 	 solicitarBytesPagina(1,0,0,5);
-	 solicitarBytesPagina(2,0,0,5);
-
-
+	 solicitarBytesPagina(2,0,0,5);*/
 	 /*impirmirEPIaccediendoAMemoria(0,40);
 	 printf("\n");
 	 imprimirCache();*/
 	lanzoHiloConsolaComandos();
+	sem_init(&SEM_hiloServidor,0,0);	//Iniciazilo el semaforo de la cola de PCB
 	inicializoServidor();
 	return EXIT_SUCCESS;
 
@@ -37,6 +39,8 @@ int main(void) {
 
 
 void inicializarMemoria() {
+	CANTIDAD_DE_MARCOS = MARCOS;
+	inicializarOverflow(CANTIDAD_DE_MARCOS);
 	inicializarTablaEPI();
 	inicializarCache();
 	bloque_Memoria = malloc(MARCOS * MARCO_SIZE);
@@ -132,8 +136,6 @@ int borrarDatosTablaEPI(int PID) {
 
 	int i;
 
-	int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE
-			- 1) / MARCO_SIZE;
 	int info[3];
 	info[N_PID] = 0;
 	info[N_PAGINA] = 0;
@@ -325,6 +327,51 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 			encontreEnCache = 1;
 		}
 	}
+
+
+
+
+	/* if( !encontreEnCache && !encontrePagina)
+	{
+					//Uso funcio de hash
+					int es_pagina_buscada = 1;
+
+					int pos_candidata = calcularPosicion(PID,pagina);
+
+					if(tablaEPI.matriz[pos_candidata][N_PID]!=PID && tablaEPI.matriz[pos_candidata][N_PAGINA]!=pagina)
+					{
+						agregarSiguienteEnOverflow(pos_candidata, tablaEPI.matriz[pos_candidata][N_FRAME]);
+						es_pagina_buscada=0;
+					}
+
+					// Inicio del caso de uso
+					int pos_definitiva;
+					if(es_pagina_buscada) {
+						pos_definitiva = pos_candidata;
+					}
+					else {
+						pos_definitiva = buscarEnOverflow(pos_candidata,PID,pagina);
+					}
+					if(tablaEPI.matriz[pos_candidata][N_PID]!=PID && tablaEPI.matriz[pos_candidata][N_PAGINA]!=pagina)
+					{
+						pos_definitiva=0;
+					}
+					for (i = pos_definitiva;i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++)
+						{
+							if (PID == tablaEPI.matriz[i][N_PID] && pagina == tablaEPI.matriz[i][N_PAGINA])
+							{
+								aux = malloc(size);
+								memcpy(aux,
+										bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
+												+ offset, size);
+								encontrePagina = 1;
+								actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
+							}
+						}
+
+	}*/
+
+
 	//Busco en memoria y lo traigo a cache
 	for (i = cantMarcosOcupaMemoriaAdm;
 			i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
@@ -338,7 +385,6 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 			actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
 		}
 	}
-
 	return aux;
 }
 void actualizoCache(int PID, int pagina, int nFrame) {
@@ -619,13 +665,18 @@ void inicializoServidor() {
 
 void hiloConexion(uint32_t * newfd) {
 	uint32_t command;
+
 		while(1){
+
+
 			command=deserializar_int(newfd);
+
+
 			if(command==KERNEL && kernelConectado)
 			{
 				while(deserializar_int(newfd))
 				command=-1;
-				printf("ERROR: No se puede conectar mas de un kernel\n");
+				printf("ERROR: No se puede conectar mas de un kernel");
 				pthread_exit(NULL);
 
 			}
@@ -636,11 +687,14 @@ void hiloConexion(uint32_t * newfd) {
 
 			}
 
+
 			if ( command>0 && command!=KERNEL && command!=BLOQUEADO)//command!=BLOQUEADO &&
 			{
+
 			connection_handler(newfd, command);
 
 			}
+
 			if(command<=0)
 			{
 			conexionesActivas--;
@@ -648,7 +702,10 @@ void hiloConexion(uint32_t * newfd) {
 			}
 
 
+			//sem_wait(&SEM_hiloServidor);
+
 		}
+
 }
 
 
@@ -680,12 +737,13 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 	switch (command) {
 
-	case 1:{
+	case 100:{
 		printf("Conectado con KERNEL \n");
 
 		break;
 	}
 	case 3:{
+
 			int hayMemoria=0;
 			int memoriaRequerida=0;
 			int cantPaginas;
@@ -698,20 +756,29 @@ void connection_handler(uint32_t socket, uint32_t command) {
 			if (cantPaginas<=framesDisponibles())
 			{
 				hayMemoria=1;
+				 //printf("Me pidieron memoria, y hay.");
 			}
 			serializar_int(socket,hayMemoria);
 			break;
+
 		}
 	case 4:{
-				char * cadena=NULL;
+		        //printf("Voy a reservar ese espacio\n");
+		        t_SerialString* cadena = malloc(sizeof(t_SerialString));
 				int largoCadena;
 				int cantPaginas;
 				int i;
-				int PID=deserializar_int(socket);
 
+				int PID=deserializar_int(socket);
+				//printf("El pid que voy a asignar es: %d\n",PID);
 				deserializar_string(socket,cadena);
 
-				largoCadena=strlen(cadena);
+
+				largoCadena=cadena->sizeString;
+
+				//printf("El largo de la cadena es: %d\n",largoCadena);
+
+
 
 				if(largoCadena>0)
 				{
@@ -720,12 +787,16 @@ void connection_handler(uint32_t socket, uint32_t command) {
 					else
 						cantPaginas=(largoCadena/MARCO_SIZE);
 
-					asignarPaginasAProceso(PID,cantPaginas);
+					inicializarPrograma(PID,cantPaginas);
+
 
 					for (i=0;i<cantPaginas;i++)
-						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena+i*MARCO_SIZE);
+						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena->dataString+i*MARCO_SIZE);
 				}
-
+				free(cadena);
+				serializar_int(socket,cantPaginas);
+				//solicitarBytesPagina(PID,0,0,largoCadena);
+				//printf("La cadena es: %s\n",cadena->dataString);
 				break;
 
 			}
@@ -753,26 +824,17 @@ void connection_handler(uint32_t socket, uint32_t command) {
 
 		break;
 	}
-	/**case 10: { //KERNEL me pregunta si hay memoria
-		int cantidadDePaginas = convretirBitsAPAginas();
-		int hayMemoria = hayMemoria(cantidadDePaginas);
-		serializar_int(socket, hayMemoria);
-	}
-	case 15: { //KERNEL me pregunta si hay memoria
-		uint32_t PID;
-		deserializar_int(socket,PID);
-		char * datos;
-		deserializar_string(socket,&datos);
-		asignarPaginasAProceso(PID,sizeof(datos)/MARCO_SIZE);
-		serializar_int(socket, hayMemoria);
-	}*/
+
 
 	default:{
-		 printf("Ningun Comando\n");
+		pthread_exit(NULL);
+		 //printf("Ningun Comando\n");
+		// sem_wait(&SEM_hiloServidor);
 		break;
 	}
 
 	}
+
 	return;
 }
 
