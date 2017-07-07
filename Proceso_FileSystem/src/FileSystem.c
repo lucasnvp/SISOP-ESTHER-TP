@@ -131,7 +131,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 		break;
 	}
 	default:
-		printf("Error al recibir el comando");
+		printf("Error al recibir el comando\n");
 	}
 
 	return;
@@ -163,7 +163,7 @@ void CrearArchivo(char* path){
 
 			bitarray_set_bit(bitarray, bloque_to_add);
 		} else{
-			//No hay bloques
+			printf("No hay bloques disponibles\n");
 		}
 		fclose(newFD);
 	}
