@@ -118,7 +118,14 @@ void connection_handler(uint32_t socket, uint32_t command){
 		break;
 	}
 	case 6: {
-		//guardar datos .
+		//guardar datos
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		uint32_t offset = deserializar_int(socket);
+		uint32_t size = deserializar_int(socket);
+		char* buffer = string_new();
+		GuardarDatos(path->dataString , offset, size, buffer);
+		free(path);
 		break;
 	}
 	default:
