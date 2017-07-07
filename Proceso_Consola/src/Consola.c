@@ -48,7 +48,8 @@ void consola_comandos() {
 				pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
 				pthread_create(hiloConsola, NULL, (void*) crearHiloConsola, (void*) consola);
 			}
-		} else if (!strcmp(consola->comando, "close"))
+		}
+		else if (!strcmp(consola->comando, "close")) {
 			if (consola->argumento == NULL)
 				printf("Falta el argumento de la funcion %s\n\n> ", consola->comando);
 			else {
@@ -56,13 +57,19 @@ void consola_comandos() {
 				if (Arg_PID > 0) {
 					//Ejecuto el comando close en el servidor
 					serializar_int(consola->kernel, 2);
-					//TODO: Serializar el PID del proceso que se quiere terminar
+					serializar_int(consola->kernel, Arg_PID);
+					uint32_t PID_Rta_Kernel = deserializar_int(consola->kernel);
+					if (PID_Rta_Kernel == 0)
+						printf("No existe proceso con PID %i en el sistema\n\n> ", Arg_PID);
 				}
 				else
 					printf("Error de argumento o tipo desconocido en %s\n\n> ", consola->comando);
 			}
-		else if (!strcmp(consola->comando, "exit"))
+		}
+		else if (!strcmp(consola->comando, "exit")) {
+			serializar_int(consola->kernel, 3);
 			exit(0);
+		}
 		else if (!strcmp(consola->comando, "clean")) {
 			system("clear");
 			printf("> ");

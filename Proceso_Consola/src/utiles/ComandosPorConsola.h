@@ -237,7 +237,7 @@ void crearHiloConsola(t_Consola* consola) {
 		time_t tiempoInicio = time(0);
 		time_t tiempoFin;
 
-		while(salidaBuclePpal) {
+		while(!salidaBuclePpal) {
 			//Recibo datos
 			PID_Actual = deserializar_int(param->kernel);
 
@@ -250,7 +250,7 @@ void crearHiloConsola(t_Consola* consola) {
 						pthread_mutex_lock(&sem_consola);
 						//TODO: Logica de impresion
 						pthread_mutex_unlock(&sem_consola);
-						contadorLineas += 1;
+						contadorLineas++;
 					}
 					else if (Codigo_ID == 2) {
 						//Finalizar programa
