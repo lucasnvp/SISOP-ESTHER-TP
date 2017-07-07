@@ -1,5 +1,4 @@
 
-#include "/home/utnso/Blacklist/so-funcion-hash/src/funciones.c"
 
 #include "Memoria.h"
 
@@ -14,7 +13,7 @@ int main(void) {
 
 	inicializarMemoria();
 
-	/*inicializarPrograma(1,2);
+	inicializarPrograma(1,1);
 	 inicializarPrograma(2,1);
 	 inicializarPrograma(3,4);
 	 almacenarBytesPagina(1,0,0,5,"hola");
@@ -24,13 +23,10 @@ int main(void) {
 	 almacenarBytesPagina(3,1,0,5,"2");
 	 almacenarBytesPagina(3,2,0,5,"3");
 	 almacenarBytesPagina(3,3,0,5,"4");
-	 solicitarBytesPagina(1,0,0,5);
-	 solicitarBytesPagina(2,0,0,5);*/
-	 /*impirmirEPIaccediendoAMemoria(0,40);
-	 printf("\n");
+	 /*printf("\n");
 	 imprimirCache();*/
 	lanzoHiloConsolaComandos();
-	sem_init(&SEM_hiloServidor,0,0);	//Iniciazilo el semaforo de la cola de PCB
+	sem_init(&SEM_hiloServidor,0,0);
 	inicializoServidor();
 	return EXIT_SUCCESS;
 
@@ -39,8 +35,7 @@ int main(void) {
 
 
 void inicializarMemoria() {
-	CANTIDAD_DE_MARCOS = MARCOS;
-	inicializarOverflow(CANTIDAD_DE_MARCOS);
+
 	inicializarTablaEPI();
 	inicializarCache();
 	bloque_Memoria = malloc(MARCOS * MARCO_SIZE);
@@ -249,22 +244,21 @@ int almacenarBytesPagina(int PID, int pagina, int offset, int size,
 	int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE
 			- 1) / MARCO_SIZE;
 	int encontrePagina = 0;
-	int i;
+	int frame;
 
-	for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas && !encontrePagina;
-			i++) {
-		if (PID == tablaEPI.matriz[i][N_PID]
-				&& pagina == tablaEPI.matriz[i][N_PAGINA]) {
-			memcpy(
-					bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
-							+ offset, buffer, size);
-			encontrePagina = 1;
-			if (estaLaPaginaEnCache(PID, pagina)) {
-				actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
-			}
+		frame = obtenerFrame(PID,pagina);
+
+
+
+		memcpy(bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE + offset, buffer, size);
+		encontrePagina = 1;
+		if (estaLaPaginaEnCache(PID, pagina))
+		{
+			actualizoCache(PID, pagina, tablaEPI.matriz[frame][N_FRAME]);
 		}
 
-	}
+
+
 	return encontrePagina;
 }
 void* solicitarBytesPagina(int PID, int pagina, int offset, int size) {
@@ -318,10 +312,11 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 	int encontrePagina = 0;
 	incrementarEnUnoTiempoEnCache();
 
+
 	for (i = 0; i < ENTRADAS_CACHE && !encontreEnCache; i++) //Busco en cache primero
-			{
-		if (adminCache[i].memoriaCache.nPagina == pagina
-				&& adminCache[i].memoriaCache.PID == PID) {
+	{
+		if (adminCache[i].memoriaCache.nPagina == pagina && adminCache[i].memoriaCache.PID == PID)
+		{
 			aux = malloc(size);
 			memcpy(aux, &adminCache[i].memoriaCache.contenido[offset], size);
 			encontreEnCache = 1;
@@ -330,50 +325,18 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 
 
 
-
-	/* if( !encontreEnCache && !encontrePagina)
+	if(!encontreEnCache)
 	{
-					//Uso funcio de hash
-					int es_pagina_buscada = 1;
+		int frame = obtenerFrame(PID,pagina);
+		aux = malloc(size);
+		memcpy(aux,bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE+ offset, size);
+		encontrePagina = 1;
+		actualizoCache(PID, pagina, tablaEPI.matriz[frame][N_FRAME]);
+	}
+	/*printf("el frame traido por la funcion es:%d\n",frame);*/
 
-					int pos_candidata = calcularPosicion(PID,pagina);
-
-					if(tablaEPI.matriz[pos_candidata][N_PID]!=PID && tablaEPI.matriz[pos_candidata][N_PAGINA]!=pagina)
-					{
-						agregarSiguienteEnOverflow(pos_candidata, tablaEPI.matriz[pos_candidata][N_FRAME]);
-						es_pagina_buscada=0;
-					}
-
-					// Inicio del caso de uso
-					int pos_definitiva;
-					if(es_pagina_buscada) {
-						pos_definitiva = pos_candidata;
-					}
-					else {
-						pos_definitiva = buscarEnOverflow(pos_candidata,PID,pagina);
-					}
-					if(tablaEPI.matriz[pos_candidata][N_PID]!=PID && tablaEPI.matriz[pos_candidata][N_PAGINA]!=pagina)
-					{
-						pos_definitiva=0;
-					}
-					for (i = pos_definitiva;i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++)
-						{
-							if (PID == tablaEPI.matriz[i][N_PID] && pagina == tablaEPI.matriz[i][N_PAGINA])
-							{
-								aux = malloc(size);
-								memcpy(aux,
-										bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
-												+ offset, size);
-								encontrePagina = 1;
-								actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
-							}
-						}
-
-	}*/
-
-
-	//Busco en memoria y lo traigo a cache
-	for (i = cantMarcosOcupaMemoriaAdm;
+	//Busco en memoria y lo traigo a cache VIEJO
+	/*for (i = cantMarcosOcupaMemoriaAdm;
 			i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
 		if (PID == tablaEPI.matriz[i][N_PID]
 				&& pagina == tablaEPI.matriz[i][N_PAGINA]) {
@@ -384,7 +347,8 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 			encontrePagina = 1;
 			actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
 		}
-	}
+	}*/
+
 	return aux;
 }
 void actualizoCache(int PID, int pagina, int nFrame) {
@@ -595,22 +559,19 @@ bool consola() {
 				int i;
 				int paginas=0;
 				char * contenido;
-				for (i = 0; i < tablaEPI.filas; i++)
-				{
-					if (tablaEPI.matriz[i][N_PID]!=0)
-					{
-						contenido= solicitarBytesPagina(tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
-						if (contenido==NULL)
-						{
-							printf("En el frame %d, pagina %d y PID %d el contenido es: PROCESO DE SO \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID]);
-						}
-						else
-						{
-							printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID],contenido);
-						}
-						}
+				int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE- 1) / MARCO_SIZE;
 
+				for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++)
+				{
+
+						printf("En el frame %d, pagina %d y PID %d el contenido es: MEMORIA ADMINISTRATIVA \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID]);
 				}
+				for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas; i++)
+				{
+				contenido= solicitarBytesPagina(tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
+				printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID],contenido);
+				}
+
 			}
 		}
 
@@ -631,37 +592,6 @@ void limpiarBufferDeEntrada() {
 	}
 }
 
-/**
-void crearHilo(uint32_t * newfd) {
-	uint32_t command;
-	uint32_t cantidad=deserializar_int(newfd);//Cantidad De Veces que voy a leer.
-	int i;
-	//for(i=0;i<cantidad;i++){
-			command=deserializar_int(newfd);
-			connection_handler(newfd, command);
-		//}
-}
-void inicializoServidor() {
-	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
-	//El socket esta listo para escuchar
-	if (servidor > 0) {
-		printf("Servidor Memoria Escuchando\n");
-	}
-	while (1) {
-	uint32_t newfd = accept_conexion(servidor);
-	if (existeNodo(&listaConexiones,newfd))
-			{
-		newfd = accept_conexion(servidor);
-				pthread_join(listaConexiones->hilo,0);
-			}
-	else{
-	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
-			pthread_create(hilo, NULL, (void*) crearHilo, (void*) &newfd);
-			Insertar(&listaConexiones,hilo,newfd,0);
-			//free(hilo);
-	 }
-	}
-}*/
 
 void hiloConexion(uint32_t * newfd) {
 	uint32_t command;
@@ -849,4 +779,32 @@ int convertirCharAInt(char * numero, int tamChar) {
 		multiplicadorBase *= 10;
 	}
 	return numeroInt;
+}
+
+
+int hash(int x, int y){
+
+x--;
+
+
+
+int r = ((x + y) * (x + y + 1)) / 4;
+
+while(r>MARCOS)
+
+r -= MARCOS;
+
+return r;
+
+}
+
+int obtenerFrame(int PID, int pag){
+
+	int frame = hash(PID, pag);
+
+while(tablaEPI.matriz[frame][N_PID] != PID || tablaEPI.matriz[frame][N_PAGINA] != pag)
+	frame++;
+
+return frame;
+
 }
