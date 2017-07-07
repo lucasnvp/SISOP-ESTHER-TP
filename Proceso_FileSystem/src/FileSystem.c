@@ -90,19 +90,30 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//validar archivo
 		t_SerialString* path = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, path);
+		 ValidarArchivo(path);
 		free(path);
 		break;
 	}
 	case 3: {
-		//crear archivo
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		CrearArchivo(path);
+		free(path);
 		break;
 	}
 	case 4:{
-		//borrar archivo
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		Borrar(path);
+		free(path);
 		break;
 	}
 	case 5: {
-		//obtener datos
+		t_SerialString* path = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, path);
+		uint32_t offset = deserializar_int(socket);
+		uint32_t size = deserializar_int(socket);
+		ObtenerDatos(path, offset, size);
 		break;
 	}
 	case 6: {
