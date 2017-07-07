@@ -121,10 +121,12 @@ void connection_handler(uint32_t socket, uint32_t command){
 		//guardar datos
 		t_SerialString* path = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, path);
+		t_SerialString* buffer = malloc(sizeof(t_SerialString));
+		deserializar_string(socket, buffer);
 		uint32_t offset = deserializar_int(socket);
 		uint32_t size = deserializar_int(socket);
-		char* buffer = string_new();
-		GuardarDatos(path->dataString , offset, size, buffer);
+		GuardarDatos(path->dataString , offset, size, buffer->dataString);
+		free(buffer);
 		free(path);
 		break;
 	}
@@ -168,7 +170,7 @@ void CrearArchivo(char* path){
 }
 
 int32_t bloque_libre(t_bitarray* auxBitArray){
-	bool testBit;
+	//bool testBit;
 	for(i = 0; i <= bitarray_get_max_bit(auxBitArray); i++){
 		if(bitarray_test_bit(auxBitArray, i) == false){
 			return i;
