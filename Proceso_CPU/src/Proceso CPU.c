@@ -14,7 +14,6 @@ AnSISOP_kernel kernel_functions = {
 static const char* PROGRAMA = "begin\n"
 		"variables a, b\n";
 
-
 int main(void) {
 
 	programa = strdup(PROGRAMA); //copia el programa entero en esa variable, lo hace el Kernel, despues sacarlo
@@ -71,16 +70,18 @@ void ejecutar() {
 
 		t_metadata_program * ctp = pcbActivo->CodeTagsPointer;
 
-		//instancio para utilizar
+		//Instancio para utilizar
 		t_puntero_instruccion start = ctp->instrucciones_serializado[pc].start;
-		//instancio para utilizar
+
+		//Instancio para utilizar
 		t_size offset = ctp->instrucciones_serializado[pc].offset; //que me devuelva la siguiente linea la memoria
 
-		//solicito a memoria la instruccion.
-		char* const instruccion = solicitarInstruccionAMemoria(PROGRAMA, start,
-				offset); //falta la pagina en donde esta la instruccion.
+		//Solicito a memoria la instruccion.
+		char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,4,
+				start, offset); //falta la pagina en donde esta la instruccion.
 
-		analizadorLinea(instruccion, &functions, &kernel_functions); //ejecuta las primitivas
+		//Ejecuta las primitivas
+		analizadorLinea(instruccion, &functions, &kernel_functions);
 
 		free(instruccion);
 
@@ -89,15 +90,29 @@ void ejecutar() {
 	}
 }
 
-char* const solicitarInstruccionAMemoria(char* prgrama,
-		t_puntero_instruccion offset, t_size size) {
+char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina, t_puntero_instruccion offset,t_size size) {
+
+	//Creo la estructura para enviar el pedido a memoria
+	t_pedido_memoria *pedido = malloc(sizeof(t_pedido_memoria));
+	pedido->id = pid;
+	pedido->pagina = pagina;
+	pedido->offset = offset;
+	pedido->size = size;
 
 	//Serializo la estructura para enviar a Memoria
+	printf("Pidiendo Instruccion a Memoria\n");
 
-	//Quedo a la espera de deserializar la instruccion de Memoria.
-	char *aRetornar = calloc(1, 100);
-	memcpy(aRetornar, prgrama + offset, size);
-	return aRetornar;
+	//Le envio a memoria que necesito una instruccion.
+	serializar_int(memoria, SOLICITUD_INSTRUCCION_MEMORIA);
+
+	//Serializo la estructura para enviar a Memoria
+	serializar_pedido_memoria(memoria,pedido);
+
+	//Quedo a al espera de que memoria me envie la instruccion
+	t_SerialString* linea = malloc(sizeof(t_SerialString));
+	deserializar_string(memoria,linea->dataString);
+
+	return linea;
 
 }
 
