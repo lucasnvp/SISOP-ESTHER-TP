@@ -56,7 +56,7 @@ void consola_comandos() {
 				uint32_t Arg_PID = atoi(consola->argumento);
 				if (Arg_PID > 0) {
 					//Ejecuto el comando close en el servidor
-					serializar_int(consola->kernel, 2);
+					serializar_int(consola->kernel, 5);
 					serializar_int(consola->kernel, Arg_PID);
 					uint32_t PID_Rta_Kernel = deserializar_int(consola->kernel);
 					if (PID_Rta_Kernel == 0)
@@ -67,7 +67,7 @@ void consola_comandos() {
 			}
 		}
 		else if (!strcmp(consola->comando, "exit")) {
-			serializar_int(consola->kernel, 3);
+			serializar_int(consola->kernel, 6);
 			exit(0);
 		}
 		else if (!strcmp(consola->comando, "clean")) {

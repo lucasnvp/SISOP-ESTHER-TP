@@ -40,8 +40,7 @@ void imprimirError(uint32_t codigoError) {
 
 	switch (codigoError) {
 	case -1:
-		printf(
-				"No se pudieron reservar recursos para ejecutar el programa.\n\n> ");
+		printf("No se pudieron reservar recursos para ejecutar el programa.\n\n> ");
 		break;
 	case -2:
 		printf("El programa intento acceder a un archivo que no existe.\n\n> ");
@@ -59,15 +58,16 @@ void imprimirError(uint32_t codigoError) {
 		printf("Finalizado a traves de desconexion de consola.\n\n> ");
 		break;
 	case -7:
-		printf(
-				"Finalizado a traves del comando Finalizar Programa de la consola.\n\n> ");
+		printf("Finalizado a traves del comando Finalizar Programa de la consola.\n\n> ");
 		break;
 	case -8:
-		printf(
-				"Se intento reservar mas memoria que el tamaño de una pagina\n\n> ");
+		printf("Se intento reservar mas memoria que el tamaño de una pagina\n\n> ");
 		break;
 	case -9:
 		printf("No se pueden asignar mas paginas al proceso\n\n> ");
+		break;
+	case -10:
+		printf("Finalizado a traves del comando Finalizar Programa del kernel.\n\n> ");
 		break;
 	case -20:
 		printf("Error sin definicion\n\n> ");
@@ -242,7 +242,7 @@ void crearHiloConsola(t_Consola* consola) {
 			PID_Actual = deserializar_int(param->kernel);
 
 			if (PID_Actual == PID_PCB) {
-				Codigo_ID = 2; //deserializar_int(param->kernel);
+				Codigo_ID = deserializar_int(param->kernel);
 
 				if (Codigo_ID > 0) {
 					if (Codigo_ID == 1) {
