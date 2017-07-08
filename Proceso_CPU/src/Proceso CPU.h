@@ -22,15 +22,17 @@ char* PATH_LOG = "/home/utnso/Blacklist/Logs/logCPU.txt";
 t_log* log_Console;  //MUESTRA POR PANTALLA
 t_log* log_CPU; //REGISTRA
 
-//SOCKETS DE CONEXION
-uint32_t kernel;
-uint32_t memoria;
-
 //PCB QUE VA A ESTAR CARGADO AL MOMENTO DE EJECUTAR
 PCB_t *pcbActivo;
 
+char *programa;
+
 //TAMANIO DE PAGINA
 uint32_t tamanio_pagina;
+
+//SOCKETS DE CONEXION
+uint32_t kernel;
+uint32_t memoria;
 
 //TIPOS DE MENSAJES
 #define IMPRIMIR_TEXTO 1;
@@ -47,5 +49,6 @@ void connect_server_memoria();
 char* const solicitarInstruccionAMemoria();
 void connection_handler(uint32_t socket, uint32_t command);
 void init_log(char* pathLog);
+t_puntero ansi_definirVariable(t_nombre_variable identificador_variable);
 
 #endif /* PROCESO_CPU_H_ */

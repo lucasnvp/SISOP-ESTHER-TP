@@ -2,6 +2,8 @@
 #define SRC_PRIMITIVAS_ANSISOP_PRIMITIVAS_H_
 
 #include <parser/parser.h>
+#include "../pcb/pcb.h"
+//#include "../Proceso CPU.h"
 
 t_puntero definirVariable(t_nombre_variable variable);
 t_puntero obtenerPosicionVariable(t_nombre_variable variable);

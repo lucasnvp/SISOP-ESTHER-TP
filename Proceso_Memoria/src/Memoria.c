@@ -38,7 +38,7 @@ int main(void) {
 
 	 imprimirCache();*/
 
-	fd_set master;   	// conjunto maestro de descriptores de fichero
+	/*fd_set master;   	// conjunto maestro de descriptores de fichero
 	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
 	uint32_t fdmax;			// número máximo de descriptores de fichero
 	int i;				// variable para el for
@@ -61,17 +61,17 @@ int main(void) {
 		for (i = 0; i <= fdmax; i++) {
 			if (FD_ISSET(i, &read_fds)) { // ¡¡tenemos datos!!
 				if (i == servidor) {
-					// acepto una nueva conexion
+					// acepto una nueva conexion*/
 					uint32_t newfd = accept_conexion(servidor);
-					FD_SET(newfd, &master); // añadir al conjunto maestro
+					/*FD_SET(newfd, &master); // añadir al conjunto maestro
 					if (newfd > fdmax) {    // actualizar el máximo
 						fdmax = newfd;
-					}
+					}*/
 					pthread_t* hiloConsola = (pthread_t *) malloc(
 							sizeof(pthread_t));
 					pthread_create(hiloConsola, NULL, (void*) crearHilo,
 							(void*) &newfd);
-				} else {
+				/*} else {
 					//Recibo el comando
 					uint32_t command = deserializar_int(i);
 
@@ -85,7 +85,7 @@ int main(void) {
 				}
 			}
 		}
-	}
+	}*/
 	return EXIT_SUCCESS;
 
 }

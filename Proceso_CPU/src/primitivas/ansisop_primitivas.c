@@ -5,11 +5,6 @@ static const int POSICION_MEMORIA = 0x10;
 
 bool termino = false;
 
-t_puntero definirVariable(t_nombre_variable variable) {
-	printf("definir la variable %c\n", variable);
-	return POSICION_MEMORIA;
-}
-
 t_valor_variable desreferenciar(t_puntero puntero) {
 	printf("Dereferenciar %d y su valor es: %d\n", puntero, CONTENIDO_VARIABLE);
 	return CONTENIDO_VARIABLE;

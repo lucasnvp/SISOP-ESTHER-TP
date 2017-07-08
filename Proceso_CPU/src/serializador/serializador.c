@@ -60,12 +60,8 @@ void serializar_pcb(int client, PCB_t* PCB){
 	memcpy(ENVIAR + offset, &(PCB->PageCode),size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(PCB->CodePointer);
-	memcpy(ENVIAR + offset, &(PCB->CodePointer),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(PCB->TagsPointer);
-	memcpy(ENVIAR + offset, &(PCB->TagsPointer),size_to_send);
+	size_to_send = sizeof(PCB->CodeTagsPointer);
+	memcpy(ENVIAR + offset, &(PCB->CodeTagsPointer),size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->StackPointer);
@@ -100,12 +96,8 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 	memcpy(&PCB->PageCode, buffer + offset, sizeof(PCB->PageCode));
 	offset += size_to_recive;
 
-	size_to_recive = sizeof(PCB->CodePointer);
-	memcpy(&PCB->CodePointer, buffer + offset, sizeof(PCB->CodePointer));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(PCB->TagsPointer);
-	memcpy(&PCB->TagsPointer, buffer + offset, sizeof(PCB->TagsPointer));
+	size_to_recive = sizeof(PCB->CodeTagsPointer);
+	memcpy(&PCB->CodeTagsPointer, buffer + offset, sizeof(PCB->CodeTagsPointer));
 	offset += size_to_recive;
 
 	size_to_recive = sizeof(PCB->StackPointer);
