@@ -14,7 +14,7 @@ uint32_t deserializar_int(uint32_t socket){
 }
 
 void serializar_string(int client, t_SerialString* PATH){
-	void* ENVIAR = malloc( sizeof(t_SerialString) + PATH->sizeString);
+	void* ENVIAR = malloc(PATH->sizeString);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
@@ -39,18 +39,12 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 	memcpy(&PATH->sizeString, buffer, buffer_size);
 	PATH->dataString = (char*) malloc(sizeof(char) * PATH->sizeString);
 	recive_data(servidor, PATH->dataString, PATH->sizeString);
-	PATH->dataString[PATH->sizeString] = '\0';
 	//---------------------
 
-	free(buffer);
 }
 
 void serializar_pcb(int client, PCB_t* PCB){
-	uint32_t datos_size = 	sizeof(PCB_t) +
-							sizeof(t_metadata_program) +
-							sizeof(t_intructions) * PCB->CodePointer->instrucciones_size +
-							PCB->CodePointer->etiquetas_size;
-	void* ENVIAR = malloc(datos_size);
+	void* ENVIAR = malloc(sizeof(PCB_t));
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
@@ -66,46 +60,8 @@ void serializar_pcb(int client, PCB_t* PCB){
 	memcpy(ENVIAR + offset, &(PCB->PageCode),size_to_send);
 	offset += size_to_send;
 
-	//Metadata Program
-		//Instruccion de inicio
-		size_to_send = sizeof(PCB->CodePointer->instruccion_inicio);
-		memcpy(ENVIAR + offset, &(PCB->CodePointer->instruccion_inicio), size_to_send);
-		offset += size_to_send;
-		//Instrucciones size
-		size_to_send = sizeof(PCB->CodePointer->instrucciones_size);
-		memcpy(ENVIAR + offset, &(PCB->CodePointer->instrucciones_size), size_to_send);
-		offset += size_to_send;
-		//Puntero de instrucciones
-			uint32_t i;
-			for(i = 0; PCB->CodePointer->instrucciones_size > i; i++){
-				size_to_send = sizeof(t_puntero_instruccion);
-				memcpy(ENVIAR + offset, &(PCB->CodePointer->instrucciones_serializado[i].start), size_to_send);
-				offset += size_to_send;
-
-				size_to_send = sizeof(t_size);
-				memcpy(ENVIAR + offset, &(PCB->CodePointer->instrucciones_serializado[i].offset), size_to_send);
-				offset += size_to_send;
-			}
-		//Etiquetas size
-		size_to_send = sizeof(PCB->CodePointer->etiquetas_size);
-		memcpy(ENVIAR + offset, &(PCB->CodePointer->etiquetas_size), size_to_send);
-		offset += size_to_send;
-		//Etiquetas
-		size_to_send = PCB->CodePointer->etiquetas_size;
-		memcpy(ENVIAR + offset, PCB->CodePointer->etiquetas, size_to_send);
-		offset += size_to_send;
-		//Cantidad de funciones
-		size_to_send = sizeof(PCB->CodePointer->cantidad_de_funciones);
-		memcpy(ENVIAR + offset, &(PCB->CodePointer->cantidad_de_funciones), size_to_send);
-		offset += size_to_send;
-		//Cantidad de etiquetas
-		size_to_send = sizeof(PCB->CodePointer->cantidad_de_etiquetas);
-		memcpy(ENVIAR + offset, &(PCB->CodePointer->cantidad_de_etiquetas), size_to_send);
-		offset += size_to_send;
-
-	//TagsPointer
-	size_to_send = sizeof(PCB->TagsPointer);
-	memcpy(ENVIAR + offset, &(PCB->TagsPointer),size_to_send);
+	size_to_send = sizeof(PCB->CodeTagsPointer);
+	memcpy(ENVIAR + offset, &(PCB->CodeTagsPointer),size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->StackPointer);
@@ -116,19 +72,17 @@ void serializar_pcb(int client, PCB_t* PCB){
 	memcpy(ENVIAR + offset, &(PCB->ExitCode),size_to_send);
 	offset += size_to_send;
 
-	serializar_int(client,offset);
 	send_data(client, ENVIAR, offset);
 	free(ENVIAR);
 }
 
 void deserializar_pcb(int servidor, PCB_t* PCB){
-	PCB->CodePointer = malloc(sizeof(t_metadata_program));
-	uint32_t buffer_size = deserializar_int(servidor);
-	void* buffer = malloc(buffer_size);
+	uint32_t buffer_size;
+	void* buffer = malloc(buffer_size = sizeof(PCB_t));
 	uint32_t offset = 0;
 	uint32_t size_to_recive;
 
-	recive_data(servidor, buffer, buffer_size);
+	recive_data(servidor, buffer, sizeof(PCB_t));
 
 	size_to_recive = sizeof(PCB->PID);
 	memcpy(&PCB->PID, buffer + offset, sizeof(PCB->PID));
@@ -142,55 +96,8 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 	memcpy(&PCB->PageCode, buffer + offset, sizeof(PCB->PageCode));
 	offset += size_to_recive;
 
-	//Metadata program
-		//Instruccion de inicio
-		size_to_recive = sizeof(PCB->CodePointer->instruccion_inicio);
-		memcpy(&PCB->CodePointer->instruccion_inicio, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-		//Instrucciones size
-		size_to_recive = sizeof(PCB->CodePointer->instrucciones_size);
-		memcpy(&PCB->CodePointer->instrucciones_size, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-		//Puntero de instrucciones
-			uint32_t i;
-			PCB->CodePointer->instrucciones_serializado = malloc(sizeof(t_intructions) * PCB->CodePointer->instrucciones_size);
-			for(i = 0; PCB->CodePointer->instrucciones_size > i; i++){
-				size_to_recive = sizeof(t_puntero_instruccion);
-				memcpy(&PCB->CodePointer->instrucciones_serializado[i].start, buffer + offset, size_to_recive);
-				offset += size_to_recive;
-
-				size_to_recive = sizeof(t_size);
-				memcpy(&PCB->CodePointer->instrucciones_serializado[i].offset, buffer + offset, size_to_recive);
-				offset += size_to_recive;
-			}
-
-		//Etiquetas size
-		size_to_recive = sizeof(PCB->CodePointer->etiquetas_size);
-		memcpy(&PCB->CodePointer->etiquetas_size, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-		//Etiquetas
-		size_to_recive = PCB->CodePointer->etiquetas_size;
-		PCB->CodePointer->etiquetas = (char*) malloc(sizeof(char) * PCB->CodePointer->etiquetas_size);
-		PCB->CodePointer->etiquetas = '\0';
-		memcpy(&PCB->CodePointer->etiquetas, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-		//Cantidad de funciones
-		size_to_recive = sizeof(PCB->CodePointer->cantidad_de_funciones);
-		memcpy(&PCB->CodePointer->cantidad_de_funciones, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-		//Cantidad de etiquetas
-		size_to_recive = sizeof(PCB->CodePointer->cantidad_de_etiquetas);
-		memcpy(&PCB->CodePointer->cantidad_de_etiquetas, buffer + offset, size_to_recive);
-		offset += size_to_recive;
-
-	//TagsPointer
-	size_to_recive = sizeof(PCB->TagsPointer);
-	memcpy(&PCB->TagsPointer, buffer + offset, sizeof(PCB->TagsPointer));
+	size_to_recive = sizeof(PCB->CodeTagsPointer);
+	memcpy(&PCB->CodeTagsPointer, buffer + offset, sizeof(PCB->CodeTagsPointer));
 	offset += size_to_recive;
 
 	size_to_recive = sizeof(PCB->StackPointer);
