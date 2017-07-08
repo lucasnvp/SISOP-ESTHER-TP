@@ -16,7 +16,7 @@ pthread_mutex_t sem_consola;
 void limpiarBufferDeEntrada();
 char* substr(char* cadena, uint32_t comienzo, uint32_t longitud);
 void imprimirError(uint32_t codigoError);
-void imprimirEstadisticas(time_t inicio, time_t fin, uint32_t cantLineas);
+void imprimirEstadisticas(uint32_t PID, time_t inicio, time_t fin, uint32_t cantLineas);
 char* calcularDiferencia(time_t inicio, time_t fin);
 t_Consola* leerComandos();
 void crearHiloConsola(t_Consola* consola);
@@ -78,12 +78,12 @@ void imprimirError(uint32_t codigoError) {
 	pthread_mutex_unlock(&sem_consola);
 }
 
-void imprimirEstadisticas(time_t inicio, time_t fin, uint32_t cantLineas) {
+void imprimirEstadisticas(uint32_t PID, time_t inicio, time_t fin, uint32_t cantLineas) {
 	char* diferencia = (char *) malloc(sizeof(char) * 128);
 	diferencia = calcularDiferencia(inicio, fin);
 
 	pthread_mutex_lock(&sem_consola);
-	printf("\n*********************** ESTADISTICAS ***********************\n");
+	printf("\n*********************** ESTADISTICAS %i ***********************\n", PID);
 
 	struct tm *tlocali = localtime(&inicio);
 	char* strInicio = (char *) malloc(sizeof(char) * 128);
@@ -99,7 +99,7 @@ void imprimirEstadisticas(time_t inicio, time_t fin, uint32_t cantLineas) {
 
 	printf("Cantidad de impresiones por pantalla: %i\n", cantLineas);
 	printf("Tiempo total de ejecucion: %s\n", diferencia);
-	printf("************************************************************\n\n> ");
+	printf("*****************************************************************\n\n> ");
 
 	fflush(stdout);
 	pthread_mutex_unlock(&sem_consola);
@@ -228,7 +228,7 @@ void crearHiloConsola(t_Consola* consola) {
 	if (PID_PCB > 0) {
 		//Muestro los datos
 		pthread_mutex_lock(&sem_consola);
-		printf("El PID del programa es: %d \n\n> ", PID_PCB);
+		printf("El PID del programa es: %d\n\n> ", PID_PCB);
 		fflush(stdout);
 		pthread_mutex_unlock(&sem_consola);
 
@@ -242,20 +242,25 @@ void crearHiloConsola(t_Consola* consola) {
 			PID_Actual = deserializar_int(param->kernel);
 
 			if (PID_Actual == PID_PCB) {
-				Codigo_ID = deserializar_int(param->kernel);
+				Codigo_ID = 2; //deserializar_int(param->kernel);
 
 				if (Codigo_ID > 0) {
 					if (Codigo_ID == 1) {
 						//Imprimir texto en pantalla
+						t_SerialString* lineaDatos = (t_SerialString *) malloc(sizeof(t_SerialString));
+						deserializar_string(param->kernel, lineaDatos);
 						pthread_mutex_lock(&sem_consola);
-						//TODO: Logica de impresion
+						printf("\n***** PID %i (%s) *****\n", PID_Actual, param->argumento);
+						printf("%s\n\n> ", lineaDatos->dataString);
+						fflush(stdout);
 						pthread_mutex_unlock(&sem_consola);
 						contadorLineas++;
+						free(lineaDatos);
 					}
 					else if (Codigo_ID == 2) {
 						//Finalizar programa
 						tiempoFin = time(0);
-						imprimirEstadisticas(tiempoInicio, tiempoFin, contadorLineas);
+						imprimirEstadisticas(PID_Actual, tiempoInicio, tiempoFin, contadorLineas);
 						salidaBuclePpal = true;
 					}
 				}

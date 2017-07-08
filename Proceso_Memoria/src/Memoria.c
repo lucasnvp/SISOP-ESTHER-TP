@@ -469,120 +469,122 @@ void lanzoHiloConsolaComandos()
 
 }
 bool consola() {
+	//Mensaje
+	char* mensaje = (char *) malloc(sizeof(char) * 1000);
 	int salir = 0;
+
 	while (!salir) {
-		//Mensaje
-		char* mensaje = (char *) malloc(sizeof(char) * 1000);
 		printf("> ");
 		scanf("%[^\n]s", mensaje);
-		char* comando = strtok(mensaje, " ");
-		char* argumento = strtok(NULL, " ");
-		char* argumento2=strtok(NULL, " ");
-		int numero;
-		if (!strcmp(comando, "exit"))
-			salir = 1;
-		else if (!strcmp(comando, "clean"))
-			system("clear");
-		else if (!strcmp(comando, "size") && !strcmp(argumento, "mem"))
-		{
+		if (strcmp(mensaje, "")) {
+			char* comando = strtok(mensaje, " ");
+			char* argumento = strtok(NULL, " ");
+			char* argumento2=strtok(NULL, " ");
+			int numero;
+			if (!strcmp(comando, "exit"))
+				salir = 1;
+			else if (!strcmp(comando, "clean"))
+				system("clear");
+			else if (!strcmp(comando, "size") && !strcmp(argumento, "mem"))
+			{
 
-			int fd=framesDisponibles();
+				int fd=framesDisponibles();
 
-			int fo=MARCOS - fd;
+				int fo=MARCOS - fd;
 
-			printf("El tamaño de memoria es de %d Frames \n",MARCOS);
-			printf("Hay %d Frames ocupados\n",fo);
-			 printf("Hay %d Frames libres\n",fd);
-		}
-		else if (!strcmp(comando, "size") && !strcmp(argumento, "PID"))
-		{
-			if(argumento2 == NULL)
-				{
-					printf("Falta el numero de PID\n ");
-				}
+				printf("El tamaño de memoria es de %d Frames \n",MARCOS);
+				printf("Hay %d Frames ocupados\n",fo);
+				 printf("Hay %d Frames libres\n",fd);
+			}
+			else if (!strcmp(comando, "size") && !strcmp(argumento, "PID"))
+			{
+				if(argumento2 == NULL)
+					{
+						printf("Falta el numero de PID\n ");
+					}
 
+
+					if(argumento2!=NULL)
+					{
+						numero = convertirCharAInt(argumento2,strlen(argumento2));
+						int cantPaginas=paginasQueOcupaProceso(numero);
+
+						if(cantPaginas==0)
+							printf("El proceso con PID %d no existe en memoria \n",numero);
+						else{
+
+						printf("El proceso con PID %d ocupa %d paginas de memoria \n",numero,cantPaginas);
+						}
+					}
+
+			}
+			else if (!strcmp(comando, "flush")&& !strcmp(argumento, "cache"))//TODO: Falta
+					{
+						 borrarCache();
+					}
+			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "cache"))//TODO: Falta
+			{
+				 imprimirCache();
+			}
+			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "estructMem"))//TODO: Falta
+			{
+				imprimirEPI();
+			}
+			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "contMem"))//TODO: Falta
+			{
 
 				if(argumento2!=NULL)
 				{
-					numero = convertirCharAInt(argumento2,strlen(argumento2));
-					int cantPaginas=paginasQueOcupaProceso(numero);
-
-					if(cantPaginas==0)
-						printf("El proceso con PID %d no existe en memoria \n",numero);
-					else{
-
-					printf("El proceso con PID %d ocupa %d paginas de memoria \n",numero,cantPaginas);
-					}
-				}
-
-		}
-		else if (!strcmp(comando, "flush")&& !strcmp(argumento, "cache"))//TODO: Falta
-				{
-					 borrarCache();
-				}
-		else if (!strcmp(comando, "dump")&& !strcmp(argumento, "cache"))//TODO: Falta
-		{
-			 imprimirCache();
-		}
-		else if (!strcmp(comando, "dump")&& !strcmp(argumento, "estructMem"))//TODO: Falta
-		{
-			imprimirEPI();
-		}
-		else if (!strcmp(comando, "dump")&& !strcmp(argumento, "contMem"))//TODO: Falta
-		{
-
-			if(argumento2!=NULL)
-			{
-			numero = convertirCharAInt(argumento2,strlen(argumento2));
-			int i;
-			int paginas=0;
-			int encontreProceso=0;
-			char * contenido;
-				for (i = 0; i < tablaEPI.filas; i++)
-				{
-					if (tablaEPI.matriz[i][N_PID]==numero)
-					{
-						encontreProceso=1;
-						contenido= solicitarBytesPagina(numero,tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
-						printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],numero,contenido);
-					}
-
-				}
-				if (!encontreProceso)
-				{
-					printf("El proceso con PID %d no existe en memoria \n",numero);
-				}
-			}
-			else
-			{
+				numero = convertirCharAInt(argumento2,strlen(argumento2));
 				int i;
 				int paginas=0;
+				int encontreProceso=0;
 				char * contenido;
-				int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE- 1) / MARCO_SIZE;
+					for (i = 0; i < tablaEPI.filas; i++)
+					{
+						if (tablaEPI.matriz[i][N_PID]==numero)
+						{
+							encontreProceso=1;
+							contenido= solicitarBytesPagina(numero,tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
+							printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],numero,contenido);
+						}
 
-				for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++)
-				{
-
-						printf("En el frame %d, pagina %d y PID %d el contenido es: MEMORIA ADMINISTRATIVA \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID]);
+					}
+					if (!encontreProceso)
+					{
+						printf("El proceso con PID %d no existe en memoria \n",numero);
+					}
 				}
-				for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas; i++)
+				else
 				{
-				contenido= solicitarBytesPagina(tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
-				printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID],contenido);
-				}
+					int i;
+					int paginas=0;
+					char * contenido;
+					int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE- 1) / MARCO_SIZE;
 
+					for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++)
+					{
+
+							printf("En el frame %d, pagina %d y PID %d el contenido es: MEMORIA ADMINISTRATIVA \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID]);
+					}
+					for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas; i++)
+					{
+					contenido= solicitarBytesPagina(tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
+					printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID],contenido);
+					}
+
+				}
 			}
+
+			else
+				printf("Comando incorrecto. Pruebe retardo milisegundos | dump cache | dump estructMem | dump contMem PID | flush cache | size mem | size PID | exit | clean\n");
+
+			argumento2=NULL;
 		}
-
-		else
-			printf("Comando incorrecto. Pruebe retardo milisegundos | dump cache | dump estructMem | dump contMem PID | flush cache | size mem | size PID | exit | clean\n");
-
-		free(mensaje);
+		strcpy(mensaje, "");
 		limpiarBufferDeEntrada();
-		argumento2=NULL;
-
-
 	}
+	free(mensaje);
 	pthread_exit(NULL);
 }
 void limpiarBufferDeEntrada() {
@@ -731,7 +733,8 @@ void connection_handler(uint32_t socket, uint32_t command) {
 			}
 	case 5: { //CPU me pide una instruccion
 		serializar_int(socket, MARCO_SIZE); //Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
-		printf("Conectado con CPU \n");
+		printf("Conectado con CPU \n\n> ");
+		fflush(stdout);
 
 		/*t_SerialString* PATH = malloc(sizeof(t_SerialString));
 		deserializar_string(socket, PATH);
