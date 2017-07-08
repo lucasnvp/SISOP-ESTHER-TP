@@ -34,12 +34,12 @@ int main(void) {
 	connect_server_kernel();
 
 	//Conexion a memoria
-	//connect_server_memoria();
+	connect_server_memoria();
 
 	while (true) {
 
 		//Quedo a la espera de recibir un PCB del Kernel
-		//deserializar_pcb(kernel, pcbActivo);
+		deserializar_pcb(kernel, pcbActivo);
 
 		//Proceso de ejecucion de Primitivas Ansisop
 		ejecutar();
@@ -47,10 +47,10 @@ int main(void) {
 		print_PCB(pcbActivo);
 
 		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-		//serializar_int(kernel, FIN_CORRECTO);
+		serializar_int(kernel, FIN_CORRECTO);
 
 		//Envio a kernel PCB actualizado
-		//serializar_pcb(kernel, pcbActivo);
+		serializar_pcb(kernel, pcbActivo);
 
 	}
 
@@ -77,8 +77,8 @@ void ejecutar() {
 		t_size offset = ctp->instrucciones_serializado[pc].offset; //que me devuelva la siguiente linea la memoria
 
 		//Solicito a memoria la instruccion.
-		char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,4,
-				start, offset); //falta la pagina en donde esta la instruccion.
+		char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,
+				4, start, offset); //falta la pagina en donde esta la instruccion.
 
 		//Ejecuta las primitivas
 		analizadorLinea(instruccion, &functions, &kernel_functions);
@@ -90,7 +90,8 @@ void ejecutar() {
 	}
 }
 
-char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina, t_puntero_instruccion offset,t_size size) {
+char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina,
+		t_puntero_instruccion offset, t_size size) {
 
 	//Creo la estructura para enviar el pedido a memoria
 	t_pedido_memoria *pedido = malloc(sizeof(t_pedido_memoria));
@@ -106,11 +107,11 @@ char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina, t_punter
 	serializar_int(memoria, SOLICITUD_INSTRUCCION_MEMORIA);
 
 	//Serializo la estructura para enviar a Memoria
-	serializar_pedido_memoria(memoria,pedido);
+	serializar_pedido_memoria(memoria, pedido);
 
 	//Quedo a al espera de que memoria me envie la instruccion
 	t_SerialString* linea = malloc(sizeof(t_SerialString));
-	deserializar_string(memoria,linea->dataString);
+	deserializar_string(memoria, linea->dataString);
 
 	return linea;
 
@@ -137,21 +138,6 @@ void connect_server_memoria() {
 	}
 }
 
-void connection_handler(uint32_t socket, uint32_t command) {
-
-	switch (command) {
-	case 1: {
-		break;
-	}
-	default: {
-		printf("Error de comando\n");
-		break;
-	}
-	}
-
-	return;
-}
-
 void init_log(char* pathLog) {
 	mkdir("/home/utnso/Blacklist/Logs", 0755);
 	log_Console = log_create(pathLog, "CPU", true, LOG_LEVEL_INFO);
@@ -159,8 +145,6 @@ void init_log(char* pathLog) {
 }
 
 t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
-
-	//printf("Ya tiene la ultima variable de la linea");
 
 	printf("Se define la variable %c\n", identificador_variable);
 
