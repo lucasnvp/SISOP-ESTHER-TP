@@ -1,7 +1,8 @@
 #include "Proceso CPU.h"
 
 AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
-		.AnSISOP_obtenerPosicionVariable = obtenerPosicionVariable,
+		.AnSISOP_obtenerPosicionVariable = ansi_obtenerPosicionVariable,
+		.AnSISOP_asignar = ansi_asignar,
 		.AnSISOP_dereferenciar = desreferenciar, .AnSISOP_asignar = asignar,
 		.AnSISOP_finalizar = finalizarProceso,
 
@@ -34,10 +35,10 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	while (true) {
+	//while (true) {
 
 	//Quedo a la espera de recibir un PCB del Kernel
-	deserializar_pcb(kernel, pcbActivo);
+	//deserializar_pcb(kernel, pcbActivo);
 
 	log_info(log_Console, "PCB Activo\n");
 
@@ -49,12 +50,12 @@ int main(void) {
 	print_PCB(pcbActivo);
 
 	//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-	serializar_int(kernel, FIN_CORRECTO);
+	//serializar_int(kernel, FIN_CORRECTO);
 
 	//Envio a kernel PCB actualizado
-	serializar_pcb(kernel, pcbActivo);
+	//serializar_pcb(kernel, pcbActivo);
 
-	}
+	//}
 
 	return EXIT_SUCCESS;
 
@@ -120,6 +121,58 @@ char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina,
 
 	return linea;
 
+	free(pedido);
+
+}
+
+t_valor_variable solicitarValorAMemoria(uint32_t pid, uint32_t pagina,
+		uint32_t offset, t_size size) {
+
+	//Creo la estructura para enviar el pedido a memoria
+	t_pedido_memoria *pedido = malloc(sizeof(t_pedido_memoria));
+	pedido->id = pid;
+	pedido->pagina = pagina;
+	pedido->offset = offset;
+	pedido->size = size;
+
+	//Serializo la estructura para enviar a Memoria
+
+	log_info(log_Console, "Solicitando Dato a Memoria\n");
+
+	//Le envio a memoria que necesito una instruccion.
+	serializar_int(memoria, SOLICITUD_INSTRUCCION_MEMORIA);
+
+	//Serializo la estructura para enviar a Memoria
+	serializar_pedido_memoria(memoria, pedido);
+
+	//Quedo a al espera de que memoria me envie la instruccion
+
+	t_valor_variable dato = deserializar_int(memoria);
+
+	return dato;
+
+	free(pedido);
+
+}
+
+void enviarDatoAMemoria(uint32_t pagina, uint32_t offset, uint32_t size) {
+
+	//Creo la estructura para enviar el dato a memoria
+	t_pedido_memoria *envio = malloc(sizeof(t_pedido_memoria));
+	envio->id = pcbActivo->PID;
+	envio->pagina = pagina;
+	envio->offset = offset;
+	envio->size = size;
+
+	//Le envio a memoria que necesito una instruccion.
+	serializar_int(memoria, ASIGNAR_VALOR_A_MEMORIA);
+
+	//Serializo la estructura para enviar a Memoria
+	serializar_pedido_memoria(memoria, envio);
+
+	log_info(log_Console,
+			"Se envia a memoria la actualizacion de una variable\n");
+
 }
 
 void connect_server_kernel() {
@@ -137,8 +190,8 @@ void connect_server_memoria() {
 	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
 	if (memoria > 0) {
 		log_info(log_Console, "Memoria Conectada\n");
-		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
-		tamanio_pagina = deserializar_int(memoria);
+		//serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
+		tamanio_pagina = 10;	//deserializar_int(memoria);
 
 	}
 }
@@ -154,42 +207,32 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 	log_info(log_Console, "Se define la variable %c\n", identificador_variable);
 
 	//Le pido al PCB la cantidad de paginas que tiene el codigo y le sumo uno que es la siguiente pagina.
-	uint32_t primerPagina_Stack = pcbActivo->PageCode + 1;
+	uint32_t primerPagina_Stack = 0;
 
 	t_puntero posicion_Variable;
+
+	VARIABLE_T *nueva_var = variable_new(identificador_variable,
+			primerPagina_Stack, 0, sizeof(int));
 
 	//Si el registro que tiene el stack es nulo creo el primer registro.
 	if (list_size(pcbActivo->StackPointer) == 0) {
 
-		//Creo la nueva variable para cargarla en el primer registro
-		VARIABLE_T *nueva_var = variable_new(identificador_variable,
-				primerPagina_Stack, 0, sizeof(int));
-
 		//Creo una lista de variables temporal para agregar a la linea del stack.
-		//t_queue *variablesTemp = queue_create();
-		t_list * variablesTemp2 = list_create();
+		t_list * variablesTemp = list_create();
 
 		//Agrego la variable creada previamente
-		//queue_push(variablesTemp, nueva_var);
-		list_add(variablesTemp2, nueva_var);
+		list_add(variablesTemp, nueva_var);
 
 		//Creo la linea de stack pasandole como parametro la lista creada previamente
-		//STACKPOINTER_T* lineaSP = stack_new(NULL, variablesTemp, NULL, NULL);
-		STACKPOINTER_T* lineaSP = stack_new(NULL, variablesTemp2, NULL, NULL);
+		STACKPOINTER_T* lineaSP = stack_new(NULL, variablesTemp, NULL, NULL);
 
 		//Agrego al stack la linea creada recientemente
-		//push_stack(pcbActivo, lineaSP);
 		list_add(pcbActivo->StackPointer, lineaSP);
-
-		//Calculo la posicion es la pagina de la ultima variable por su tamanio + el offset de donde comienza la variable.
-		posicion_Variable = (nueva_var->pagina * tamanio_pagina)
-				+ nueva_var->offset;
 
 		//Si no estaba vacio le pido a la ultima linea, su ultima variable y trabajo con ella
 	} else {
 
 		//Obtengo la ultima linea de stack
-		//STACKPOINTER_T *lineaSP = pull_stack(pcbActivo);
 		STACKPOINTER_T *ultimaLineaSP = list_get(pcbActivo->StackPointer,
 				pcbActivo->StackPointer->elements_count - 1);
 
@@ -198,12 +241,8 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 				pcbActivo->StackPointer->elements_count - 1);
 
 		//Le pido a la ultima linea la ultima variable que tiene
-		//VARIABLE_T *ultimaVariable = queue_pop(lineaSP->Variables);
 		VARIABLE_T *ultimaVariable = list_get(ultimaLineaSP->Variables,
 				ultimaLineaSP->Variables->elements_count - 1);
-
-		//La vuelvo a agregar a la lista porque era solo para leerla
-		//queue_push(lineaSP->Variables,ultimaVariable);
 
 		//Calculo el espacio ocupado sumando el comienzo + el tamanio del ultimo valor cargado.
 		int espacioOcupado = ultimaVariable->offset + ultimaVariable->size;
@@ -215,9 +254,9 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 
 			//Si el espacio disponible es mayor al tamano de lo que quiero guardar.
 
-			//Creo la nueva variable para cargarla en la ultima linea insertada en la misma pagina
-			VARIABLE_T *nueva_var = variable_new(identificador_variable,
-					ultimaVariable->pagina, espacioOcupado, sizeof(int));
+			//Cargo Pagina y Offset a la nueva variable
+			nueva_var->pagina = ultimaVariable->pagina;
+			nueva_var->offset = espacioOcupado;
 
 			//Agrego a las variables de la ultima linea la nueva variable
 			//queue_push(lineaSP->Variables, nueva_var);
@@ -226,18 +265,13 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 			//Agrego al stack la linea creada recientemente
 			//push_stack(pcbActivo, lineaSP);
 			list_add(pcbActivo->StackPointer, ultimaLineaSP);
-
-			//Calculo la posicion es la pagina de la ultima variable por su tamanio + el offset de donde comienza la variable.
-			posicion_Variable = (nueva_var->pagina * tamanio_pagina)
-					+ nueva_var->offset;
 
 		} else {
 
 			//Si el espacio disponible no es mayor al tamanio de lo que quiero guardar, lo pongo en la pagina siguiente.
 
-			//Creo la nueva variable para cargarla en la ultima linea insertada en la siguiente pagina
-			VARIABLE_T *nueva_var = variable_new(identificador_variable,
-					ultimaVariable->pagina + 1, 0, sizeof(int));
+			//Cargo en pagina siguiente. La cargo en la ultima linea insertada
+			nueva_var->pagina = ultimaVariable->pagina + 1;
 
 			//Agrego a las variables de la ultima linea la nueva variable
 			//queue_push(lineaSP->Variables, nueva_var);
@@ -247,15 +281,90 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 			//push_stack(pcbActivo, lineaSP);
 			list_add(pcbActivo->StackPointer, ultimaLineaSP);
 
-			//Calculo la posicion es la pagina de la ultima variable por su tamanio + el offset de donde comienza la variable.
-			posicion_Variable = (nueva_var->pagina * tamanio_pagina)
-					+ nueva_var->offset;
-
 		}
 
 	}
 
+	//Calculo la posicion es la pagina de la ultima variable por su tamanio + el offset de donde comienza la variable.
+	posicion_Variable = (nueva_var->pagina * tamanio_pagina)
+			+ nueva_var->offset;
 
 	return posicion_Variable;
 }
 
+t_puntero ansi_obtenerPosicionVariable(t_nombre_variable identificador_variable) {
+
+	//log_info(log_Console, "Se obtiene la posicion de la variable %c: \n",
+	//		identificador_variable);
+
+	//Va a ser la posicion a devolver
+	uint32_t posicion;
+
+	//Obtengo el contexto de ejecucion actual, la ultima linea del stack.
+
+	STACKPOINTER_T *ultimaLineaSP = list_get(pcbActivo->StackPointer,
+			pcbActivo->StackPointer->elements_count - 1);
+
+	t_list *variables = ultimaLineaSP->Variables;
+	t_list *argumentos = ultimaLineaSP->Argumentos;
+
+	uint32_t i;
+
+	//Si es un digito, es un argumento
+	if (isdigit(identificador_variable)) {
+		//Recorro la lista de argumentos hasta encontrarla:
+		for (i = 0; i < argumentos->elements_count; i++) {
+			VARIABLE_T *argumento = list_get(argumentos, i);
+
+			if (argumento->id == identificador_variable) {
+				posicion = (argumento->pagina * tamanio_pagina)
+						+ argumento->offset;
+				return posicion;
+			}
+		}
+	} else {
+
+		for (i = 0; i < variables->elements_count; i++) {
+
+			VARIABLE_T *variable = list_get(variables, i);
+
+			if (variable->id == identificador_variable) {
+
+				posicion = (variable->pagina * tamanio_pagina)
+						+ variable->offset;
+
+				return posicion;
+			}
+		}
+	}
+
+	return -1;
+
+}
+
+void ansi_asignar(t_puntero direccion_variable, t_valor_variable valor) {
+
+	uint32_t pagina = direccion_variable / tamanio_pagina;
+	uint32_t offset = direccion_variable % tamanio_pagina; //el resto de la division
+	t_valor_variable value = valor;
+
+	enviarDatoAMemoria(pagina, offset, value);
+
+	log_info(log_Console,
+			"Se asigna el valor %d a la variable en la posicion%c:\n", valor,
+			direccion_variable);
+
+}
+
+t_valor_variable twt_dereferenciar(t_puntero direccion_variable) {
+
+	uint32_t pag = direccion_variable / tamanio_pagina;
+	uint32_t offset = direccion_variable % tamanio_pagina; //el resto de la division
+	uint32_t size = sizeof(int);
+
+	t_valor_variable dato = solicitarValorAMemoria(pcbActivo->PID, pag, offset,
+			size);
+
+	return dato;
+
+}

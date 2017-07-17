@@ -43,6 +43,7 @@ uint32_t memoria;
 #define FIN_CORRECTO 3
 #define HANDSHAKE_CPU_MEMORIA 5
 #define SOLICITUD_INSTRUCCION_MEMORIA 6
+#define ASIGNAR_VALOR_A_MEMORIA 7
 
 void ejecutar();
 void connect_server_kernel();
@@ -51,5 +52,9 @@ char* const solicitarInstruccionAMemoria();
 void connection_handler(uint32_t socket, uint32_t command);
 void init_log(char* pathLog);
 t_puntero ansi_definirVariable(t_nombre_variable identificador_variable);
+t_puntero ansi_obtenerPosicionVariable(t_nombre_variable identificador_variable);
+void ansi_asignar(t_puntero direccion_variable, t_valor_variable valor);
+void enviarDatoAMemoria(uint32_t pagina, uint32_t offset, uint32_t size);
+t_valor_variable twt_dereferenciar (t_puntero direccion_variable);
 
 #endif /* PROCESO_CPU_H_ */

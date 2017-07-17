@@ -13,6 +13,33 @@ uint32_t deserializar_int(uint32_t socket) {
 	return aux;
 }
 
+void serializar_envio_memoria(uint32_t socket, t_envio_memoria *envio){
+	void* ENVIAR = malloc(envio);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	size_to_send = sizeof(envio->id);
+	memcpy(ENVIAR + offset, &(envio->id), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(envio->offset);
+	memcpy(ENVIAR + offset, &(envio->offset), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(envio->pagina);
+	memcpy(ENVIAR + offset, &(envio->pagina), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(envio->value);
+	memcpy(ENVIAR + offset, &(envio->value), size_to_send);
+	offset += size_to_send;
+
+	send_data(socket, ENVIAR, offset);
+	free(ENVIAR);
+
+}
+
+
 void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
 	void* ENVIAR = malloc(pedido);
 	uint32_t offset = 0;

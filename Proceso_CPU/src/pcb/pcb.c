@@ -81,7 +81,7 @@ void variable_free(VARIABLE_T* this){
 	free(this);
 }
 
-STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
+STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
 	STACKPOINTER_T * unStack = malloc(sizeof(STACKPOINTER_T));
 	unStack->Argumentos = Argumentos;
 	unStack->Variables = Variables;
