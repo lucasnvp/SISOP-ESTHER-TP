@@ -8,7 +8,7 @@ AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
 		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
 				ansi_llamarSinRetorno, .AnSISOP_llamarConRetorno =
-				ansi_llamarConRetorno, .AnSISOP_finalizar = finalizarProceso,
+				ansi_llamarConRetorno, .AnSISOP_finalizar = ansi_finalizar,
 
 };
 
@@ -465,7 +465,7 @@ void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno) 
 	uint32_t offset = punto_retorno % tamanio_pagina;
 	uint32_t size = sizeof(int);
 
-	VARIABLE_T *variable = variable_new(NULL,pagina,offset,size);
+	VARIABLE_T *variable = variable_new(NULL, pagina, offset, size);
 
 	//Creo un nuevo contexto de ejecucion
 	STACKPOINTER_T *lineaSP = stack_new(list_create(), list_create(),
@@ -480,4 +480,26 @@ void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno) 
 			"Se ejecuta la primitiva llamarConRetorno con la etiqueta: %s\n",
 			etiqueta);
 
+}
+
+void ansi_finalizar(void) {
+
+	//Pido el ultimo contexto de ejecucion
+	STACKPOINTER_T* lineaSPActual = list_remove(pcbActivo->StackPointer,
+			pcbActivo->StackPointer->elements_count - 1);
+
+	//Si no hay quiere decir que el programa finalizo.
+	if (list_size(pcbActivo->StackPointer) == 0) {
+		termino = true;
+		log_info(log_Console, "El programa ha finalizado\n");
+
+	} else {
+		//Si hay le asigno al PC del pcbActivo el valor de Retorno
+		pcbActivo->ProgramCounter = lineaSPActual->DireccionDeRetorno;
+		log_info(log_Console, "El programa continua en la instruccion: %d\n",
+				pcbActivo->ProgramCounter);
+
+	}
+
+	stack_free(lineaSPActual);
 }

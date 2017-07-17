@@ -63,5 +63,6 @@ t_valor_variable ansi_asignar_valor_compartida(t_nombre_compartida identificador
 void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta);
 void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta);
 void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno);
+void ansi_finalizar (void);
 
 #endif /* PROCESO_CPU_H_ */
