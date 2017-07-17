@@ -3,12 +3,15 @@
 
 #include <inttypes.h>
 
+#include <commons/collections/list.h>
+
 typedef struct ProgramType{
 	uint32_t ID_Consola;
 	uint32_t PID;
 } Program;
 
 Program* Program_new(uint32_t ID_Consola, uint32_t PID);
+Program* Search_Program_By_PID(t_list * LIST_CONSOLAS, uint32_t PID);
 void Program_free(Program *this);
 void print_Program(Program auxProgram);
 

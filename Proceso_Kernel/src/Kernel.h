@@ -26,6 +26,9 @@
 #define NUEVO_PROCESO 1
 #define NUEVA_CONEXION_CPU 2
 #define FIN_EJECUCION_CPU 3
+#define IMPRIMIR_POR_PANTALLA 4
+#define KILL_PROCESS 5
+#define KILL_ALL_PROCESS 6
 
 pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION; // semaforo de multiprogramacion

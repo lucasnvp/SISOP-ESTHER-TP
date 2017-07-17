@@ -310,6 +310,32 @@ void connection_handler(uint32_t socket, uint32_t command){
 			sem_post(&SEM_CPU_DISPONIBLE);
 			break;
 		}
+		case IMPRIMIR_POR_PANTALLA:{
+			//La CPU me manda el string a imprimir
+			//Busco la consola asociada
+//			serializar_int(consola,PID);
+//			serializar_int(consola,1);
+//			serializar_string(consola,stringAImprimir);
+			break;
+		}
+		case KILL_PROCESS:{
+			uint32_t nroPID = deserializar_int(socket);
+			//Busco la consola asociada al PID
+			Program* program = Search_Program_By_PID(LIST_CONSOLAS, nroPID);
+			if(program != NULL){
+				//Matar el proceso
+				kill_process(QUEUE_READY,nroPID);
+				serializar_int(socket,-7);
+			} else{
+				nroPID = 0;
+				serializar_int(socket,nroPID);
+			}
+			break;
+		}
+		case KILL_ALL_PROCESS:{
+			// KILL todos los procesos asociados a esa consola
+			break;
+		}
 		default:{
 			printf("Error de comando\n");
 			break;
