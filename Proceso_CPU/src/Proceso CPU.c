@@ -6,8 +6,8 @@ AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 				ansi_desreferenciar, .AnSISOP_asignar = asignar,
 		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
 		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
-		.AnSISOP_irAlLabel = ansi_irAlLabel,
-		.AnSISOP_finalizar = finalizarProceso,
+		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
+				ansi_llamarSinRetorno, .AnSISOP_finalizar = finalizarProceso,
 
 };
 
@@ -227,7 +227,8 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 		list_add(variablesTemp, nueva_var);
 
 		//Creo la linea de stack pasandole como parametro la lista creada previamente
-		STACKPOINTER_T* lineaSP = stack_new(NULL, variablesTemp, NULL, NULL);
+		STACKPOINTER_T* lineaSP = stack_new(list_create(), variablesTemp,
+				list_create(), NULL);
 
 		//Agrego al stack la linea creada recientemente
 		list_add(pcbActivo->StackPointer, lineaSP);
@@ -281,7 +282,6 @@ t_puntero ansi_definirVariable(t_nombre_variable identificador_variable) {
 			list_add(ultimaLineaSP->Variables, nueva_var);
 
 			//Agrego al stack la linea creada recientemente
-			//push_stack(pcbActivo, lineaSP);
 			list_add(pcbActivo->StackPointer, ultimaLineaSP);
 
 		}
@@ -424,16 +424,34 @@ t_valor_variable ansi_asignar_valor_compartida(
 
 }
 
-void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta){
+void ansi_irAlLabel(t_nombre_etiqueta t_nombre_etiqueta) {
 
 	const char* etiquetas = pcbActivo->CodeTagsPointer->etiquetas;
-	const t_size cant_etiquetas = pcbActivo->CodeTagsPointer->cantidad_de_etiquetas;
+	const t_size cant_etiquetas =
+			pcbActivo->CodeTagsPointer->cantidad_de_etiquetas;
 
-	t_puntero_instruccion posicionEtiqueta = metadata_buscar_etiqueta(t_nombre_etiqueta,etiquetas,cant_etiquetas);
+	t_puntero_instruccion posicionEtiqueta = metadata_buscar_etiqueta(
+			t_nombre_etiqueta, etiquetas, cant_etiquetas);
 
 	pcbActivo->ProgramCounter = posicionEtiqueta;
 	printf("Cambio el PC a: %d\n", posicionEtiqueta);
 
-	log_info(log_Console,"Se ejecuta primitiva irAlLabel para etiqueta: %s\n", t_nombre_etiqueta);
-	log_info(log_Console,"Cambio el PC a: %s\n", posicionEtiqueta);
+	log_info(log_Console, "Se ejecuta primitiva irAlLabel para etiqueta: %s\n",
+			t_nombre_etiqueta);
+	log_info(log_Console, "Cambio el PC a: %s\n", posicionEtiqueta);
+}
+
+void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta) {
+
+	printf("Soy llamarSinRetorno para funcion: %s\n", etiqueta);
+
+	STACKPOINTER_T *lineaSP = stack_new(list_create(), list_create(),
+			pcbActivo->ProgramCounter, NULL);
+
+	//Agrego al stack la linea creada recientemente
+	list_add(pcbActivo->StackPointer, lineaSP);
+
+	ansi_irAlLabel(etiqueta);
+
+
 }

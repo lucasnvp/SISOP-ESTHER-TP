@@ -61,5 +61,6 @@ t_valor_variable ansi_desreferenciar (t_puntero direccion_variable);
 t_valor_variable ansi_obtener_valor_compartida(t_nombre_compartida identificador);
 t_valor_variable ansi_asignar_valor_compartida(t_nombre_compartida identificador, t_valor_variable valor);
 void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta);
+void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta);
 
 #endif /* PROCESO_CPU_H_ */
