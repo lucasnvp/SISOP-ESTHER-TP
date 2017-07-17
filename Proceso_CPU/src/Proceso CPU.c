@@ -2,8 +2,9 @@
 
 AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_obtenerPosicionVariable = ansi_obtenerPosicionVariable,
-		.AnSISOP_asignar = ansi_asignar,
-		.AnSISOP_dereferenciar = desreferenciar, .AnSISOP_asignar = asignar,
+		.AnSISOP_asignar = ansi_asignar, .AnSISOP_dereferenciar =
+				ansi_desreferenciar, .AnSISOP_asignar = asignar,
+		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
 		.AnSISOP_finalizar = finalizarProceso,
 
 };
@@ -356,7 +357,10 @@ void ansi_asignar(t_puntero direccion_variable, t_valor_variable valor) {
 
 }
 
-t_valor_variable twt_dereferenciar(t_puntero direccion_variable) {
+t_valor_variable ansi_desreferenciar(t_puntero direccion_variable) {
+
+	log_info(log_Console,
+			"Se obtiene de memoria un dato en base a la su direccion");
 
 	uint32_t pag = direccion_variable / tamanio_pagina;
 	uint32_t offset = direccion_variable % tamanio_pagina; //el resto de la division
@@ -368,3 +372,30 @@ t_valor_variable twt_dereferenciar(t_puntero direccion_variable) {
 	return dato;
 
 }
+
+t_valor_variable ansi_obtener_valor_compartida(
+		t_nombre_compartida identificador) {
+
+	//Le envio el mensaje al Kernel de que necesito el valor de una variable compartida
+	serializar_int(kernel, PEDIDO_VAR_COMPARTIDA);
+
+	t_SerialString* variable = malloc(sizeof(t_SerialString));
+	variable->dataString = identificador;
+	variable->sizeString = strlen(identificador);
+
+	serializar_string(kernel, variable);
+
+	t_valor_variable valor;
+
+	//Quedo a la espera de recibir el valor del kernel
+	valor = deserializar_int(kernel);
+
+	return valor;
+
+	log_info(log_Console,
+			"Se solicita a Kernel el valor %d de la variable compartida: %c\n",
+			valor, identificador);
+
+	free(variable);
+}
+
