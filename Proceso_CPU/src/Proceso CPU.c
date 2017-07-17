@@ -7,7 +7,8 @@ AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
 		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
 		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
-				ansi_llamarSinRetorno, .AnSISOP_finalizar = finalizarProceso,
+				ansi_llamarSinRetorno, .AnSISOP_llamarConRetorno =
+				ansi_llamarConRetorno, .AnSISOP_finalizar = finalizarProceso,
 
 };
 
@@ -443,8 +444,6 @@ void ansi_irAlLabel(t_nombre_etiqueta t_nombre_etiqueta) {
 
 void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta) {
 
-	printf("Soy llamarSinRetorno para funcion: %s\n", etiqueta);
-
 	STACKPOINTER_T *lineaSP = stack_new(list_create(), list_create(),
 			pcbActivo->ProgramCounter, NULL);
 
@@ -453,5 +452,32 @@ void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta) {
 
 	ansi_irAlLabel(etiqueta);
 
+	log_info(log_Console,
+			"Se ejecuta la primitiva llamarSinRetorno con la etiqueta: %s\n",
+			etiqueta);
+
+}
+
+void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno) {
+
+	//Calculo los datos de la nueva variable de retorno para cargarla en el contexto de ejecucion a retornar
+	uint32_t pagina = punto_retorno / tamanio_pagina;
+	uint32_t offset = punto_retorno % tamanio_pagina;
+	uint32_t size = sizeof(int);
+
+	VARIABLE_T *variable = variable_new(NULL,pagina,offset,size);
+
+	//Creo un nuevo contexto de ejecucion
+	STACKPOINTER_T *lineaSP = stack_new(list_create(), list_create(),
+			pcbActivo->ProgramCounter, variable);
+
+	//Agrego al stack el contexto creado recientemente
+	list_add(pcbActivo->StackPointer, lineaSP);
+
+	ansi_irAlLabel(etiqueta);
+
+	log_info(log_Console,
+			"Se ejecuta la primitiva llamarConRetorno con la etiqueta: %s\n",
+			etiqueta);
 
 }
