@@ -1,25 +1,51 @@
 #include "serializador.h"
 
-void serializar_int(uint32_t socket, uint32_t number){
+void serializar_int(uint32_t socket, uint32_t number) {
 	send_data(socket, &number, sizeof(uint32_t));
 }
 
-uint32_t deserializar_int(uint32_t socket){
+uint32_t deserializar_int(uint32_t socket) {
 	uint32_t aux;
-	uint32_t bytesRecibidos = recive_data(socket,&aux,sizeof(uint32_t));
-	if(bytesRecibidos <= 0){
+	uint32_t bytesRecibidos = recive_data(socket, &aux, sizeof(uint32_t));
+	if (bytesRecibidos <= 0) {
 		aux = bytesRecibidos;
 	}
 	return aux;
 }
 
-void serializar_string(int client, t_SerialString* PATH){
+void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
+	void* ENVIAR = malloc(pedido);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	size_to_send = sizeof(pedido->id);
+	memcpy(ENVIAR + offset, &(pedido->id), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->offset);
+	memcpy(ENVIAR + offset, &(pedido->offset), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->pagina);
+	memcpy(ENVIAR + offset, &(pedido->pagina), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->size);
+	memcpy(ENVIAR + offset, &(pedido->size), size_to_send);
+	offset += size_to_send;
+
+	send_data(socket, ENVIAR, offset);
+	free(ENVIAR);
+
+}
+
+void serializar_string(int client, t_SerialString* PATH) {
 	void* ENVIAR = malloc(PATH->sizeString);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
 	size_to_send = sizeof(PATH->sizeString);
-	memcpy(ENVIAR + offset, &(PATH->sizeString),size_to_send);
+	memcpy(ENVIAR + offset, &(PATH->sizeString), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = PATH->sizeString;
@@ -30,7 +56,7 @@ void serializar_string(int client, t_SerialString* PATH){
 	free(ENVIAR);
 }
 
-void deserializar_string(int servidor, t_SerialString* PATH){
+void deserializar_string(int servidor, t_SerialString* PATH) {
 	uint32_t buffer_size;
 	void* buffer = malloc(buffer_size = sizeof(uint32_t));
 
@@ -43,40 +69,40 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 
 }
 
-void serializar_pcb(int client, PCB_t* PCB){
+void serializar_pcb(int client, PCB_t* PCB) {
 	void* ENVIAR = malloc(sizeof(PCB_t));
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
 	size_to_send = sizeof(PCB->PID);
-	memcpy(ENVIAR + offset, &(PCB->PID),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->PID), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->ProgramCounter);
-	memcpy(ENVIAR + offset, &(PCB->ProgramCounter),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->ProgramCounter), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->PageCode);
-	memcpy(ENVIAR + offset, &(PCB->PageCode),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->PageCode), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->CodeTagsPointer);
-	memcpy(ENVIAR + offset, &(PCB->CodeTagsPointer),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->CodeTagsPointer), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->StackPointer);
-	memcpy(ENVIAR + offset, &(PCB->StackPointer),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->StackPointer), size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(PCB->ExitCode);
-	memcpy(ENVIAR + offset, &(PCB->ExitCode),size_to_send);
+	memcpy(ENVIAR + offset, &(PCB->ExitCode), size_to_send);
 	offset += size_to_send;
 
 	send_data(client, ENVIAR, offset);
 	free(ENVIAR);
 }
 
-void deserializar_pcb(int servidor, PCB_t* PCB){
+void deserializar_pcb(int servidor, PCB_t* PCB) {
 	uint32_t buffer_size;
 	void* buffer = malloc(buffer_size = sizeof(PCB_t));
 	uint32_t offset = 0;
@@ -97,7 +123,8 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 	offset += size_to_recive;
 
 	size_to_recive = sizeof(PCB->CodeTagsPointer);
-	memcpy(&PCB->CodeTagsPointer, buffer + offset, sizeof(PCB->CodeTagsPointer));
+	memcpy(&PCB->CodeTagsPointer, buffer + offset,
+			sizeof(PCB->CodeTagsPointer));
 	offset += size_to_recive;
 
 	size_to_recive = sizeof(PCB->StackPointer);

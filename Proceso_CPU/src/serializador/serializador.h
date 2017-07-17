@@ -25,4 +25,6 @@ void deserializar_string(int servidor, t_SerialString* PATH);
 void serializar_pcb(int client, PCB_t* PCB);
 void deserializar_pcb(int servidor, PCB_t* PCB);
 
+void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido);
+
 #endif /* SERIALIZADOR_H_ */

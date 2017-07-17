@@ -42,6 +42,7 @@ uint32_t memoria;
 #define HANDSHAKE_CPU_KERNEL 2
 #define FIN_CORRECTO 3
 #define HANDSHAKE_CPU_MEMORIA 5
+#define SOLICITUD_INSTRUCCION_MEMORIA 6
 
 void ejecutar();
 void connect_server_kernel();
