@@ -27,6 +27,9 @@ PCB_t *pcbActivo;
 
 char *programa;
 
+//Variable que indica si el codigo finalizo
+bool termino_codigo = false;
+
 //TAMANIO DE PAGINA
 uint32_t tamanio_pagina;
 
@@ -64,5 +67,7 @@ void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta);
 void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta);
 void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno);
 void ansi_finalizar (void);
+void ansi_retornar(t_valor_variable retorno);
+
 
 #endif /* PROCESO_CPU_H_ */

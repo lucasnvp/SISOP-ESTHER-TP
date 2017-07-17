@@ -9,6 +9,7 @@ AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
 				ansi_llamarSinRetorno, .AnSISOP_llamarConRetorno =
 				ansi_llamarConRetorno, .AnSISOP_finalizar = ansi_finalizar,
+				.AnSISOP_retornar = ansi_retornar,
 
 };
 
@@ -490,7 +491,7 @@ void ansi_finalizar(void) {
 
 	//Si no hay quiere decir que el programa finalizo.
 	if (list_size(pcbActivo->StackPointer) == 0) {
-		termino = true;
+		termino_codigo = true;
 		log_info(log_Console, "El programa ha finalizado\n");
 
 	} else {
@@ -503,3 +504,30 @@ void ansi_finalizar(void) {
 
 	stack_free(lineaSPActual);
 }
+
+bool codigoFinalizado() {
+	return termino_codigo;
+}
+
+void ansi_retornar(t_valor_variable retorno){
+
+	printf("Soy retornar con este valor: %i\n", retorno);
+
+	//Obtengo registro actual:
+	STACKPOINTER_T *lineaSPActual = list_get(pcbActivo->StackPointer,pcbActivo->StackPointer->elements_count - 1);
+
+	//Obtengo la direccion a la que voy a retornar en base a lo que me indica la dir de retorno del contexto de ejecucion actual
+	t_puntero direccion_retorno = (lineaSPActual->VariableDeRetorno->pagina * tamanio_pagina) + lineaSPActual->VariableDeRetorno->offset;
+
+	ansi_asignar(direccion_retorno, retorno);
+
+}
+
+
+
+
+
+
+
+
+
