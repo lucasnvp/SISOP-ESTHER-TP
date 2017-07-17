@@ -5,6 +5,8 @@ AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_asignar = ansi_asignar, .AnSISOP_dereferenciar =
 				ansi_desreferenciar, .AnSISOP_asignar = asignar,
 		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
+		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
+		.AnSISOP_irAlLabel = ansi_irAlLabel,
 		.AnSISOP_finalizar = finalizarProceso,
 
 };
@@ -399,3 +401,39 @@ t_valor_variable ansi_obtener_valor_compartida(
 	free(variable);
 }
 
+t_valor_variable ansi_asignar_valor_compartida(
+		t_nombre_compartida identificador, t_valor_variable valor) {
+
+	//Le envio el mensaje al Kernel de que necesito actualizar el valor de una variable compartida
+	serializar_int(kernel, ASIGNAR_VAR_COMPARTIDA);
+
+	//Preparo la estructura para serializar el String
+	t_SerialString* variable = malloc(sizeof(t_SerialString));
+	variable->dataString = identificador;
+	variable->sizeString = strlen(identificador);
+
+	//Serializo el string con el nombre de la variable
+	serializar_string(kernel, variable);
+
+	//Serializo el nuevo valor que va a tener la variable compartida
+	serializar_int(kernel, valor);
+
+	return valor;
+
+	free(variable);
+
+}
+
+void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta){
+
+	const char* etiquetas = pcbActivo->CodeTagsPointer->etiquetas;
+	const t_size cant_etiquetas = pcbActivo->CodeTagsPointer->cantidad_de_etiquetas;
+
+	t_puntero_instruccion posicionEtiqueta = metadata_buscar_etiqueta(t_nombre_etiqueta,etiquetas,cant_etiquetas);
+
+	pcbActivo->ProgramCounter = posicionEtiqueta;
+	printf("Cambio el PC a: %d\n", posicionEtiqueta);
+
+	log_info(log_Console,"Se ejecuta primitiva irAlLabel para etiqueta: %s\n", t_nombre_etiqueta);
+	log_info(log_Console,"Cambio el PC a: %s\n", posicionEtiqueta);
+}

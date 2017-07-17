@@ -45,6 +45,7 @@ uint32_t memoria;
 #define SOLICITUD_INSTRUCCION_MEMORIA 6
 #define ASIGNAR_VALOR_A_MEMORIA 7
 #define PEDIDO_VAR_COMPARTIDA 10 // Ver que numero es el que le sirve al kernel
+#define ASIGNAR_VAR_COMPARTIDA 11 // Ver que numero es el que le sirve al kernel
 
 void ejecutar();
 void connect_server_kernel();
@@ -58,5 +59,7 @@ t_puntero ansi_obtenerPosicionVariable(t_nombre_variable identificador_variable)
 void ansi_asignar(t_puntero direccion_variable, t_valor_variable valor);
 t_valor_variable ansi_desreferenciar (t_puntero direccion_variable);
 t_valor_variable ansi_obtener_valor_compartida(t_nombre_compartida identificador);
+t_valor_variable ansi_asignar_valor_compartida(t_nombre_compartida identificador, t_valor_variable valor);
+void ansi_irAlLabel (t_nombre_etiqueta t_nombre_etiqueta);
 
 #endif /* PROCESO_CPU_H_ */
