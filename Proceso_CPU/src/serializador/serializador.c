@@ -39,6 +39,10 @@ void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
 
 }
 
+void deserializar_pedido_memoria(uint32_t servidor, t_pedido_memoria* pedido){
+
+}
+
 void serializar_string(int client, t_SerialString* PATH) {
 	void* ENVIAR = malloc(PATH->sizeString);
 	uint32_t offset = 0;

@@ -22,13 +22,6 @@ typedef struct VARIABLE_T{
 	uint32_t size;
 } VARIABLE_T;
 
-typedef struct pedido_memoria{
-	uint32_t id;
-	uint32_t pagina;
-	uint32_t offset;
-	uint32_t size;
-} t_pedido_memoria;
-
 typedef struct STACKPOINTER_T{
 	t_queue* Argumentos;
 	t_queue* Variables;

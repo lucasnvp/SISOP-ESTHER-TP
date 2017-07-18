@@ -44,3 +44,32 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 
 	free(buffer);
 }
+
+void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
+	void* ENVIAR = malloc(pedido);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	size_to_send = sizeof(pedido->id);
+	memcpy(ENVIAR + offset, &(pedido->id), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->offset);
+	memcpy(ENVIAR + offset, &(pedido->offset), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->pagina);
+	memcpy(ENVIAR + offset, &(pedido->pagina), size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(pedido->size);
+	memcpy(ENVIAR + offset, &(pedido->size), size_to_send);
+	offset += size_to_send;
+
+	send_data(socket, ENVIAR, offset);
+	free(ENVIAR);
+}
+
+void deserializar_pedido_memoria(uint32_t servidor, t_pedido_memoria* pedido){
+
+}
