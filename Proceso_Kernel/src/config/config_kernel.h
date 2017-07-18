@@ -24,7 +24,7 @@ typedef struct ConfigType{
 	uint32_t CANTCONEXIONES;
 } Type_Config;
 
-uint32_t i;
+int i;
 
 Type_Config load_config(char* path);
 void print_config(Type_Config auxConfig);

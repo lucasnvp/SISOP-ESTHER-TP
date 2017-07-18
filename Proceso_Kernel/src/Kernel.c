@@ -106,7 +106,7 @@ void procesarPCB(void* args){
 		char* programa = strdup(PROGRAMA);
 		t_metadata_program* metadata = metadata_desde_literal(programa);
 
-		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, metadata, 0, 0, 0);
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, metadata);
 
 		//Pido Memoria
 		serializar_int(SERVIDOR_MEMORIA, 3);
