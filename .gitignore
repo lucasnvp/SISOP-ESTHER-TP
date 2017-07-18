@@ -1,3 +1,4 @@
+
 # Object files
 *.o
 *.ko
@@ -31,3 +32,23 @@
 # Debug files
 *.dSYM/
 *.su
+/Consola/Debug
+/Proceso_Consola/Debug
+/CPU/Debug
+/Proceso_CPU/Debug
+/FileSystem/Debug
+/Proceso_FileSystem/Debug
+/Kernel/Debug
+/Proceso_Kernel/Debug
+/Memoria/Debug
+/Proceso_Memoria/Debug
+
+/commons/Debug
+/commons/Debug/*
+/ansisop/Debug
+/ansisop/Debug/*
+
+#Eclipse
+.metadata
+RemoteSystemsTempFiles
+Contact GitHub
