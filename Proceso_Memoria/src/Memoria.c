@@ -39,53 +39,51 @@ int main(void) {
 	 imprimirCache();*/
 
 	/*fd_set master;   	// conjunto maestro de descriptores de fichero
-	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
-	uint32_t fdmax;			// número máximo de descriptores de fichero
-	int i;				// variable para el for
-	FD_ZERO(&master);	// borra los conjuntos maestro
-	FD_ZERO(&read_fds);	// borra los conjuntos temporal
+	 fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
+	 uint32_t fdmax;			// número máximo de descriptores de fichero
+	 int i;				// variable para el for
+	 FD_ZERO(&master);	// borra los conjuntos maestro
+	 FD_ZERO(&read_fds);	// borra los conjuntos temporal
 
-	//Creacion del servidor
-	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
-	//El socket esta listo para escuchar
-	if (servidor > 0) {
-		printf("Servidor Memoria Escuchando\n");
-	}
-	FD_SET(servidor, &master);
-	// seguir la pista del descriptor de fichero mayor
-	fdmax = servidor; // por ahora es éste
-	// bucle principal
-	while (1) {
-		// acepto una nueva conexion
+	 //Creacion del servidor
+	 servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
+	 //El socket esta listo para escuchar
+	 if (servidor > 0) {
+	 printf("Servidor Memoria Escuchando\n");
+	 }
+	 FD_SET(servidor, &master);
+	 // seguir la pista del descriptor de fichero mayor
+	 fdmax = servidor; // por ahora es éste
+	 // bucle principal
+	 while (1) {
+	 // acepto una nueva conexion
 
-		for (i = 0; i <= fdmax; i++) {
-			if (FD_ISSET(i, &read_fds)) { // ¡¡tenemos datos!!
-				if (i == servidor) {
-					// acepto una nueva conexion*/
-					uint32_t newfd = accept_conexion(servidor);
-					/*FD_SET(newfd, &master); // añadir al conjunto maestro
-					if (newfd > fdmax) {    // actualizar el máximo
-						fdmax = newfd;
-					}*/
-					pthread_t* hiloConsola = (pthread_t *) malloc(
-							sizeof(pthread_t));
-					pthread_create(hiloConsola, NULL, (void*) crearHilo,
-							(void*) &newfd);
-				/*} else {
-					//Recibo el comando
-					uint32_t command = deserializar_int(i);
+	 for (i = 0; i <= fdmax; i++) {
+	 if (FD_ISSET(i, &read_fds)) { // ¡¡tenemos datos!!
+	 if (i == servidor) {
+	 // acepto una nueva conexion*/
+	uint32_t newfd = accept_conexion(servidor);
+	/*FD_SET(newfd, &master); // añadir al conjunto maestro
+	 if (newfd > fdmax) {    // actualizar el máximo
+	 fdmax = newfd;
+	 }*/
+	pthread_t* hiloConsola = (pthread_t *) malloc(sizeof(pthread_t));
+	pthread_create(hiloConsola, NULL, (void*) crearHilo, (void*) &newfd);
+	/*} else {
+	 //Recibo el comando
+	 uint32_t command = deserializar_int(i);
 
-					// gestionar datos de un cliente
-					if (command <= 0) {
-						close(i); // Close conexion
-						FD_CLR(i, &master); // eliminar del conjunto maestro
-					} else {
-						connection_handler(i, command);
-					}
-				}
-			}
-		}
-	}*/
+	 // gestionar datos de un cliente
+	 if (command <= 0) {
+	 close(i); // Close conexion
+	 FD_CLR(i, &master); // eliminar del conjunto maestro
+	 } else {
+	 connection_handler(i, command);
+	 }
+	 }
+	 }
+	 }
+	 }*/
 	return EXIT_SUCCESS;
 
 }
@@ -513,45 +511,44 @@ void limpiarBufferDeEntrada() {
 }
 void connection_handler(uint32_t socket, uint32_t command) {
 	switch (command) {
-	case 5: { //CPU me pide una instruccion
+	case 5: { //Handshake con CPU
 		serializar_int(socket, MARCO_SIZE); //Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
-		/*t_SerialString* PATH = malloc(sizeof(t_SerialString));
-		deserializar_string(socket, PATH);
-		char * PID = memcpy((void*) PID, (void*) PATH->dataString, 4); //Por convencion los primeros 4 bits son de PID
-		char * posInicio = memcpy((void*) posInicio,
-				(void*) PATH->dataString + 4, 4);
-		char * offSet = memcpy((void*) deserializar_string,
-				(void*) PATH->dataString + 8, 4);
+		break;
+	}
+	case 6: { //CPU me pide una instruccion
 
-		int IPID = convertirCharAInt(PID, 4);
-		int IposInicio = convertirCharAInt(posInicio, 4);
-		int IoffSet = convertirCharAInt(offSet, 4);
+		//Se deserializa el pedido desde el CPU
+		t_pedido_memoria* nuevoPedido = deserializar_pedido_memoria(socket);
 
-		/*tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
-		 t_SerialString * instruccionConvertida;
-		 instruccionConvertida = malloc(sizeof(t_SerialString));
-		 instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
-		 memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
-		 instruccionConvertida->sizeString=instruccion.tamDatos;
+		//Se solicita la instruccion al metodo solicitarBytesPagina
+		char* instruccion = solicitarBytesPagina(nuevoPedido->id,
+				nuevoPedido->pagina, nuevoPedido->offset, nuevoPedido->size);
 
-		 serializar_string(socket,instruccionConvertida);*/
+		//Estructura temporal para serializar la instruccion
+		t_SerialString *data;
+
+		data->dataString = instruccion;
+		data->sizeString = strlen(instruccion);
+
+		//Se serializa la instruccion para enviar al CPU
+		serializar_string(socket, data);
 
 		break;
 	}
-	/**case 10: { //KERNEL me pregunta si hay memoria
-		int cantidadDePaginas = convretirBitsAPAginas();
-		int hayMemoria = hayMemoria(cantidadDePaginas);
-		serializar_int(socket, hayMemoria);
-	}
-	case 15: { //KERNEL me pregunta si hay memoria
-		uint32_t PID;
-		deserializar_int(socket,PID);
-		char * datos;
-		deserializar_string(socket,&datos);
-		asignarPaginasAProceso(PID,sizeof(datos)/MARCO_SIZE);
+		/**case 10: { //KERNEL me pregunta si hay memoria
+		 int cantidadDePaginas = convretirBitsAPAginas();
+		 int hayMemoria = hayMemoria(cantidadDePaginas);
+		 serializar_int(socket, hayMemoria);
+		 }
+		 case 15: { //KERNEL me pregunta si hay memoria
+		 uint32_t PID;
+		 deserializar_int(socket,PID);
+		 char * datos;
+		 deserializar_string(socket,&datos);
+		 asignarPaginasAProceso(PID,sizeof(datos)/MARCO_SIZE);
 
-		serializar_int(socket, hayMemoria);
-	}*/
+		 serializar_int(socket, hayMemoria);
+		 }*/
 	default:
 		printf("Error de comando\n");
 		break;
