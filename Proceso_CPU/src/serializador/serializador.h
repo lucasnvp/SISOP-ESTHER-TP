@@ -32,6 +32,6 @@ void serializar_pcb(int client, PCB_t* PCB);
 void deserializar_pcb(int servidor, PCB_t* PCB);
 
 void serializar_pedido_memoria(uint32_t cliente, t_pedido_memoria* pedido);
-void deserializar_pedido_memoria(uint32_t servidor, t_pedido_memoria* pedido);
+t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor);
 
 #endif /* SERIALIZADOR_H_ */

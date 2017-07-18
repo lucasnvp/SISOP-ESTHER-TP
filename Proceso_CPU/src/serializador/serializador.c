@@ -13,8 +13,9 @@ uint32_t deserializar_int(uint32_t socket) {
 	return aux;
 }
 
-void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
-	void* ENVIAR = malloc(pedido);
+void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria* pedido) {
+	uint32_t datos_size = sizeof(t_pedido_memoria);
+	void* ENVIAR = malloc(datos_size);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
@@ -39,8 +40,33 @@ void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria *pedido) {
 
 }
 
-void deserializar_pedido_memoria(uint32_t servidor, t_pedido_memoria* pedido){
+t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor){
+	t_pedido_memoria* pedido = malloc(sizeof(t_pedido_memoria));
+	uint32_t buffer_size = sizeof(t_pedido_memoria);
+	void* buffer = malloc(buffer_size);
+	uint32_t offset = 0;
+	uint32_t size_to_recive;
 
+	recive_data(servidor, buffer, buffer_size);
+
+	size_to_recive = sizeof(char);
+	memcpy(&pedido->id, buffer + offset, sizeof(pedido->id));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(pedido->pagina);
+	memcpy(&pedido->pagina, buffer + offset, sizeof(pedido->pagina));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(pedido->offset);
+	memcpy(&pedido->offset, buffer + offset, sizeof(pedido->offset));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(pedido->size);
+	memcpy(&pedido->size, buffer + offset, sizeof(pedido->size));
+	offset += size_to_recive;
+
+	free(buffer);
+	return pedido;
 }
 
 void serializar_string(int client, t_SerialString* PATH) {
