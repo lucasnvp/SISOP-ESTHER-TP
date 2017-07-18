@@ -7,7 +7,6 @@
 #include <parser/parser.h>
 #include <parser/metadata_program.h>
 #include "servidor/servidor.h"
-#include "primitivas/ansisop_primitivas.h"
 #include "config/config_CPU.h"
 #include "serializador/serializador.h"
 #include "pcb/pcb.h"
@@ -68,6 +67,7 @@ void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta);
 void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno);
 void ansi_finalizar (void);
 void ansi_retornar(t_valor_variable retorno);
+void kernel_wait();
 
 
 #endif /* PROCESO_CPU_H_ */

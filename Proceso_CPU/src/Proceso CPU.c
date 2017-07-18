@@ -3,7 +3,7 @@
 AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_obtenerPosicionVariable = ansi_obtenerPosicionVariable,
 		.AnSISOP_asignar = ansi_asignar, .AnSISOP_dereferenciar =
-				ansi_desreferenciar, .AnSISOP_asignar = asignar,
+				ansi_desreferenciar,
 		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
 		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
 		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
@@ -520,6 +520,11 @@ void ansi_retornar(t_valor_variable retorno){
 	t_puntero direccion_retorno = (lineaSPActual->VariableDeRetorno->pagina * tamanio_pagina) + lineaSPActual->VariableDeRetorno->offset;
 
 	ansi_asignar(direccion_retorno, retorno);
+
+}
+
+void kernel_wait(){
+
 
 }
 
