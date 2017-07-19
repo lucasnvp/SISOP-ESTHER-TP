@@ -6,7 +6,7 @@ PCB_t* PCB_new_pointer(	uint32_t PID, uint32_t PageCode, t_metadata_program * Co
 	unPCB->ProgramCounter = 0;
 	unPCB->PageCode = PageCode;
 	unPCB->CodeTagsPointer = CodePointer;
-	unPCB->StackPointer = queue_create();
+	unPCB->StackPointer = list_create();
 	unPCB->ExitCode = 0;
 	return unPCB;
 }
@@ -35,13 +35,12 @@ void print_PCB(PCB_t* auxPCB){
 		printf("-Cantidad de funciones: %d\n", auxPCB->CodeTagsPointer->cantidad_de_funciones);
 		printf("-Cantidad de etiquetas: %d\n", auxPCB->CodeTagsPointer->cantidad_de_etiquetas);
 
-	printf("StackPointer: %d\n", queue_size(auxPCB->StackPointer));
-	sizePila = queue_size(auxPCB->StackPointer);
-	for(i=0;i < sizePila;i++){
+	printf("StackPointer: %d\n", list_size(auxPCB->StackPointer));
+	sizeStack = list_size(auxPCB->StackPointer);
+	for(i=0;i < sizeStack;i++){
 		printf("Line StackPointer: %d\n", i);
-		STACKPOINTER_T * lineSP = queue_pop(auxPCB->StackPointer);
+		STACKPOINTER_T * lineSP = list_get(auxPCB->StackPointer,i);
 		print_LineStack(lineSP);
-		queue_push(auxPCB->StackPointer,lineSP);
 	}
 	printf("ExitCode: %d\n",auxPCB->ExitCode);
 }
@@ -74,7 +73,7 @@ void variable_free(VARIABLE_T* this){
 	free(this);
 }
 
-STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
+STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
 	STACKPOINTER_T * unStack = malloc(sizeof(STACKPOINTER_T));
 	unStack->Argumentos = Argumentos;
 	unStack->Variables = Variables;
@@ -87,15 +86,6 @@ void stack_free(STACKPOINTER_T* this){
 	free(this);
 }
 
-void push_stack(PCB_t* pcb, STACKPOINTER_T* unStack){
-	queue_push(pcb->StackPointer, unStack);
-}
-
-STACKPOINTER_T * pull_stack(PCB_t* pcb){
-	return queue_pop(pcb->StackPointer);
-}
-
-
 void print_variable(VARIABLE_T* auxVariable){
 	printf("--ID: %c\n",auxVariable->id);
 	printf("--Pagina: %d\n",auxVariable->pagina);
@@ -105,30 +95,31 @@ void print_variable(VARIABLE_T* auxVariable){
 
 void print_LineStack(STACKPOINTER_T* auxStackPointer){
 	if(auxStackPointer->Argumentos != NULL){
-		printf("-Argumentos: %d\n", queue_size(auxStackPointer->Argumentos));
-		sizePila = queue_size(auxStackPointer->Argumentos);
-		for(i=0;i < sizePila;i++){
+		printf("-Argumentos: %d\n", list_size(auxStackPointer->Argumentos));
+		int sizeArgs = list_size(auxStackPointer->Argumentos);
+		for(i=0;i < sizeArgs; i++){
 			printf("-Argumento: %d\n", i);
-			VARIABLE_T * varArg = queue_pop(auxStackPointer->Argumentos);
+			VARIABLE_T * varArg = list_get(auxStackPointer->Argumentos,i);
 			print_variable(varArg);
-			queue_push(auxStackPointer->Argumentos,varArg);
 		}
 	} else{
 		printf("-Argumentos: NULL\n");
 	}
+
 	if(auxStackPointer->Variables != NULL){
-		printf("-Variables: %d\n", queue_size(auxStackPointer->Variables));
-		sizePila = queue_size(auxStackPointer->Variables);
-		for(i=0;i < sizePila;i++){
+		printf("-Variables: %d\n", list_size(auxStackPointer->Variables));
+		int sizeVars = list_size(auxStackPointer->Variables);
+		for(i=0;i < sizeVars;i++){
 			printf("-Variable: %d\n", i);
-			VARIABLE_T * varVariable = queue_pop(auxStackPointer->Variables);
+			VARIABLE_T * varVariable = list_get(auxStackPointer->Variables,i);
 			print_variable(varVariable);
-			queue_push(auxStackPointer->Variables,varVariable);
 		}
 	} else{
 		printf("-Variables: NULL\n");
 	}
+
 	printf("-Direccion de retorno: %d\n", auxStackPointer->DireccionDeRetorno);
+
 	if(auxStackPointer->VariableDeRetorno != NULL){
 		printf("-Variable de retorno\n");
 		print_variable(auxStackPointer->VariableDeRetorno);

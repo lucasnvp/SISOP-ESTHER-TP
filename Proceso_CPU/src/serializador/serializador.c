@@ -40,7 +40,7 @@ void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria* pedido) {
 
 }
 
-t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor){
+t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor) {
 	t_pedido_memoria* pedido = malloc(sizeof(t_pedido_memoria));
 	uint32_t buffer_size = sizeof(t_pedido_memoria);
 	void* buffer = malloc(buffer_size);
@@ -89,13 +89,12 @@ void serializar_string(int client, t_SerialString* PATH) {
 void deserializar_string(int servidor, t_SerialString* PATH) {
 	uint32_t buffer_size;
 	void* buffer = malloc(buffer_size = sizeof(uint32_t));
-
-	//---------------------
+//---------------------
 	recive_data(servidor, buffer, sizeof(PATH->sizeString));
 	memcpy(&PATH->sizeString, buffer, buffer_size);
 	PATH->dataString = (char*) malloc(sizeof(char) * PATH->sizeString);
 	recive_data(servidor, PATH->dataString, PATH->sizeString);
-	//---------------------
+//---------------------
 
 }
 

@@ -73,7 +73,7 @@ void variable_free(VARIABLE_T* this){
 	free(this);
 }
 
-STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
+STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
 	STACKPOINTER_T * unStack = malloc(sizeof(STACKPOINTER_T));
 	unStack->Argumentos = Argumentos;
 	unStack->Variables = Variables;
@@ -85,15 +85,6 @@ STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t Dire
 void stack_free(STACKPOINTER_T* this){
 	free(this);
 }
-
-void push_stack(PCB_t* pcb, STACKPOINTER_T* unStack){
-	queue_push(pcb->StackPointer, unStack);
-}
-
-STACKPOINTER_T * pull_stack(PCB_t* pcb){
-	return queue_pop(pcb->StackPointer);
-}
-
 
 void print_variable(VARIABLE_T* auxVariable){
 	printf("--ID: %c\n",auxVariable->id);
@@ -136,4 +127,3 @@ void print_LineStack(STACKPOINTER_T* auxStackPointer){
 		printf("-Variable de retorno: NULL\n");
 	}
 }
-

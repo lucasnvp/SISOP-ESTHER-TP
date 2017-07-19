@@ -7,7 +7,6 @@
 #include <parser/parser.h>
 #include <parser/metadata_program.h>
 #include "servidor/servidor.h"
-#include "primitivas/ansisop_primitivas.h"
 #include "config/config_CPU.h"
 #include "serializador/serializador.h"
 #include "pcb/pcb.h"
@@ -27,6 +26,9 @@ PCB_t *pcbActivo;
 
 char *programa;
 
+//Variable que indica si el codigo finalizo
+bool termino_codigo = false;
+
 //TAMANIO DE PAGINA
 uint32_t tamanio_pagina;
 
@@ -43,13 +45,31 @@ uint32_t memoria;
 #define FIN_CORRECTO 3
 #define HANDSHAKE_CPU_MEMORIA 5
 #define SOLICITUD_INSTRUCCION_MEMORIA 6
+#define ASIGNAR_VALOR_A_MEMORIA 7
+#define PEDIDO_VAR_COMPARTIDA 10 // Ver que numero es el que le sirve al kernel
+#define ASIGNAR_VAR_COMPARTIDA 11 // Ver que numero es el que le sirve al kernel
+#define KERNEL_WAIT 15 //Ver que numero le sirve al Kernel
 
 void ejecutar();
 void connect_server_kernel();
 void connect_server_memoria();
 char* const solicitarInstruccionAMemoria();
+void enviarDatoAMemoria(uint32_t pagina, uint32_t offset, uint32_t size);
 void connection_handler(uint32_t socket, uint32_t command);
 void init_log(char* pathLog);
 t_puntero ansi_definirVariable(t_nombre_variable identificador_variable);
+t_puntero ansi_obtenerPosicionVariable(t_nombre_variable identificador_variable);
+void ansi_asignar(t_puntero direccion_variable, t_valor_variable valor);
+t_valor_variable ansi_desreferenciar(t_puntero direccion_variable);
+t_valor_variable ansi_obtener_valor_compartida(
+		t_nombre_compartida identificador);
+t_valor_variable ansi_asignar_valor_compartida(
+		t_nombre_compartida identificador, t_valor_variable valor);
+void ansi_irAlLabel(t_nombre_etiqueta t_nombre_etiqueta);
+void ansi_llamarSinRetorno(t_nombre_etiqueta etiqueta);
+void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno);
+void ansi_finalizar(void);
+void ansi_retornar(t_valor_variable retorno);
+void kernel_wait();
 
 #endif /* PROCESO_CPU_H_ */

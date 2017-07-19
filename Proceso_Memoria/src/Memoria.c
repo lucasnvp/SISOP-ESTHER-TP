@@ -1,7 +1,4 @@
-
 #include "Memoria.h"
-
-
 
 int main(void) {
 	puts("Proceso Memoria");
@@ -12,26 +9,26 @@ int main(void) {
 
 	inicializarMemoria();
 
-	inicializarPrograma(1,1);
-	 inicializarPrograma(2,1);
-	 inicializarPrograma(3,4);
-	 almacenarBytesPagina(1,0,0,5,"hola");
-	 almacenarBytesPagina(1,0,4,6," pepe");
-	 almacenarBytesPagina(2,0,0,5,"chau");
-	 almacenarBytesPagina(3,0,0,5,"1");
-	 almacenarBytesPagina(3,1,0,5,"2");
-	 almacenarBytesPagina(3,2,0,5,"3");
-	 almacenarBytesPagina(3,3,0,5,"4");
-	 /*printf("\n");
+	inicializarPrograma(1, 1);
+	inicializarPrograma(2, 1);
+	inicializarPrograma(3, 4);
+	almacenarBytesPagina(1, 0, 0, 5, "hola");
+	almacenarBytesPagina(1, 0, 4, 6, " pepe");
+	almacenarBytesPagina(2, 0, 0, 5, "chau");
+	almacenarBytesPagina(3, 0, 0, 5, "1");
+	almacenarBytesPagina(3, 1, 0, 5, "2");
+	almacenarBytesPagina(3, 2, 0, 5, "3");
+	almacenarBytesPagina(3, 3, 0, 5, "4");
+	/*printf("\n");
 	 imprimirCache();*/
+
 	lanzoHiloConsolaComandos();
-	sem_init(&SEM_hiloServidor,0,0);
+	sem_init(&SEM_hiloServidor, 0, 0);
 	inicializoServidor();
+
 	return EXIT_SUCCESS;
 
 }
-
-
 
 void inicializarMemoria() {
 
@@ -45,7 +42,7 @@ void inicializarMemoria() {
 	int aux[3];
 	aux[N_PID] = -1;
 
-	//Inicializo en memoria tabla que va a dar informacion de los procesos de sistema
+//Inicializo en memoria tabla que va a dar informacion de los procesos de sistema
 	for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++) {
 		aux[N_PAGINA] = i;
 		aux[N_FRAME] = i;
@@ -54,7 +51,7 @@ void inicializarMemoria() {
 	}
 	aux[N_PAGINA] = 0;
 	aux[N_PID] = 0;
-	//Inicializo en memoria siguiente parte de tabla que va a dar informacion de los procesos de usuario
+//Inicializo en memoria siguiente parte de tabla que va a dar informacion de los procesos de usuario
 	for (i = 0; i < MARCOS - cantMarcosOcupaMemoriaAdm; i++) {
 		aux[N_FRAME] = i + cantMarcosOcupaMemoriaAdm;
 		memcpy(
@@ -80,7 +77,7 @@ int agregarDatosTablaEPI(int PID, int nPagina) {
 	int info[3];
 	info[N_PID] = PID;
 	info[N_PAGINA] = nPagina;
-	//Busco si hay marcos Libres
+//Busco si hay marcos Libres
 	for (i = 0; i < tablaEPI.filas && !pudeEscribirTabla; i++) {
 		if (tablaEPI.matriz[i][N_PID] == 0
 				&& tablaEPI.matriz[i][N_PAGINA] == 0) {
@@ -157,7 +154,7 @@ int framesDisponibles() {
 
 	int i;
 	int framesDisponibles = 0;
-	//Busco si hay marcos Libres
+//Busco si hay marcos Libres
 	for (i = 0; i < tablaEPI.filas; i++) {
 		if (tablaEPI.matriz[i][N_PID] == 0
 				&& tablaEPI.matriz[i][N_PAGINA] == 0) {
@@ -245,18 +242,15 @@ int almacenarBytesPagina(int PID, int pagina, int offset, int size,
 	int encontrePagina = 0;
 	int frame;
 
-		frame = obtenerFrame(PID,pagina);
+	frame = obtenerFrame(PID, pagina);
 
-
-
-		memcpy(bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE + offset, buffer, size);
-		encontrePagina = 1;
-		if (estaLaPaginaEnCache(PID, pagina))
-		{
-			actualizoCache(PID, pagina, tablaEPI.matriz[frame][N_FRAME]);
-		}
-
-
+	memcpy(
+			bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE
+					+ offset, buffer, size);
+	encontrePagina = 1;
+	if (estaLaPaginaEnCache(PID, pagina)) {
+		actualizoCache(PID, pagina, tablaEPI.matriz[frame][N_FRAME]);
+	}
 
 	return encontrePagina;
 }
@@ -268,23 +262,21 @@ int finalizarPrograma(int PID) {
 	return borrarDatosTablaEPI(PID);
 }
 
-int paginasQueOcupaProceso(int PID)
-{
+int paginasQueOcupaProceso(int PID) {
 	int i;
-	int paginas=0;
-		for (i = 0; i < tablaEPI.filas; i++) {
-			if (tablaEPI.matriz[i][N_PID]==PID)
-			{
-				paginas++;
-			}
-
+	int paginas = 0;
+	for (i = 0; i < tablaEPI.filas; i++) {
+		if (tablaEPI.matriz[i][N_PID] == PID) {
+			paginas++;
 		}
-		return paginas;
+
+	}
+	return paginas;
 }
 
 void inicializarCache() {
 
-	adminCache = malloc (sizeof(t_cacheHandler)*ENTRADAS_CACHE);
+	adminCache = malloc(sizeof(t_cacheHandler) * ENTRADAS_CACHE);
 	int i;
 	for (i = 0; i < ENTRADAS_CACHE; i++) {
 		adminCache[i].tiempoEnCache = 0;
@@ -311,42 +303,40 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 	int encontrePagina = 0;
 	incrementarEnUnoTiempoEnCache();
 
-
 	for (i = 0; i < ENTRADAS_CACHE && !encontreEnCache; i++) //Busco en cache primero
-	{
-		if (adminCache[i].memoriaCache.nPagina == pagina && adminCache[i].memoriaCache.PID == PID)
-		{
+			{
+		if (adminCache[i].memoriaCache.nPagina == pagina
+				&& adminCache[i].memoriaCache.PID == PID) {
 			aux = malloc(size);
 			memcpy(aux, &adminCache[i].memoriaCache.contenido[offset], size);
 			encontreEnCache = 1;
 		}
 	}
 
-
-
-	if(!encontreEnCache)
-	{
-		int frame = obtenerFrame(PID,pagina);
+	if (!encontreEnCache) {
+		int frame = obtenerFrame(PID, pagina);
 		aux = malloc(size);
-		memcpy(aux,bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE+ offset, size);
+		memcpy(aux,
+				bloque_Memoria + tablaEPI.matriz[frame][N_FRAME] * MARCO_SIZE
+						+ offset, size);
 		encontrePagina = 1;
 		actualizoCache(PID, pagina, tablaEPI.matriz[frame][N_FRAME]);
 	}
 	/*printf("el frame traido por la funcion es:%d\n",frame);*/
 
-	//Busco en memoria y lo traigo a cache VIEJO
+//Busco en memoria y lo traigo a cache VIEJO
 	/*for (i = cantMarcosOcupaMemoriaAdm;
-			i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
-		if (PID == tablaEPI.matriz[i][N_PID]
-				&& pagina == tablaEPI.matriz[i][N_PAGINA]) {
-			aux = malloc(size);
-			memcpy(aux,
-					bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
-							+ offset, size);
-			encontrePagina = 1;
-			actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
-		}
-	}*/
+	 i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
+	 if (PID == tablaEPI.matriz[i][N_PID]
+	 && pagina == tablaEPI.matriz[i][N_PAGINA]) {
+	 aux = malloc(size);
+	 memcpy(aux,
+	 bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
+	 + offset, size);
+	 encontrePagina = 1;
+	 actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
+	 }
+	 }*/
 
 	return aux;
 }
@@ -414,16 +404,15 @@ void actualizoCache(int PID, int pagina, int nFrame) {
 		}
 	}
 }
-void borrarCache()
-{
+void borrarCache() {
 	int i;
-		for (i = 0; i < ENTRADAS_CACHE; i++) {
+	for (i = 0; i < ENTRADAS_CACHE; i++) {
 
-					adminCache[i].memoriaCache.PID = 0;
-					adminCache[i].memoriaCache.nPagina=0;
-					adminCache[i].tiempoEnCache=0;
-					adminCache[i].memoriaCache.contenido[0]=NULL;
-		}
+		adminCache[i].memoriaCache.PID = 0;
+		adminCache[i].memoriaCache.nPagina = 0;
+		adminCache[i].tiempoEnCache = 0;
+		adminCache[i].memoriaCache.contenido[0] = NULL;
+	}
 }
 
 void imprimirCache() {
@@ -460,16 +449,15 @@ int quitarProgramaDeCache(int PID) {
 	}
 
 }
-void lanzoHiloConsolaComandos()
-{
+void lanzoHiloConsolaComandos() {
 
-	 		pthread_t* cons = (pthread_t *) malloc(sizeof(pthread_t));
-			pthread_create(cons, NULL, (void*) consola, NULL);
-			free(cons);
+	pthread_t* cons = (pthread_t *) malloc(sizeof(pthread_t));
+	pthread_create(cons, NULL, (void*) consola, NULL);
+	free(cons);
 
 }
 bool consola() {
-	//Mensaje
+//Mensaje
 	char* mensaje = (char *) malloc(sizeof(char) * 1000);
 	int salir = 0;
 
@@ -479,107 +467,114 @@ bool consola() {
 		if (strcmp(mensaje, "")) {
 			char* comando = strtok(mensaje, " ");
 			char* argumento = strtok(NULL, " ");
-			char* argumento2=strtok(NULL, " ");
+			char* argumento2 = strtok(NULL, " ");
 			int numero;
 			if (!strcmp(comando, "exit"))
 				salir = 1;
 			else if (!strcmp(comando, "clean"))
 				system("clear");
-			else if (!strcmp(comando, "size") && !strcmp(argumento, "mem"))
-			{
+			else if (!strcmp(comando, "size") && !strcmp(argumento, "mem")) {
 
-				int fd=framesDisponibles();
+				int fd = framesDisponibles();
 
-				int fo=MARCOS - fd;
+				int fo = MARCOS - fd;
 
-				printf("El tamaño de memoria es de %d Frames \n",MARCOS);
-				printf("Hay %d Frames ocupados\n",fo);
-				 printf("Hay %d Frames libres\n",fd);
-			}
-			else if (!strcmp(comando, "size") && !strcmp(argumento, "PID"))
-			{
-				if(argumento2 == NULL)
-					{
-						printf("Falta el numero de PID\n ");
-					}
+				printf("El tamaño de memoria es de %d Frames \n", MARCOS);
+				printf("Hay %d Frames ocupados\n", fo);
+				printf("Hay %d Frames libres\n", fd);
+			} else if (!strcmp(comando, "size") && !strcmp(argumento, "PID")) {
+				if (argumento2 == NULL) {
+					printf("Falta el numero de PID\n ");
+				}
 
+				if (argumento2 != NULL) {
+					numero = convertirCharAInt(argumento2, strlen(argumento2));
+					int cantPaginas = paginasQueOcupaProceso(numero);
 
-					if(argumento2!=NULL)
-					{
-						numero = convertirCharAInt(argumento2,strlen(argumento2));
-						int cantPaginas=paginasQueOcupaProceso(numero);
+					if (cantPaginas == 0)
+						printf("El proceso con PID %d no existe en memoria \n",
+								numero);
+					else {
 
-						if(cantPaginas==0)
-							printf("El proceso con PID %d no existe en memoria \n",numero);
-						else{
-
-						printf("El proceso con PID %d ocupa %d paginas de memoria \n",numero,cantPaginas);
-						}
-					}
-
-			}
-			else if (!strcmp(comando, "flush")&& !strcmp(argumento, "cache"))//TODO: Falta
-					{
-						 borrarCache();
-					}
-			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "cache"))//TODO: Falta
-			{
-				 imprimirCache();
-			}
-			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "estructMem"))//TODO: Falta
-			{
-				imprimirEPI();
-			}
-			else if (!strcmp(comando, "dump")&& !strcmp(argumento, "contMem"))//TODO: Falta
-			{
-
-				if(argumento2!=NULL)
-				{
-				numero = convertirCharAInt(argumento2,strlen(argumento2));
-				int i;
-				int paginas=0;
-				int encontreProceso=0;
-				char * contenido;
-					for (i = 0; i < tablaEPI.filas; i++)
-					{
-						if (tablaEPI.matriz[i][N_PID]==numero)
-						{
-							encontreProceso=1;
-							contenido= solicitarBytesPagina(numero,tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
-							printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],numero,contenido);
-						}
-
-					}
-					if (!encontreProceso)
-					{
-						printf("El proceso con PID %d no existe en memoria \n",numero);
+						printf(
+								"El proceso con PID %d ocupa %d paginas de memoria \n",
+								numero, cantPaginas);
 					}
 				}
-				else
-				{
+
+			} else if (!strcmp(comando, "flush") && !strcmp(argumento, "cache")) //TODO: Falta
+					{
+				borrarCache();
+			} else if (!strcmp(comando, "dump") && !strcmp(argumento, "cache")) //TODO: Falta
+					{
+				imprimirCache();
+			} else if (!strcmp(comando, "dump")
+					&& !strcmp(argumento, "estructMem")) //TODO: Falta
+							{
+				imprimirEPI();
+			} else if (!strcmp(comando, "dump")
+					&& !strcmp(argumento, "contMem")) //TODO: Falta
+							{
+
+				if (argumento2 != NULL) {
+					numero = convertirCharAInt(argumento2, strlen(argumento2));
 					int i;
-					int paginas=0;
+					int paginas = 0;
+					int encontreProceso = 0;
 					char * contenido;
-					int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS) + MARCO_SIZE- 1) / MARCO_SIZE;
+					for (i = 0; i < tablaEPI.filas; i++) {
+						if (tablaEPI.matriz[i][N_PID] == numero) {
+							encontreProceso = 1;
+							contenido = solicitarBytesPagina(numero,
+									tablaEPI.matriz[i][N_PAGINA], 0,
+									MARCO_SIZE);
+							printf(
+									"En el frame %d, pagina %d y PID %d el contenido es:%s \n",
+									tablaEPI.matriz[i][N_FRAME],
+									tablaEPI.matriz[i][N_PAGINA], numero,
+									contenido);
+						}
 
-					for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++)
-					{
-
-							printf("En el frame %d, pagina %d y PID %d el contenido es: MEMORIA ADMINISTRATIVA \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID]);
 					}
-					for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas; i++)
-					{
-					contenido= solicitarBytesPagina(tablaEPI.matriz[i][N_PID],tablaEPI.matriz[i][N_PAGINA],0,MARCO_SIZE);
-					printf("En el frame %d, pagina %d y PID %d el contenido es:%s \n",tablaEPI.matriz[i][N_FRAME],tablaEPI.matriz[i][N_PAGINA],tablaEPI.matriz[i][N_PID],contenido);
+					if (!encontreProceso) {
+						printf("El proceso con PID %d no existe en memoria \n",
+								numero);
+					}
+				} else {
+					int i;
+					int paginas = 0;
+					char * contenido;
+					int cantMarcosOcupaMemoriaAdm = ((sizeof(int*) * 3 * MARCOS)
+							+ MARCO_SIZE - 1) / MARCO_SIZE;
+
+					for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++) {
+
+						printf(
+								"En el frame %d, pagina %d y PID %d el contenido es: MEMORIA ADMINISTRATIVA \n",
+								tablaEPI.matriz[i][N_FRAME],
+								tablaEPI.matriz[i][N_PAGINA],
+								tablaEPI.matriz[i][N_PID]);
+					}
+					for (i = cantMarcosOcupaMemoriaAdm; i < tablaEPI.filas;
+							i++) {
+						contenido = solicitarBytesPagina(
+								tablaEPI.matriz[i][N_PID],
+								tablaEPI.matriz[i][N_PAGINA], 0, MARCO_SIZE);
+						printf(
+								"En el frame %d, pagina %d y PID %d el contenido es:%s \n",
+								tablaEPI.matriz[i][N_FRAME],
+								tablaEPI.matriz[i][N_PAGINA],
+								tablaEPI.matriz[i][N_PID], contenido);
 					}
 
 				}
 			}
 
 			else
-				printf("Comando incorrecto. Pruebe retardo milisegundos | dump cache | dump estructMem | dump contMem PID | flush cache | size mem | size PID | exit | clean\n");
+				printf(
+						"Comando incorrecto. Pruebe retardo milisegundos | dump cache | dump estructMem | dump contMem PID | flush cache | size mem | size PID | exit | clean\n");
 
-			argumento2=NULL;
+			argumento2 = NULL;
 		}
 		strcpy(mensaje, "");
 		limpiarBufferDeEntrada();
@@ -593,174 +588,157 @@ void limpiarBufferDeEntrada() {
 	}
 }
 
-
 void hiloConexion(uint32_t * newfd) {
 	uint32_t command;
 
-		while(1){
+	while (1) {
 
+		command = deserializar_int(newfd);
 
-			command=deserializar_int(newfd);
+		if (command == KERNEL && kernelConectado) {
+			while (deserializar_int(newfd))
+				command = -1;
+			printf("ERROR: No se puede conectar mas de un kernel");
+			pthread_exit(NULL);
 
+		}
+		if (command == KERNEL && !kernelConectado) {
 
-			if(command==KERNEL && kernelConectado)
-			{
-				while(deserializar_int(newfd))
-				command=-1;
-				printf("ERROR: No se puede conectar mas de un kernel");
-				pthread_exit(NULL);
-
-			}
-			if(command==KERNEL && !kernelConectado)
-			{
-
-				kernelConectado=1;
-
-			}
-
-
-			if ( command>0 && command!=KERNEL && command!=BLOQUEADO)//command!=BLOQUEADO &&
-			{
-
-			connection_handler(newfd, command);
-
-			}
-
-			if(command<=0)
-			{
-			conexionesActivas--;
-			 pthread_exit(NULL);
-			}
-
-
-			//sem_wait(&SEM_hiloServidor);
+			kernelConectado = 1;
 
 		}
 
+		if (command > 0 && command != KERNEL && command != BLOQUEADO) //command!=BLOQUEADO &&
+		{
+
+			connection_handler(newfd, command);
+
+		}
+
+		if (command <= 0) {
+			conexionesActivas--;
+			pthread_exit(NULL);
+		}
+
+		//sem_wait(&SEM_hiloServidor);
+
+	}
+
 }
 
-
-
 void inicializoServidor() {
-
-	kernelConectado=0;
-	conexionesActivas=0;
+	kernelConectado = 0;
+	conexionesActivas = 0;
 	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
-	//El socket esta listo para escuchar
+//El socket esta listo para escuchar
 	if (servidor > 0) {
 		printf("Servidor Memoria Escuchando\n");
 	}
-	int yaAcepteKernel=0;
+	int yaAcepteKernel = 0;
 	while (1) {
-	uint32_t newfd;
+		uint32_t newfd;
 
-			newfd = accept_conexion(servidor);
-			if(newfd && conexionesActivas<=config.CANTCONEXIONES){
+		newfd = accept_conexion(servidor);
+		if (newfd && conexionesActivas <= config.CANTCONEXIONES) {
 			conexionesActivas++;
-	 		pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
+			pthread_t* hilo = (pthread_t *) malloc(sizeof(pthread_t));
 			pthread_create(hilo, NULL, (void*) hiloConexion, (void*) newfd);
 			free(hilo);
-			}
+		}
 
 	}
 }
+
 void connection_handler(uint32_t socket, uint32_t command) {
 
 	switch (command) {
 
-	case 100:{
+	case 100: {
 		printf("Conectado con KERNEL \n");
 
 		break;
 	}
-	case 3:{
+	case 3: {
 
-			int hayMemoria=0;
-			int memoriaRequerida=0;
-			int cantPaginas;
-			memoriaRequerida=deserializar_int(socket);
-			if(memoriaRequerida%MARCO_SIZE!=0)
-				cantPaginas=(memoriaRequerida/MARCO_SIZE)+1;
-			else
-				cantPaginas=(memoriaRequerida/MARCO_SIZE);
+		int hayMemoria = 0;
+		int memoriaRequerida = 0;
+		int cantPaginas;
+		memoriaRequerida = deserializar_int(socket);
+		if (memoriaRequerida % MARCO_SIZE != 0)
+			cantPaginas = (memoriaRequerida / MARCO_SIZE) + 1;
+		else
+			cantPaginas = (memoriaRequerida / MARCO_SIZE);
 
-			if (cantPaginas<=framesDisponibles())
-			{
-				hayMemoria=1;
-				 //printf("Me pidieron memoria, y hay.");
-			}
-			serializar_int(socket,hayMemoria);
-			break;
-
+		if (cantPaginas <= framesDisponibles()) {
+			hayMemoria = 1;
+			//printf("Me pidieron memoria, y hay.");
 		}
-	case 4:{
-		        //printf("Voy a reservar ese espacio\n");
-		        t_SerialString* cadena = malloc(sizeof(t_SerialString));
-				int largoCadena;
-				int cantPaginas;
-				int i;
+		serializar_int(socket, hayMemoria);
+		break;
 
-				int PID=deserializar_int(socket);
-				//printf("El pid que voy a asignar es: %d\n",PID);
-				deserializar_string(socket,cadena);
+	}
+	case 4: {
+		//printf("Voy a reservar ese espacio\n");
+		t_SerialString* cadena = malloc(sizeof(t_SerialString));
+		int largoCadena;
+		int cantPaginas;
+		int i;
 
+		int PID = deserializar_int(socket);
+		//printf("El pid que voy a asignar es: %d\n",PID);
+		deserializar_string(socket, cadena);
 
-				largoCadena=cadena->sizeString;
+		largoCadena = cadena->sizeString;
 
-				//printf("El largo de la cadena es: %d\n",largoCadena);
+		//printf("El largo de la cadena es: %d\n",largoCadena);
 
+		if (largoCadena > 0) {
+			if (largoCadena % MARCO_SIZE != 0)
+				cantPaginas = (largoCadena / MARCO_SIZE) + 1;
+			else
+				cantPaginas = (largoCadena / MARCO_SIZE);
 
+			inicializarPrograma(PID, cantPaginas);
 
-				if(largoCadena>0)
-				{
-					if(largoCadena%MARCO_SIZE!=0)
-						cantPaginas=(largoCadena/MARCO_SIZE)+1;
-					else
-						cantPaginas=(largoCadena/MARCO_SIZE);
+			for (i = 0; i < cantPaginas; i++)
+				almacenarBytesPagina(PID, i, 0, MARCO_SIZE,
+						cadena->dataString + i * MARCO_SIZE);
+		}
+		free(cadena);
+		serializar_int(socket, cantPaginas);
+		//solicitarBytesPagina(PID,0,0,largoCadena);
+		//printf("La cadena es: %s\n",cadena->dataString);
+		break;
 
-					inicializarPrograma(PID,cantPaginas);
-
-
-					for (i=0;i<cantPaginas;i++)
-						almacenarBytesPagina(PID,i,0,MARCO_SIZE,cadena->dataString+i*MARCO_SIZE);
-				}
-				free(cadena);
-				serializar_int(socket,cantPaginas);
-				//solicitarBytesPagina(PID,0,0,largoCadena);
-				//printf("La cadena es: %s\n",cadena->dataString);
-				break;
-
-			}
+	}
 	case 5: { //CPU me pide una instruccion
 		serializar_int(socket, MARCO_SIZE); //Le respondo que le doy memoria => voy a esperar un mensaje que me va a decir PID,Inicio y offset para poder devolver
 		printf("Conectado con CPU \n\n> ");
 		fflush(stdout);
 
-		/*t_SerialString* PATH = malloc(sizeof(t_SerialString));
-		deserializar_string(socket, PATH);
-		char * PID = memcpy((void*) PID, (void*) PATH->dataString, 4); //Por convencion los primeros 4 bits son de PID
-		char * posInicio = memcpy((void*) posInicio,
-				(void*) PATH->dataString + 4, 4);
-		char * offSet = memcpy((void*) deserializar_string,
-				(void*) PATH->dataString + 8, 4);
-		int IPID = convertirCharAInt(PID, 4);
-		int IposInicio = convertirCharAInt(posInicio, 4);
-		int IoffSet = convertirCharAInt(offSet, 4);
-		/*tDato instruccion = obtenerMemoriaReducida(memoria,IPID,IposInicio,IoffSet);
-		 t_SerialString * instruccionConvertida;
-		 instruccionConvertida = malloc(sizeof(t_SerialString));
-		 instruccionConvertida->dataString = malloc(sizeof(char*)*instruccion.tamDatos);
-		 memcpy(&instruccionConvertida->dataString ,instruccion.dato,instruccion.tamDatos);
-		 instruccionConvertida->sizeString=instruccion.tamDatos;
-		 serializar_string(socket,instruccionConvertida);*/
+		break;
+	}
+
+	case 6: {
+
+		t_pedido_memoria *nuevoPedido = deserializar_pedido_memoria(servidor);
+
+		char* instruccion = solicitarBytesPagina(nuevoPedido->id,
+				nuevoPedido->pagina, nuevoPedido->offset, nuevoPedido->size);
+
+		t_SerialString *envio;
+
+		envio->dataString = instruccion;
+		envio->sizeString = strlen(instruccion);
+
+		serializar_string(servidor, envio);
 
 		break;
 	}
 
-
-	default:{
+	default: {
 		pthread_exit(NULL);
-		 //printf("Ningun Comando\n");
+		//printf("Ningun Comando\n");
 		// sem_wait(&SEM_hiloServidor);
 		break;
 	}
@@ -783,30 +761,28 @@ int convertirCharAInt(char * numero, int tamChar) {
 	return numeroInt;
 }
 
+int hash(int x, int y) {
 
-int hash(int x, int y){
+	x--;
 
-x--;
+	int r = ((x + y) * (x + y + 1)) / 4;
 
+	while (r > MARCOS)
 
+		r -= MARCOS;
 
-int r = ((x + y) * (x + y + 1)) / 4;
-
-while(r>MARCOS)
-
-r -= MARCOS;
-
-return r;
+	return r;
 
 }
 
-int obtenerFrame(int PID, int pag){
+int obtenerFrame(int PID, int pag) {
 
 	int frame = hash(PID, pag);
 
-while(tablaEPI.matriz[frame][N_PID] != PID || tablaEPI.matriz[frame][N_PAGINA] != pag)
-	frame++;
+	while (tablaEPI.matriz[frame][N_PID] != PID
+			|| tablaEPI.matriz[frame][N_PAGINA] != pag)
+		frame++;
 
-return frame;
+	return frame;
 
 }
