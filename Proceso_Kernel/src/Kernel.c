@@ -102,7 +102,37 @@ void procesarPCB(void* args){
 		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 
-		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, 0, 0, 0, 0, 0);
+		//Creo el metadata program del proceso
+		char* programa = strdup(PROGRAMA);
+		t_metadata_program* metadata = metadata_desde_literal(programa);
+
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, metadata);
+
+		//Pido Memoria
+		serializar_int(SERVIDOR_MEMORIA, 3);
+		serializar_int(SERVIDOR_MEMORIA, sizeof(programa));
+
+		uint32_t respuestaMemoria = deserializar_int(SERVIDOR_MEMORIA);
+
+		if(respuestaMemoria == true){
+			log_info(log_Kernel, "Hay memoria");
+			//printf("Programa a enviar: %s \n", programa);
+			// Acepto el programa
+			serializar_int(SERVIDOR_MEMORIA, 4);
+			serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
+
+			t_SerialString* program_to_send = malloc(sizeof(t_SerialString));
+			program_to_send->sizeString = strlen(programa);
+			program_to_send->dataString = malloc(program_to_send->sizeString);
+			strcpy(program_to_send->dataString, programa);
+			//Serializo el path
+			serializar_string(SERVIDOR_MEMORIA, program_to_send);
+			free(program_to_send->dataString);
+			free(program_to_send);
+		} else{
+			log_info(log_Kernel, "No hay memoria");
+			// No acepto el programa
+		}
 
 		//Agrego el pcb a la lista de new
 		queue_push(QUEUE_NEW, newPCB);
@@ -226,7 +256,7 @@ void server(void* args){
 void connection_handler(uint32_t socket, uint32_t command){
 
 	switch(command){
-		case 1:{
+		case NUEVO_PROCESO:{
 			//printf("Nuevo Programa\n");
 			log_info(log_Console,"Nuevo Programa");
 			t_SerialString* PATH = malloc(sizeof(t_SerialString));
@@ -243,7 +273,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			queue_sync_push(QUEUE_PCB, NewProgram);
 			break;
 		}
-		case 2:{
+		case NUEVA_CONEXION_CPU:{
 			//Nueva conexion de CPU
 			log_info(log_Kernel,"Nueva CPU");
 			//Nueva CPU
@@ -256,7 +286,7 @@ void connection_handler(uint32_t socket, uint32_t command){
 			sem_post(&SEM_CPU_DISPONIBLE);
 			break;
 		}
-		case 3:{
+		case FIN_EJECUCION_CPU:{
 			//Finalizacion de ejecucion de rafaga de CPU
 			log_info(log_Kernel,"Finalizacion de ejecucion de CPU");
 			//PCB a deserializar
@@ -278,6 +308,32 @@ void connection_handler(uint32_t socket, uint32_t command){
 			sem_post(&SEM_MULTIPROGRAMACION);
 			//CPU lista para nuevo programa
 			sem_post(&SEM_CPU_DISPONIBLE);
+			break;
+		}
+		case IMPRIMIR_POR_PANTALLA:{
+			//La CPU me manda el string a imprimir
+			//Busco la consola asociada
+//			serializar_int(consola,PID);
+//			serializar_int(consola,1);
+//			serializar_string(consola,stringAImprimir);
+			break;
+		}
+		case KILL_PROCESS:{
+			uint32_t nroPID = deserializar_int(socket);
+			//Busco la consola asociada al PID
+			Program* program = Search_Program_By_PID(LIST_CONSOLAS, nroPID);
+			if(program != NULL){
+				//Matar el proceso
+				kill_process(QUEUE_READY,nroPID);
+				serializar_int(socket,-7);
+			} else{
+				nroPID = 0;
+				serializar_int(socket,nroPID);
+			}
+			break;
+		}
+		case KILL_ALL_PROCESS:{
+			// KILL todos los procesos asociados a esa consola
 			break;
 		}
 		default:{

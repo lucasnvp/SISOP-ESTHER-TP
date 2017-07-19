@@ -48,6 +48,7 @@ uint32_t memoria;
 #define ASIGNAR_VALOR_A_MEMORIA 7
 #define PEDIDO_VAR_COMPARTIDA 10 // Ver que numero es el que le sirve al kernel
 #define ASIGNAR_VAR_COMPARTIDA 11 // Ver que numero es el que le sirve al kernel
+#define KERNEL_WAIT 15 //Ver que numero le sirve al Kernel
 
 void ejecutar();
 void connect_server_kernel();

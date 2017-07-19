@@ -3,13 +3,13 @@
 AnSISOP_funciones functions = { .AnSISOP_definirVariable = ansi_definirVariable,
 		.AnSISOP_obtenerPosicionVariable = ansi_obtenerPosicionVariable,
 		.AnSISOP_asignar = ansi_asignar, .AnSISOP_dereferenciar =
-				ansi_desreferenciar,
-		.AnSISOP_obtenerValorCompartida = ansi_obtener_valor_compartida,
-		.AnSISOP_asignarValorCompartida = ansi_asignar_valor_compartida,
-		.AnSISOP_irAlLabel = ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
+				ansi_desreferenciar, .AnSISOP_obtenerValorCompartida =
+				ansi_obtener_valor_compartida, .AnSISOP_asignarValorCompartida =
+				ansi_asignar_valor_compartida, .AnSISOP_irAlLabel =
+				ansi_irAlLabel, .AnSISOP_llamarSinRetorno =
 				ansi_llamarSinRetorno, .AnSISOP_llamarConRetorno =
 				ansi_llamarConRetorno, .AnSISOP_finalizar = ansi_finalizar,
-				.AnSISOP_retornar = ansi_retornar,
+		.AnSISOP_retornar = ansi_retornar,
 
 };
 
@@ -23,8 +23,6 @@ static const char* PROGRAMA = "begin\n"
 int main(void) {
 
 	programa = strdup(PROGRAMA); //copia el programa entero en esa variable, lo hace el Kernel, despues sacarlo
-
-	pcbActivo = PCB_new_pointer(1, 1, metadata_desde_literal(programa));
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
@@ -40,27 +38,27 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	//while (true) {
+	while (true) {
 
-	//Quedo a la espera de recibir un PCB del Kernel
-	//deserializar_pcb(kernel, pcbActivo);
+		//Quedo a la espera de recibir un PCB del Kernel
+		deserializar_pcb(kernel, pcbActivo);
 
-	log_info(log_Console, "PCB Activo\n");
+		log_info(log_Console, "PCB Activo\n");
 
-	print_PCB(pcbActivo);
+		print_PCB(pcbActivo);
 
-	//Proceso de ejecucion de Primitivas Ansisop
-	ejecutar();
+		//Proceso de ejecucion de Primitivas Ansisop
+		ejecutar();
 
-	print_PCB(pcbActivo);
+		print_PCB(pcbActivo);
 
-	//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-	//serializar_int(kernel, FIN_CORRECTO);
+		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+		serializar_int(kernel, FIN_CORRECTO);
 
-	//Envio a kernel PCB actualizado
-	//serializar_pcb(kernel, pcbActivo);
+		//Envio a kernel PCB actualizado
+		serializar_pcb(kernel, pcbActivo);
 
-	//}
+	}
 
 	return EXIT_SUCCESS;
 
@@ -87,10 +85,8 @@ void ejecutar() {
 			pcbActivo->CodeTagsPointer->instrucciones_serializado[pcbActivo->ProgramCounter].offset; //que me devuelva la siguiente linea la memoria
 
 	//Solicito a memoria la instruccion.
-	//char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,
-	//		4, start, offset); //falta la pagina en donde esta la instruccion.
-
-	char* const instruccion = "variables a, b, c, d, e \n";
+	char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID, 0,
+			start, offset); //falta la pagina en donde esta la instruccion.
 
 	//Ejecuta las primitivas
 	analizadorLinea(instruccion, &functions, &kernel_functions);
@@ -195,8 +191,8 @@ void connect_server_memoria() {
 	memoria = connect_server(config.IP_MEMORIA, config.PUERTO_MEMORIA);
 	if (memoria > 0) {
 		log_info(log_Console, "Memoria Conectada\n");
-		//serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
-		tamanio_pagina = 10;	//deserializar_int(memoria);
+		serializar_int(memoria, HANDSHAKE_CPU_MEMORIA);
+		tamanio_pagina = deserializar_int(memoria);
 
 	}
 }
@@ -509,30 +505,24 @@ bool codigoFinalizado() {
 	return termino_codigo;
 }
 
-void ansi_retornar(t_valor_variable retorno){
+void ansi_retornar(t_valor_variable retorno) {
 
 	printf("Soy retornar con este valor: %i\n", retorno);
 
 	//Obtengo registro actual:
-	STACKPOINTER_T *lineaSPActual = list_get(pcbActivo->StackPointer,pcbActivo->StackPointer->elements_count - 1);
+	STACKPOINTER_T *lineaSPActual = list_get(pcbActivo->StackPointer,
+			pcbActivo->StackPointer->elements_count - 1);
 
 	//Obtengo la direccion a la que voy a retornar en base a lo que me indica la dir de retorno del contexto de ejecucion actual
-	t_puntero direccion_retorno = (lineaSPActual->VariableDeRetorno->pagina * tamanio_pagina) + lineaSPActual->VariableDeRetorno->offset;
+	t_puntero direccion_retorno = (lineaSPActual->VariableDeRetorno->pagina
+			* tamanio_pagina) + lineaSPActual->VariableDeRetorno->offset;
 
 	ansi_asignar(direccion_retorno, retorno);
 
 }
 
-void kernel_wait(){
+void kernel_wait(t_nombre_semaforo identificador_semaforo) {
 
 
 }
-
-
-
-
-
-
-
-
 
