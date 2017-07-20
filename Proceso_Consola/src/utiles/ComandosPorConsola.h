@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <commons/log.h>
+
+#define COMANDO_RUN 1
 
 typedef struct {
 	uint32_t kernel;
@@ -12,6 +15,7 @@ typedef struct {
 } t_Consola;
 
 pthread_mutex_t sem_consola;
+t_log* log_Consola;
 
 void limpiarBufferDeEntrada();
 char* substr(char* cadena, uint32_t comienzo, uint32_t longitud);
@@ -40,36 +44,47 @@ void imprimirError(uint32_t codigoError) {
 
 	switch (codigoError) {
 	case -1:
+		log_error(log_Consola, "No se pudieron reservar recursos para ejecutar el programa.");
 		printf("No se pudieron reservar recursos para ejecutar el programa.\n\n> ");
 		break;
 	case -2:
+		log_error(log_Consola, "El programa intento acceder a un archivo que no existe.");
 		printf("El programa intento acceder a un archivo que no existe.\n\n> ");
 		break;
 	case -3:
+		log_error(log_Consola, "El programa intento leer un archivo sin permisos.");
 		printf("El programa intento leer un archivo sin permisos.\n\n> ");
 		break;
 	case -4:
+		log_error(log_Consola, "El programa intento escribir un archivo sin permisos.");
 		printf("El programa intento escribir un archivo sin permisos.\n\n> ");
 		break;
 	case -5:
+		log_error(log_Consola, "Excepcion de memoria.");
 		printf("Excepcion de memoria.\n\n> ");
 		break;
 	case -6:
+		log_error(log_Consola, "Finalizado a traves de desconexion de consola.");
 		printf("Finalizado a traves de desconexion de consola.\n\n> ");
 		break;
 	case -7:
+		log_error(log_Consola, "Finalizado a traves del comando Finalizar Programa de la consola.");
 		printf("Finalizado a traves del comando Finalizar Programa de la consola.\n\n> ");
 		break;
 	case -8:
+		log_error(log_Consola, "Se intento reservar mas memoria que el tamaño de una pagina.");
 		printf("Se intento reservar mas memoria que el tamaño de una pagina\n\n> ");
 		break;
 	case -9:
+		log_error(log_Consola, "No se pueden asignar mas paginas al proceso.");
 		printf("No se pueden asignar mas paginas al proceso\n\n> ");
 		break;
 	case -10:
+		log_error(log_Consola, "Finalizado a traves del comando Finalizar Programa del kernel.");
 		printf("Finalizado a traves del comando Finalizar Programa del kernel.\n\n> ");
 		break;
 	case -20:
+		log_error(log_Consola, "Error sin definicion.");
 		printf("Error sin definicion\n\n> ");
 		break;
 	}
@@ -84,22 +99,28 @@ void imprimirEstadisticas(uint32_t PID, time_t inicio, time_t fin, uint32_t cant
 
 	pthread_mutex_lock(&sem_consola);
 	printf("\n*********************** ESTADISTICAS %i ***********************\n", PID);
+	log_info(log_Consola, "*********************** ESTADISTICAS %i ***********************", PID);
 
 	struct tm *tlocali = localtime(&inicio);
 	char* strInicio = (char *) malloc(sizeof(char) * 128);
 	strftime(strInicio, 128, "%d/%m/%y %H:%M:%S", tlocali);
 
 	printf("Fecha y hora de inicio de ejecucion: %s\n", strInicio);
+	log_info(log_Consola, "Fecha y hora de inicio de ejecucion: %s", strInicio);
 
 	struct tm *tlocalf = localtime(&fin);
 	char* strFin = (char *) malloc(sizeof(char) * 128);
 	strftime(strFin, 128, "%d/%m/%y %H:%M:%S", tlocalf);
 
 	printf("Fecha y hora de fin de ejecucion: %s\n", strFin);
+	log_info(log_Consola, "Fecha y hora de fin de ejecucion: %s", strFin);
 
 	printf("Cantidad de impresiones por pantalla: %i\n", cantLineas);
 	printf("Tiempo total de ejecucion: %s\n", diferencia);
 	printf("*****************************************************************\n\n> ");
+	log_info(log_Consola, "Cantidad de impresiones por pantalla: %i", cantLineas);
+	log_info(log_Consola, "Tiempo total de ejecucion: %s", diferencia);
+	log_info(log_Consola, "*****************************************************************");
 
 	fflush(stdout);
 	pthread_mutex_unlock(&sem_consola);
@@ -163,6 +184,7 @@ t_Consola* leerComandos() {
 	consola->argumento = "";
 	scanf("%[^\n]s", mensaje);
 	if (strcmp(mensaje, "")) {
+		log_info(log_Consola, "Leida linea de comandos del usuario: %s.", mensaje);
 		consola->comando = strtok(mensaje, " ");
 		consola->argumento = strtok(NULL, " ");
 	}
@@ -187,11 +209,13 @@ void crearHiloConsola(t_Consola* consola) {
 		free(aux);
 	}
 
+	log_info(log_Consola, "Archivo a procesar: %s.", param->argumento);
 	FILE *archivo = fopen(param->argumento, "r");
 
 	if (!archivo) {
 		perror("Error");
 		printf("No se pudo abrir el archivo %s\n\n> ", param->argumento);
+		log_error(log_Consola, "No se pudo abrir el archivo %s.", param->argumento);
 		fflush(stdout);
 		pthread_exit(NULL);
 	}
@@ -212,7 +236,7 @@ void crearHiloConsola(t_Consola* consola) {
 	fclose(archivo);
 
 	//Ejecuto el comando run en el servidor
-	serializar_int(param->kernel, 1);
+	serializar_int(param->kernel, COMANDO_RUN);
 
 	//Le envio el archivo completo
 	t_SerialString* path = malloc(sizeof(t_SerialString));
@@ -229,6 +253,7 @@ void crearHiloConsola(t_Consola* consola) {
 		//Muestro los datos
 		pthread_mutex_lock(&sem_consola);
 		printf("El PID del programa es: %d\n\n> ", PID_PCB);
+		log_info(log_Consola, "El PID del programa es: %d.", PID_PCB);
 		fflush(stdout);
 		pthread_mutex_unlock(&sem_consola);
 
@@ -252,6 +277,8 @@ void crearHiloConsola(t_Consola* consola) {
 						pthread_mutex_lock(&sem_consola);
 						printf("\n***** PID %i (%s) *****\n", PID_Actual, param->argumento);
 						printf("%s\n\n> ", lineaDatos->dataString);
+						log_info(log_Consola, "***** PID %i (%s) *****", PID_Actual, param->argumento);
+						log_info(log_Consola, "%s", lineaDatos->dataString);
 						fflush(stdout);
 						pthread_mutex_unlock(&sem_consola);
 						contadorLineas++;
