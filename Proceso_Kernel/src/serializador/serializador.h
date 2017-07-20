@@ -6,8 +6,6 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "../collections/queue.h"
-#include "../collections/list.h"
 #include "../servidor/servidor.h"
 #include "../pcb/pcb.h"
 
