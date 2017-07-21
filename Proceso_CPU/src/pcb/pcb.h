@@ -33,7 +33,7 @@ int i;
 int sizeStack;
 
 PCB_t* PCB_new_pointer(uint32_t PID, uint32_t PageCode, t_metadata_program * CodePointer);
-STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno);
+STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno);
 VARIABLE_T* variable_new(char id, uint32_t pagina, uint32_t offset, uint32_t size);
 
 PCB_t* buscar_PCB(uint32_t pid,t_queue* QUEUE_PCB);

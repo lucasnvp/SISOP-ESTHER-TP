@@ -6,6 +6,8 @@
 
 #include <commons/collections/list.h>
 
+#include <commons/collections/list.h>
+
 typedef struct ProgramType{
 	uint32_t ID_Consola;
 	uint32_t PID;
