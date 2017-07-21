@@ -202,8 +202,7 @@ void crearHiloConsola(t_Consola* consola) {
 	if (strcmp(substr(param->argumento, 0, 1), "/")
 			&& strcmp(substr(param->argumento, 0, 1), ".")) {
 		//Archivo en directorio local
-		char* aux = (char *) malloc(
-				sizeof(char) * strlen(param->argumento) + 3);
+		char* aux = (char *) malloc(sizeof(char) * strlen(param->argumento) + 3);
 		strcpy(aux, "./");
 		strcat(aux, param->argumento);
 		strcpy(param->argumento, aux);
