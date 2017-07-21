@@ -182,6 +182,7 @@ t_Consola* leerComandos() {
 	consola->kernel = 0;
 	consola->comando = "";
 	consola->argumento = "";
+	strcpy(mensaje, "");
 	scanf("%[^\n]s", mensaje);
 	if (strcmp(mensaje, "")) {
 		log_info(log_Consola, "Leida linea de comandos del usuario: %s.", mensaje);

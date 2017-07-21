@@ -94,6 +94,10 @@ void consola_comandos() {
 			system("clear");
 			printf("> ");
 			fflush(stdout);
+		}
+		else if (!strcmp(consola->comando, "")) {
+			printf("> ");
+			fflush(stdout);
 		} else
 			printf("Comando incorrecto. Pruebe run | stop | exit | clean\n\n> ");
 	}
