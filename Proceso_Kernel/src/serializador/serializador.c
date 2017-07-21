@@ -58,10 +58,16 @@ void deserializar_string(int servidor, t_SerialString* PATH){
 }
 
 void serializar_pcb(int client, PCB_t* PCB){
+
+	uint32_t len_etiquetas = 0;
+	if(PCB->CodeTagsPointer->etiquetas != NULL){
+		len_etiquetas = strlen(PCB->CodeTagsPointer->etiquetas);
+	}
+
 	uint32_t datos_size = 	sizeof(PCB_t) +
 							sizeof(t_metadata_program) +
 							sizeof(t_intructions) * PCB->CodeTagsPointer->instrucciones_size +
-							strlen(PCB->CodeTagsPointer->etiquetas);
+							len_etiquetas;
 	t_stream* ENVIAR = stream_create(datos_size);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
@@ -88,7 +94,6 @@ void serializar_pcb(int client, PCB_t* PCB){
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->instrucciones_size), size_to_send);
 		offset += size_to_send;
 		//Puntero de instrucciones
-			uint32_t i;
 			for(i = 0; PCB->CodeTagsPointer->instrucciones_size > i; i++){
 				size_to_send = sizeof(t_puntero_instruccion);
 				memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->instrucciones_serializado[i].start), size_to_send);
@@ -103,9 +108,15 @@ void serializar_pcb(int client, PCB_t* PCB){
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->etiquetas_size), size_to_send);
 		offset += size_to_send;
 		//Etiquetas
-		size_to_send = strlen(PCB->CodeTagsPointer->etiquetas) + 1;
-		memcpy(ENVIAR->data + offset, PCB->CodeTagsPointer->etiquetas, size_to_send);
+		size_to_send = sizeof(PCB->CodeTagsPointer->etiquetas);
+		memcpy(ENVIAR->data + offset, &(len_etiquetas), size_to_send);
 		offset += size_to_send;
+
+		if(PCB->CodeTagsPointer->etiquetas != NULL){
+			size_to_send = strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+			memcpy(ENVIAR->data + offset, PCB->CodeTagsPointer->etiquetas, size_to_send);
+			offset += size_to_send;
+		}
 		//Cantidad de funciones
 		size_to_send = sizeof(PCB->CodeTagsPointer->cantidad_de_funciones);
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->cantidad_de_funciones), size_to_send);
@@ -194,8 +205,14 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 		offset += size_to_recive;
 
 		//Etiquetas
-		PCB->CodeTagsPointer->etiquetas = strdup(buffer + offset);
-		offset += strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+		size_to_recive = sizeof(PCB->CodeTagsPointer->etiquetas);
+		memcpy(&PCB->CodeTagsPointer->etiquetas, buffer + offset, size_to_recive);
+		offset += size_to_recive;
+
+		if(PCB->CodeTagsPointer->etiquetas != NULL){
+			PCB->CodeTagsPointer->etiquetas = strdup(buffer + offset);
+			offset += strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+		}
 
 		//Cantidad de funciones
 		size_to_recive = sizeof(PCB->CodeTagsPointer->cantidad_de_funciones);

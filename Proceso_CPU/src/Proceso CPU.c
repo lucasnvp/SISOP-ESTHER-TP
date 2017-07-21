@@ -38,6 +38,9 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
+	//Dejo crado el PCB para deserealizar
+	pcbActivo = PCB_new_pointer(0, 0, NULL);
+
 	while (true) {
 
 		//Quedo a la espera de recibir un PCB del Kernel

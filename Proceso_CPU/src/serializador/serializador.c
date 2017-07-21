@@ -12,82 +12,26 @@ void stream_destroy(t_stream* stream) {
 	free(stream);
 }
 
-void serializar_int(uint32_t socket, uint32_t number) {
+void serializar_int(uint32_t socket, uint32_t number){
 	send_data(socket, &number, sizeof(uint32_t));
 }
 
-uint32_t deserializar_int(uint32_t socket) {
+uint32_t deserializar_int(uint32_t socket){
 	uint32_t aux;
-	uint32_t bytesRecibidos = recive_data(socket, &aux, sizeof(uint32_t));
-	if (bytesRecibidos <= 0) {
+	uint32_t bytesRecibidos = recive_data(socket,&aux,sizeof(uint32_t));
+	if(bytesRecibidos <= 0){
 		aux = bytesRecibidos;
 	}
 	return aux;
 }
 
-void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria* pedido) {
-	uint32_t datos_size = sizeof(t_pedido_memoria);
-	void* ENVIAR = malloc(datos_size);
-	uint32_t offset = 0;
-	uint32_t size_to_send;
-
-	size_to_send = sizeof(pedido->id);
-	memcpy(ENVIAR + offset, &(pedido->id), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(pedido->offset);
-	memcpy(ENVIAR + offset, &(pedido->offset), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(pedido->pagina);
-	memcpy(ENVIAR + offset, &(pedido->pagina), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(pedido->size);
-	memcpy(ENVIAR + offset, &(pedido->size), size_to_send);
-	offset += size_to_send;
-
-	send_data(socket, ENVIAR, offset);
-	free(ENVIAR);
-
-}
-
-t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor) {
-	t_pedido_memoria* pedido = malloc(sizeof(t_pedido_memoria));
-	uint32_t buffer_size = sizeof(t_pedido_memoria);
-	void* buffer = malloc(buffer_size);
-	uint32_t offset = 0;
-	uint32_t size_to_recive;
-
-	recive_data(servidor, buffer, buffer_size);
-
-	size_to_recive = sizeof(char);
-	memcpy(&pedido->id, buffer + offset, sizeof(pedido->id));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(pedido->pagina);
-	memcpy(&pedido->pagina, buffer + offset, sizeof(pedido->pagina));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(pedido->offset);
-	memcpy(&pedido->offset, buffer + offset, sizeof(pedido->offset));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(pedido->size);
-	memcpy(&pedido->size, buffer + offset, sizeof(pedido->size));
-	offset += size_to_recive;
-
-	free(buffer);
-	return pedido;
-}
-
-void serializar_string(int client, t_SerialString* PATH) {
-	void* ENVIAR = malloc(PATH->sizeString);
+void serializar_string(int client, t_SerialString* PATH){
+	void* ENVIAR = malloc( sizeof(t_SerialString) + PATH->sizeString);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
 	size_to_send = sizeof(PATH->sizeString);
-	memcpy(ENVIAR + offset, &(PATH->sizeString), size_to_send);
+	memcpy(ENVIAR + offset, &(PATH->sizeString),size_to_send);
 	offset += size_to_send;
 
 	size_to_send = PATH->sizeString;
@@ -98,23 +42,32 @@ void serializar_string(int client, t_SerialString* PATH) {
 	free(ENVIAR);
 }
 
-void deserializar_string(int servidor, t_SerialString* PATH) {
+void deserializar_string(int servidor, t_SerialString* PATH){
 	uint32_t buffer_size;
 	void* buffer = malloc(buffer_size = sizeof(uint32_t));
-//---------------------
+
+	//---------------------
 	recive_data(servidor, buffer, sizeof(PATH->sizeString));
 	memcpy(&PATH->sizeString, buffer, buffer_size);
 	PATH->dataString = (char*) malloc(sizeof(char) * PATH->sizeString);
 	recive_data(servidor, PATH->dataString, PATH->sizeString);
-//---------------------
+	PATH->dataString[PATH->sizeString] = '\0';
+	//---------------------
 
+	free(buffer);
 }
 
 void serializar_pcb(int client, PCB_t* PCB){
+
+	uint32_t len_etiquetas = 0;
+	if(PCB->CodeTagsPointer->etiquetas != NULL){
+		len_etiquetas = strlen(PCB->CodeTagsPointer->etiquetas);
+	}
+
 	uint32_t datos_size = 	sizeof(PCB_t) +
 							sizeof(t_metadata_program) +
 							sizeof(t_intructions) * PCB->CodeTagsPointer->instrucciones_size +
-							strlen(PCB->CodeTagsPointer->etiquetas);
+							len_etiquetas;
 	t_stream* ENVIAR = stream_create(datos_size);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
@@ -141,7 +94,6 @@ void serializar_pcb(int client, PCB_t* PCB){
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->instrucciones_size), size_to_send);
 		offset += size_to_send;
 		//Puntero de instrucciones
-			uint32_t i;
 			for(i = 0; PCB->CodeTagsPointer->instrucciones_size > i; i++){
 				size_to_send = sizeof(t_puntero_instruccion);
 				memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->instrucciones_serializado[i].start), size_to_send);
@@ -156,9 +108,15 @@ void serializar_pcb(int client, PCB_t* PCB){
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->etiquetas_size), size_to_send);
 		offset += size_to_send;
 		//Etiquetas
-		size_to_send = strlen(PCB->CodeTagsPointer->etiquetas) + 1;
-		memcpy(ENVIAR->data + offset, PCB->CodeTagsPointer->etiquetas, size_to_send);
+		size_to_send = sizeof(PCB->CodeTagsPointer->etiquetas);
+		memcpy(ENVIAR->data + offset, &(len_etiquetas), size_to_send);
 		offset += size_to_send;
+
+		if(PCB->CodeTagsPointer->etiquetas != NULL){
+			size_to_send = strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+			memcpy(ENVIAR->data + offset, PCB->CodeTagsPointer->etiquetas, size_to_send);
+			offset += size_to_send;
+		}
 		//Cantidad de funciones
 		size_to_send = sizeof(PCB->CodeTagsPointer->cantidad_de_funciones);
 		memcpy(ENVIAR->data + offset, &(PCB->CodeTagsPointer->cantidad_de_funciones), size_to_send);
@@ -247,8 +205,14 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 		offset += size_to_recive;
 
 		//Etiquetas
-		PCB->CodeTagsPointer->etiquetas = strdup(buffer + offset);
-		offset += strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+		size_to_recive = sizeof(PCB->CodeTagsPointer->etiquetas);
+		memcpy(&PCB->CodeTagsPointer->etiquetas, buffer + offset, size_to_recive);
+		offset += size_to_recive;
+
+		if(PCB->CodeTagsPointer->etiquetas != NULL){
+			PCB->CodeTagsPointer->etiquetas = strdup(buffer + offset);
+			offset += strlen(PCB->CodeTagsPointer->etiquetas) + 1;
+		}
 
 		//Cantidad de funciones
 		size_to_recive = sizeof(PCB->CodeTagsPointer->cantidad_de_funciones);
@@ -278,6 +242,231 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 	offset += size_to_recive;
 
 	free(buffer);
+}
+
+void serializar_variable_t(int client, VARIABLE_T* VARIABLE){
+	uint32_t datos_size = sizeof(VARIABLE_T);
+	void* ENVIAR = malloc(datos_size);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	size_to_send = sizeof(char);
+	memcpy(ENVIAR + offset, &VARIABLE->id,size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->pagina);
+	memcpy(ENVIAR + offset, &(VARIABLE->pagina),size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->offset);
+	memcpy(ENVIAR + offset, &(VARIABLE->offset),size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->size);
+	memcpy(ENVIAR + offset, &(VARIABLE->size),size_to_send);
+	offset += size_to_send;
+
+	send_data(client, ENVIAR, offset);
+	free(ENVIAR);
+}
+
+t_stream* variable_t_serialize(VARIABLE_T* VARIABLE){
+	uint32_t datos_size = 	sizeof(VARIABLE->id) + sizeof(VARIABLE->offset) +
+							sizeof(VARIABLE->pagina) + sizeof(VARIABLE->size);
+	t_stream* ENVIAR = stream_create(datos_size);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	size_to_send = sizeof(VARIABLE->id);
+	memcpy(ENVIAR->data + offset, &(VARIABLE->id),size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->pagina);
+	memcpy(ENVIAR->data + offset, &(VARIABLE->pagina),size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->offset);
+	memcpy(ENVIAR->data + offset, &(VARIABLE->offset),size_to_send);
+	offset += size_to_send;
+
+	size_to_send = sizeof(VARIABLE->size);
+	memcpy(ENVIAR->data + offset, &(VARIABLE->size),size_to_send);
+	offset += size_to_send;
+
+	return ENVIAR;
+}
+
+VARIABLE_T* deserializar_variable_t(int servidor){
+	VARIABLE_T* variable = malloc(sizeof(VARIABLE_T));
+	uint32_t buffer_size = sizeof(VARIABLE_T);
+	void* buffer = malloc(buffer_size);
+	uint32_t offset = 0;
+	uint32_t size_to_recive;
+
+	recive_data(servidor, buffer, buffer_size);
+
+	size_to_recive = sizeof(variable->id);
+	memcpy(&variable->id, buffer + offset, sizeof(variable->id));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->pagina);
+	memcpy(&variable->pagina, buffer + offset, sizeof(variable->pagina));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->offset);
+	memcpy(&variable->offset, buffer + offset, sizeof(variable->offset));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->size);
+	memcpy(&variable->size, buffer + offset, sizeof(variable->size));
+	offset += size_to_recive;
+
+	free(buffer);
+	return variable;
+}
+
+VARIABLE_T* variable_t_deserialize(char* stream, int* size){
+	VARIABLE_T* variable = malloc(sizeof(VARIABLE_T));
+	uint32_t offset = 0;
+	uint32_t size_to_recive;
+
+	size_to_recive = sizeof(variable->id);
+	memcpy(&variable->id, stream + offset, sizeof(variable->id));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->pagina);
+	memcpy(&variable->pagina, stream + offset, sizeof(variable->pagina));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->offset);
+	memcpy(&variable->offset, stream + offset, sizeof(variable->offset));
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(variable->size);
+	memcpy(&variable->size, stream + offset, sizeof(variable->size));
+	offset += size_to_recive;
+
+	*size = offset;
+
+	return variable;
+}
+
+t_stream* stackpointer_serialize(STACKPOINTER_T* lineStack){
+	uint32_t datos_size = sizeof(STACKPOINTER_T);
+	t_stream* ENVIAR = stream_create(datos_size);
+	uint32_t offset = 0;
+	uint32_t size_to_send;
+
+	void serialize_element_variables(void* element){
+		VARIABLE_T* var = element;
+		t_stream* stream_var = variable_t_serialize(var);
+		ENVIAR->data = realloc(ENVIAR->data, ENVIAR->size + stream_var->size);
+		memcpy(ENVIAR->data + offset, stream_var->data, stream_var->size);
+		ENVIAR->size += stream_var->size;
+		offset += stream_var->size;
+		stream_destroy(stream_var);
+	}
+
+	uint32_t count_line_argumentos;
+	if(lineStack->Argumentos != NULL){
+		count_line_argumentos = list_size(lineStack->Argumentos);
+	} else{
+		count_line_argumentos = 0;
+	}
+	size_to_send = sizeof(count_line_argumentos);
+	memcpy(ENVIAR->data + offset, &(count_line_argumentos),size_to_send);
+	offset += size_to_send;
+
+	if(lineStack->Argumentos != NULL){
+		list_iterate(lineStack->Argumentos, serialize_element_variables);
+	}
+
+	uint32_t count_line_variables;
+	if(lineStack->Variables != NULL){
+		count_line_variables = list_size(lineStack->Variables);
+	} else{
+		count_line_variables = 0;
+	}
+	size_to_send = sizeof(count_line_variables);
+	memcpy(ENVIAR->data + offset, &(count_line_variables),size_to_send);
+	offset += size_to_send;
+
+	if(lineStack->Variables != NULL){
+		list_iterate(lineStack->Variables, serialize_element_variables);
+	}
+
+	size_to_send = sizeof(lineStack->DireccionDeRetorno);
+	memcpy(ENVIAR->data + offset, &(lineStack->DireccionDeRetorno),size_to_send);
+	offset += size_to_send;
+
+	if(lineStack->VariableDeRetorno != NULL){
+		uint32_t varDeRetorno = 1;
+		size_to_send = sizeof(varDeRetorno);
+		memcpy(ENVIAR->data + offset, &(lineStack->VariableDeRetorno),size_to_send);
+		offset += size_to_send;
+
+		t_stream* stream_variable = variable_t_serialize(lineStack->VariableDeRetorno);
+		ENVIAR->data = realloc(ENVIAR->data, ENVIAR->size + stream_variable->size);
+		memcpy(ENVIAR->data + offset, stream_variable->data, stream_variable->size);
+		ENVIAR->size += stream_variable->size;
+		offset += stream_variable->size;
+		stream_destroy(stream_variable);
+	} else{
+		uint32_t varDeRetorno = 0;
+		size_to_send = sizeof(varDeRetorno);
+		memcpy(ENVIAR->data + offset, &(lineStack->VariableDeRetorno),size_to_send);
+		offset += size_to_send;
+	}
+
+	return ENVIAR;
+}
+
+STACKPOINTER_T* stackpointer_deserialize(char* stream, int* size){
+	STACKPOINTER_T* lineStack = malloc(sizeof(STACKPOINTER_T));
+	uint32_t tmp_size = 0;
+	uint32_t offset = 0;
+	uint32_t size_to_recive;
+
+	uint32_t count_line_argumentos = 0;
+	size_to_recive = sizeof(count_line_argumentos);
+	memcpy(&count_line_argumentos, stream + offset, size_to_recive);
+	offset += size_to_recive;
+	lineStack->Argumentos = list_create();
+
+	for(j = 0; j < count_line_argumentos; ++j){
+		VARIABLE_T* varStack = variable_t_deserialize(stream + offset, &tmp_size);
+		offset += tmp_size;
+		list_add(lineStack->Argumentos, varStack);
+	}
+
+	uint32_t count_line_variables = 0;
+	size_to_recive = sizeof(count_line_variables);
+	memcpy(&count_line_variables, stream + offset, size_to_recive);
+	offset += size_to_recive;
+	lineStack->Variables = list_create();
+
+	for(j = 0; j < count_line_variables; ++j){
+		VARIABLE_T* varStack = variable_t_deserialize(stream + offset, &tmp_size);
+		offset += tmp_size;
+		list_add(lineStack->Variables, varStack);
+	}
+
+	size_to_recive = sizeof(lineStack->DireccionDeRetorno);
+	memcpy(&lineStack->DireccionDeRetorno, stream + offset, size_to_recive);
+	offset += size_to_recive;
+
+	size_to_recive = sizeof(lineStack->VariableDeRetorno);
+	memcpy(&lineStack->VariableDeRetorno, stream + offset, size_to_recive);
+	offset += size_to_recive;
+
+	if(lineStack->VariableDeRetorno != NULL){
+		lineStack->VariableDeRetorno = variable_t_deserialize(stream + offset, &tmp_size);
+		offset += tmp_size;
+	}
+
+	*size = offset;
+
+	return lineStack;
 }
 
 void serializar_stackpointer(int client, STACKPOINTER_T* lineStack){
@@ -403,227 +592,58 @@ STACKPOINTER_T* deserializar_stackpointer(int servidor){
 	return lineStack;
 }
 
-t_stream* stackpointer_serialize(STACKPOINTER_T* lineStack){
-	uint32_t datos_size = sizeof(STACKPOINTER_T);
-	t_stream* ENVIAR = stream_create(datos_size);
-	uint32_t offset = 0;
-	uint32_t size_to_send;
-
-	void serialize_element_variables(void* element){
-		VARIABLE_T* var = element;
-		t_stream* stream_var = variable_t_serialize(var);
-		ENVIAR->data = realloc(ENVIAR->data, ENVIAR->size + stream_var->size);
-		memcpy(ENVIAR->data + offset, stream_var->data, stream_var->size);
-		ENVIAR->size += stream_var->size;
-		offset += stream_var->size;
-		stream_destroy(stream_var);
-	}
-
-	uint32_t count_line_argumentos;
-	if(lineStack->Argumentos != NULL){
-		count_line_argumentos = list_size(lineStack->Argumentos);
-	} else{
-		count_line_argumentos = 0;
-	}
-	size_to_send = sizeof(count_line_argumentos);
-	memcpy(ENVIAR->data + offset, &(count_line_argumentos),size_to_send);
-	offset += size_to_send;
-
-	if(lineStack->Argumentos != NULL){
-		list_iterate(lineStack->Argumentos, serialize_element_variables);
-	}
-
-	uint32_t count_line_variables;
-	if(lineStack->Variables != NULL){
-		count_line_variables = list_size(lineStack->Variables);
-	} else{
-		count_line_variables = 0;
-	}
-	size_to_send = sizeof(count_line_variables);
-	memcpy(ENVIAR->data + offset, &(count_line_variables),size_to_send);
-	offset += size_to_send;
-
-	if(lineStack->Variables != NULL){
-		list_iterate(lineStack->Variables, serialize_element_variables);
-	}
-
-	size_to_send = sizeof(lineStack->DireccionDeRetorno);
-	memcpy(ENVIAR->data + offset, &(lineStack->DireccionDeRetorno),size_to_send);
-	offset += size_to_send;
-
-	if(lineStack->VariableDeRetorno != NULL){
-		uint32_t varDeRetorno = 1;
-		size_to_send = sizeof(varDeRetorno);
-		memcpy(ENVIAR->data + offset, &(lineStack->VariableDeRetorno),size_to_send);
-		offset += size_to_send;
-
-		t_stream* stream_variable = variable_t_serialize(lineStack->VariableDeRetorno);
-		ENVIAR->data = realloc(ENVIAR->data, ENVIAR->size + stream_variable->size);
-		memcpy(ENVIAR->data + offset, stream_variable->data, stream_variable->size);
-		ENVIAR->size += stream_variable->size;
-		offset += stream_variable->size;
-		stream_destroy(stream_variable);
-	} else{
-		uint32_t varDeRetorno = 0;
-		size_to_send = sizeof(varDeRetorno);
-		memcpy(ENVIAR->data + offset, &(lineStack->VariableDeRetorno),size_to_send);
-		offset += size_to_send;
-	}
-
-	return ENVIAR;
-}
-
-STACKPOINTER_T* stackpointer_deserialize(char* stream, int* size){
-	STACKPOINTER_T* lineStack = malloc(sizeof(STACKPOINTER_T));
-	uint32_t tmp_size = 0;
-	uint32_t offset = 0;
-	uint32_t size_to_recive;
-
-	uint32_t count_line_argumentos = 0;
-	size_to_recive = sizeof(count_line_argumentos);
-	memcpy(&count_line_argumentos, stream + offset, size_to_recive);
-	offset += size_to_recive;
-	lineStack->Argumentos = list_create();
-
-	for(j = 0; j < count_line_argumentos; ++j){
-		VARIABLE_T* varStack = variable_t_deserialize(stream + offset, &tmp_size);
-		offset += tmp_size;
-		list_add(lineStack->Argumentos, varStack);
-	}
-
-	uint32_t count_line_variables = 0;
-	size_to_recive = sizeof(count_line_variables);
-	memcpy(&count_line_variables, stream + offset, size_to_recive);
-	offset += size_to_recive;
-	lineStack->Variables = list_create();
-
-	for(j = 0; j < count_line_variables; ++j){
-		VARIABLE_T* varStack = variable_t_deserialize(stream + offset, &tmp_size);
-		offset += tmp_size;
-		list_add(lineStack->Variables, varStack);
-	}
-
-	size_to_recive = sizeof(lineStack->DireccionDeRetorno);
-	memcpy(&lineStack->DireccionDeRetorno, stream + offset, size_to_recive);
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(lineStack->VariableDeRetorno);
-	memcpy(&lineStack->VariableDeRetorno, stream + offset, size_to_recive);
-	offset += size_to_recive;
-
-	if(lineStack->VariableDeRetorno != NULL){
-		lineStack->VariableDeRetorno = variable_t_deserialize(stream + offset, &tmp_size);
-		offset += tmp_size;
-	}
-
-	*size = offset;
-
-	return lineStack;
-}
-
-void serializar_variable_t(int client, VARIABLE_T* VARIABLE){
-	uint32_t datos_size = sizeof(VARIABLE_T);
+void serializar_pedido_memoria(uint32_t socket, t_pedido_memoria* pedido) {
+	uint32_t datos_size = sizeof(t_pedido_memoria);
 	void* ENVIAR = malloc(datos_size);
 	uint32_t offset = 0;
 	uint32_t size_to_send;
 
-	size_to_send = sizeof(char);
-	memcpy(ENVIAR + offset, &VARIABLE->id,size_to_send);
+	size_to_send = sizeof(pedido->id);
+	memcpy(ENVIAR + offset, &(pedido->id), size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(VARIABLE->pagina);
-	memcpy(ENVIAR + offset, &(VARIABLE->pagina),size_to_send);
+	size_to_send = sizeof(pedido->offset);
+	memcpy(ENVIAR + offset, &(pedido->offset), size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(VARIABLE->offset);
-	memcpy(ENVIAR + offset, &(VARIABLE->offset),size_to_send);
+	size_to_send = sizeof(pedido->pagina);
+	memcpy(ENVIAR + offset, &(pedido->pagina), size_to_send);
 	offset += size_to_send;
 
-	size_to_send = sizeof(VARIABLE->size);
-	memcpy(ENVIAR + offset, &(VARIABLE->size),size_to_send);
+	size_to_send = sizeof(pedido->size);
+	memcpy(ENVIAR + offset, &(pedido->size), size_to_send);
 	offset += size_to_send;
 
-	send_data(client, ENVIAR, offset);
+	send_data(socket, ENVIAR, offset);
 	free(ENVIAR);
+
 }
 
-t_stream* variable_t_serialize(VARIABLE_T* VARIABLE){
-	uint32_t datos_size = 	sizeof(VARIABLE->id) + sizeof(VARIABLE->offset) +
-							sizeof(VARIABLE->pagina) + sizeof(VARIABLE->size);
-	t_stream* ENVIAR = stream_create(datos_size);
-	uint32_t offset = 0;
-	uint32_t size_to_send;
-
-	size_to_send = sizeof(VARIABLE->id);
-	memcpy(ENVIAR->data + offset, &(VARIABLE->id),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(VARIABLE->pagina);
-	memcpy(ENVIAR->data + offset, &(VARIABLE->pagina),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(VARIABLE->offset);
-	memcpy(ENVIAR->data + offset, &(VARIABLE->offset),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(VARIABLE->size);
-	memcpy(ENVIAR->data + offset, &(VARIABLE->size),size_to_send);
-	offset += size_to_send;
-
-	return ENVIAR;
-}
-
-VARIABLE_T* deserializar_variable_t(int servidor){
-	VARIABLE_T* variable = malloc(sizeof(VARIABLE_T));
-	uint32_t buffer_size = sizeof(VARIABLE_T);
+t_pedido_memoria* deserializar_pedido_memoria(uint32_t servidor) {
+	t_pedido_memoria* pedido = malloc(sizeof(t_pedido_memoria));
+	uint32_t buffer_size = sizeof(t_pedido_memoria);
 	void* buffer = malloc(buffer_size);
 	uint32_t offset = 0;
 	uint32_t size_to_recive;
 
 	recive_data(servidor, buffer, buffer_size);
 
-	size_to_recive = sizeof(variable->id);
-	memcpy(&variable->id, buffer + offset, sizeof(variable->id));
+	size_to_recive = sizeof(char);
+	memcpy(&pedido->id, buffer + offset, sizeof(pedido->id));
 	offset += size_to_recive;
 
-	size_to_recive = sizeof(variable->pagina);
-	memcpy(&variable->pagina, buffer + offset, sizeof(variable->pagina));
+	size_to_recive = sizeof(pedido->pagina);
+	memcpy(&pedido->pagina, buffer + offset, sizeof(pedido->pagina));
 	offset += size_to_recive;
 
-	size_to_recive = sizeof(variable->offset);
-	memcpy(&variable->offset, buffer + offset, sizeof(variable->offset));
+	size_to_recive = sizeof(pedido->offset);
+	memcpy(&pedido->offset, buffer + offset, sizeof(pedido->offset));
 	offset += size_to_recive;
 
-	size_to_recive = sizeof(variable->size);
-	memcpy(&variable->size, buffer + offset, sizeof(variable->size));
+	size_to_recive = sizeof(pedido->size);
+	memcpy(&pedido->size, buffer + offset, sizeof(pedido->size));
 	offset += size_to_recive;
 
 	free(buffer);
-	return variable;
-}
-
-VARIABLE_T* variable_t_deserialize(char* stream, int* size){
-	VARIABLE_T* variable = malloc(sizeof(VARIABLE_T));
-	uint32_t offset = 0;
-	uint32_t size_to_recive;
-
-	size_to_recive = sizeof(variable->id);
-	memcpy(&variable->id, stream + offset, sizeof(variable->id));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(variable->pagina);
-	memcpy(&variable->pagina, stream + offset, sizeof(variable->pagina));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(variable->offset);
-	memcpy(&variable->offset, stream + offset, sizeof(variable->offset));
-	offset += size_to_recive;
-
-	size_to_recive = sizeof(variable->size);
-	memcpy(&variable->size, stream + offset, sizeof(variable->size));
-	offset += size_to_recive;
-
-	*size = offset;
-
-	return variable;
+	return pedido;
 }
