@@ -488,7 +488,8 @@ bool consola() {
 				}
 
 				if (argumento2 != NULL) {
-					numero = convertirCharAInt(argumento2, strlen(argumento2));
+//					numero = convertirCharAInt(argumento2, strlen(argumento2));
+					numero = atoi(argumento2);
 					int cantPaginas = paginasQueOcupaProceso(numero);
 
 					if (cantPaginas == 0)
@@ -517,7 +518,8 @@ bool consola() {
 							{
 
 				if (argumento2 != NULL) {
-					numero = convertirCharAInt(argumento2, strlen(argumento2));
+//					numero = convertirCharAInt(argumento2, strlen(argumento2));
+					numero = atoi(argumento2);
 					int i;
 					int paginas = 0;
 					int encontreProceso = 0;
@@ -748,18 +750,18 @@ void connection_handler(uint32_t socket, uint32_t command) {
 	return;
 }
 
-int convertirCharAInt(char * numero, int tamChar) {
-	int i;
-	int multiplicadorBase = 1;
-	int numeroInt = 0;
-	tamChar -= 1;
-	while (tamChar >= 0) {
-		numeroInt += (numero[tamChar] - '0') * multiplicadorBase;
-		tamChar--;
-		multiplicadorBase *= 10;
-	}
-	return numeroInt;
-}
+//int convertirCharAInt(char * numero, int tamChar) {
+//	int i;
+//	int multiplicadorBase = 1;
+//	int numeroInt = 0;
+//	tamChar -= 1;
+//	while (tamChar >= 0) {
+//		numeroInt += (numero[tamChar] - '0') * multiplicadorBase;
+//		tamChar--;
+//		multiplicadorBase *= 10;
+//	}
+//	return numeroInt;
+//}
 
 int hash(int x, int y) {
 

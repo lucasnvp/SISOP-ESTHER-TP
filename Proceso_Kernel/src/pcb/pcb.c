@@ -128,3 +128,6 @@ void print_LineStack(STACKPOINTER_T* auxStackPointer){
 	}
 }
 
+void set_PageCode(PCB_t* PCB, uint32_t PageCode){
+	PCB->PageCode = PageCode;
+}

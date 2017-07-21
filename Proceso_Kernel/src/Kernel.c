@@ -130,6 +130,11 @@ void procesarPCB(void* args){
 			free(program_to_send);
 			InfoPath_free(aProgram); //Libero en string en el programa
 
+			//Recibo la cantidad del paginas
+			uint32_t page_code = deserializar_int(SERVIDOR_MEMORIA);
+			//Asigno el page_code al PCB
+			set_PageCode(newPCB, page_code);
+
 			aProgram->PID = PID_PCB;	//Asigno el PID a la consola
 			list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
 

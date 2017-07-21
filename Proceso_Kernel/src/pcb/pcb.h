@@ -37,6 +37,7 @@ STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t Direcc
 VARIABLE_T* variable_new(char id, uint32_t pagina, uint32_t offset, uint32_t size);
 
 PCB_t* buscar_PCB(uint32_t pid,t_queue* QUEUE_PCB);
+void set_PageCode(PCB_t* PCB, uint32_t PageCode);
 
 void print_PCB(PCB_t* auxPCB);
 void print_LineStack(STACKPOINTER_T* auxStackPointer);
