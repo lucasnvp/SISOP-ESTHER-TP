@@ -38,27 +38,30 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	//while (true) {
+	//Dejo crado el PCB para deserealizar
+	pcbActivo = PCB_new_pointer(0, 0, NULL);
 
-	//Quedo a la espera de recibir un PCB del Kernel
-	//deserializar_pcb(kernel, pcbActivo);
+	while (true) {
 
-	log_info(log_Console, "PCB Activo\n");
+		//Quedo a la espera de recibir un PCB del Kernel
+		deserializar_pcb(kernel, pcbActivo);
 
-	//print_PCB(pcbActivo);
+		log_info(log_Console, "PCB Activo\n");
 
-	//Proceso de ejecucion de Primitivas Ansisop
-	ejecutar();
+		print_PCB(pcbActivo);
 
-	//print_PCB(pcbActivo);
+		//Proceso de ejecucion de Primitivas Ansisop
+		ejecutar();
 
-	//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-	//serializar_int(kernel, FIN_CORRECTO);
+		print_PCB(pcbActivo);
 
-	//Envio a kernel PCB actualizado
-	//serializar_pcb(kernel, pcbActivo);
+		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+		serializar_int(kernel, FIN_CORRECTO);
 
-	//}
+		//Envio a kernel PCB actualizado
+		serializar_pcb(kernel, pcbActivo);
+
+	}
 
 	return EXIT_SUCCESS;
 
@@ -522,7 +525,7 @@ void kernel_wait(t_nombre_semaforo identificador_semaforo) {
 			identificador_semaforo);
 
 	//Le envio al kernel el mensaje del wait.
-	//serializar_int(kernel, KERNEL_WAIT);
+	serializar_int(kernel, KERNEL_WAIT);
 
 	//Variable para enviar
 	t_SerialString* semaforo;
@@ -532,23 +535,22 @@ void kernel_wait(t_nombre_semaforo identificador_semaforo) {
 	semaforo->sizeString = sizeof(identificador_semaforo);
 
 	//Le envio al kernel el semaforo
-	//serializar_string(kernel, semaforo);
+	serializar_string(kernel, semaforo);
 
 	//Estructura con el valor de retorno
 	t_SerialString* retorno;
 
 	//Deserializo el dato.
-	//deserializar_string(kernel, retorno);
+	deserializar_string(kernel, retorno);
 
 	retorno->dataString = 1;
 	retorno->sizeString = sizeof(int);
 
 	//Si el retorno es True tengo que bloquear el proceso
-	if (retorno->dataString == "TRUE") {
+	if (retorno->dataString == true) {
 		procesoBloqueado = true;
 		log_info(log_Console, "El proceso %d, se encuentra bloqueado: \n",
 				pcbActivo->PID);
 	}
 
 }
-

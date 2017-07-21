@@ -12,54 +12,39 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-
 #include <commons/collections/list.h>
 #include <commons/log.h>
 
 #include "servidor/servidor.h"
 #include "config/config_FS.h"
 #include "serializador/serializador.h"
+#include "setup/setup.h"
 
-char* PATH_CONFIG = "../src/config/config.txt";
+static const char* TAMANIO_BLOQUE_NULL = "TAMANIO_BLOQUES=0\n";
+static const char* DUMMY_CHAR_FOR_TESTS = "Hola";
+
+char* PATH_CONFIG = "/home/utnso/Blacklist/tp-2017-1c-Blacklist/Proceso_FileSystem/src/config/config.txt";
 Type_Config config;
 
 char* PATH_LOG = "/home/utnso/Blacklist/Logs/logFileSystem.txt";
 t_log* log_Console;
 t_log* log_FileSystem;
 
+int i;
 uint32_t SERVIDOR_FILESYSTEM;
 
 void server(void* args);
 void connection_handler(uint32_t socket, uint32_t command);
-void init_fs_folder();
 
-char* PATH_METADATA;
-char* PATH_ARCHIVO;
+uint32_t ValidarArchivo(char* path);
+void CrearArchivo(char* path);
+void Borrar(char* path);
+char* ObtenerDatos(char* path, uint32_t offset, uint32_t size);
+void GuardarDatos(char* path, uint32_t offset, uint32_t size, char* buffer);
 
-char* METADATA= "Metadata/Metadata.bin";
-
-char* ARCHIVO= "Archivos/";
-
-char* BITMAP= "Metadata/Bitmap.bin";
-char* PATH_BITMAP;
-
-char* DATOS= "Bloques";
-char* PATH_DATOS;
-
-
-int CANT_BLOQUES;
-int TAMANIO_BLOQUES;
-
-
-
-
-
-void inicializar_bitmap();
-
-
-t_config* metadata;
-
-
+int32_t bloque_libre(t_bitarray* auxBitArray);
+char** get_bloques_array(char* path);
+char* get_bloque_from_int(uint32_t nroDeBloque);
 
 
 #endif /* FILESYSTEM_H_ */

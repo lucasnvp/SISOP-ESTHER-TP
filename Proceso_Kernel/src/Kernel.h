@@ -29,6 +29,10 @@
 #define IMPRIMIR_POR_PANTALLA 4
 #define KILL_PROCESS 5
 #define KILL_ALL_PROCESS 6
+#define WAIT_CPU 7
+#define SIGNAL_CPU 8
+#define LECTURA_VARIABLE_COMPARTIDA 9
+#define ESCRITURA_VARIABLE_COMPARTIDA 10
 
 pthread_mutex_t mutexPCB; //Para asegurar la mutua exclusion en la cola de PCB
 sem_t SEM_MULTIPROGRAMACION; // semaforo de multiprogramacion

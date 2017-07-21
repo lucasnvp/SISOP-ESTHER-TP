@@ -42,7 +42,7 @@ void inicializarMemoria() {
 	int aux[3];
 	aux[N_PID] = -1;
 
-	//Inicializo en memoria tabla que va a dar informacion de los procesos de sistema
+//Inicializo en memoria tabla que va a dar informacion de los procesos de sistema
 	for (i = 0; i < cantMarcosOcupaMemoriaAdm; i++) {
 		aux[N_PAGINA] = i;
 		aux[N_FRAME] = i;
@@ -51,7 +51,7 @@ void inicializarMemoria() {
 	}
 	aux[N_PAGINA] = 0;
 	aux[N_PID] = 0;
-	//Inicializo en memoria siguiente parte de tabla que va a dar informacion de los procesos de usuario
+//Inicializo en memoria siguiente parte de tabla que va a dar informacion de los procesos de usuario
 	for (i = 0; i < MARCOS - cantMarcosOcupaMemoriaAdm; i++) {
 		aux[N_FRAME] = i + cantMarcosOcupaMemoriaAdm;
 		memcpy(
@@ -77,7 +77,7 @@ int agregarDatosTablaEPI(int PID, int nPagina) {
 	int info[3];
 	info[N_PID] = PID;
 	info[N_PAGINA] = nPagina;
-	//Busco si hay marcos Libres
+//Busco si hay marcos Libres
 	for (i = 0; i < tablaEPI.filas && !pudeEscribirTabla; i++) {
 		if (tablaEPI.matriz[i][N_PID] == 0
 				&& tablaEPI.matriz[i][N_PAGINA] == 0) {
@@ -154,7 +154,7 @@ int framesDisponibles() {
 
 	int i;
 	int framesDisponibles = 0;
-	//Busco si hay marcos Libres
+//Busco si hay marcos Libres
 	for (i = 0; i < tablaEPI.filas; i++) {
 		if (tablaEPI.matriz[i][N_PID] == 0
 				&& tablaEPI.matriz[i][N_PAGINA] == 0) {
@@ -324,7 +324,7 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 	}
 	/*printf("el frame traido por la funcion es:%d\n",frame);*/
 
-	//Busco en memoria y lo traigo a cache VIEJO
+//Busco en memoria y lo traigo a cache VIEJO
 	/*for (i = cantMarcosOcupaMemoriaAdm;
 	 i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
 	 if (PID == tablaEPI.matriz[i][N_PID]
@@ -457,7 +457,7 @@ void lanzoHiloConsolaComandos() {
 
 }
 bool consola() {
-	//Mensaje
+//Mensaje
 	char* mensaje = (char *) malloc(sizeof(char) * 1000);
 	int salir = 0;
 
@@ -488,7 +488,8 @@ bool consola() {
 				}
 
 				if (argumento2 != NULL) {
-					numero = convertirCharAInt(argumento2, strlen(argumento2));
+//					numero = convertirCharAInt(argumento2, strlen(argumento2));
+					numero = atoi(argumento2);
 					int cantPaginas = paginasQueOcupaProceso(numero);
 
 					if (cantPaginas == 0)
@@ -517,7 +518,8 @@ bool consola() {
 							{
 
 				if (argumento2 != NULL) {
-					numero = convertirCharAInt(argumento2, strlen(argumento2));
+//					numero = convertirCharAInt(argumento2, strlen(argumento2));
+					numero = atoi(argumento2);
 					int i;
 					int paginas = 0;
 					int encontreProceso = 0;
@@ -627,11 +629,10 @@ void hiloConexion(uint32_t * newfd) {
 }
 
 void inicializoServidor() {
-
 	kernelConectado = 0;
 	conexionesActivas = 0;
 	servidor = build_server(config.PUERTO, config.CANTCONEXIONES);
-	//El socket esta listo para escuchar
+//El socket esta listo para escuchar
 	if (servidor > 0) {
 		printf("Servidor Memoria Escuchando\n");
 	}
@@ -649,6 +650,7 @@ void inicializoServidor() {
 
 	}
 }
+
 void connection_handler(uint32_t socket, uint32_t command) {
 
 	switch (command) {
@@ -748,18 +750,18 @@ void connection_handler(uint32_t socket, uint32_t command) {
 	return;
 }
 
-int convertirCharAInt(char * numero, int tamChar) {
-	int i;
-	int multiplicadorBase = 1;
-	int numeroInt = 0;
-	tamChar -= 1;
-	while (tamChar >= 0) {
-		numeroInt += (numero[tamChar] - '0') * multiplicadorBase;
-		tamChar--;
-		multiplicadorBase *= 10;
-	}
-	return numeroInt;
-}
+//int convertirCharAInt(char * numero, int tamChar) {
+//	int i;
+//	int multiplicadorBase = 1;
+//	int numeroInt = 0;
+//	tamChar -= 1;
+//	while (tamChar >= 0) {
+//		numeroInt += (numero[tamChar] - '0') * multiplicadorBase;
+//		tamChar--;
+//		multiplicadorBase *= 10;
+//	}
+//	return numeroInt;
+//}
 
 int hash(int x, int y) {
 

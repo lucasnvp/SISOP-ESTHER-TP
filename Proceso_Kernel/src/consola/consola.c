@@ -110,6 +110,9 @@ void kill_process(t_queue * queue,uint32_t pid){
 		}
 	}
 	//informar a la consola que se murio el proceso
+	//Buscar la consola asociada al PID
+//	serializar_int(consola,unPCB->PID);
+//	serializar_int(consola,-10);
 }
 
 void status_process(t_queue * queue,uint32_t pid){

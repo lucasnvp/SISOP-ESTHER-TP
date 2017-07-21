@@ -3,6 +3,7 @@
 	<name>Proceso_Memoria</name>
 	<comment></comment>
 	<projects>
+		<project>so-funcion-hash</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -99,51 +99,57 @@ void procesarPCB(void* args){
 		log_info(log_Kernel, "Nuevo proceso PCB");
 		log_info(log_Kernel, "El pid del proceso es: %d", PID_PCB);
 
-		aProgram->PID = PID_PCB;	//Asigno el PID a la consola
-		list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
-
 		//Creo el metadata program del proceso
-		char* programa = strdup(PROGRAMA);
-		t_metadata_program* metadata = metadata_desde_literal(programa);
-
+		t_metadata_program* metadata = metadata_desde_literal(aProgram->InfoPath);
+		//Creo el PCB
 		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, metadata);
 
 		//Pido Memoria
+		log_info(log_Kernel, "Se solicita espacio a memoria para guardar el proceso: %d", PID_PCB);
 		serializar_int(SERVIDOR_MEMORIA, 3);
-		serializar_int(SERVIDOR_MEMORIA, sizeof(programa));
+		serializar_int(SERVIDOR_MEMORIA, strlen(aProgram->InfoPath));
 
 		uint32_t respuestaMemoria = deserializar_int(SERVIDOR_MEMORIA);
 
 		if(respuestaMemoria == true){
-			log_info(log_Kernel, "Hay memoria");
+			log_info(log_Kernel, "Las solicitud de memoria del proceso %d fue aceptada", PID_PCB);
 			//printf("Programa a enviar: %s \n", programa);
 			// Acepto el programa
 			serializar_int(SERVIDOR_MEMORIA, 4);
 			serializar_int(SERVIDOR_MEMORIA, newPCB->PID);
 
+			//Armo el string para enviar
 			t_SerialString* program_to_send = malloc(sizeof(t_SerialString));
-			program_to_send->sizeString = strlen(programa);
+			program_to_send->sizeString = strlen(aProgram->InfoPath);
 			program_to_send->dataString = malloc(program_to_send->sizeString);
-			strcpy(program_to_send->dataString, programa);
+			strcpy(program_to_send->dataString, aProgram->InfoPath);
 			//Serializo el path
 			serializar_string(SERVIDOR_MEMORIA, program_to_send);
+			//Libero el string enviado
 			free(program_to_send->dataString);
 			free(program_to_send);
+			InfoPath_free(aProgram); //Libero en string en el programa
+
+			//Recibo la cantidad del paginas
+			uint32_t page_code = deserializar_int(SERVIDOR_MEMORIA);
+			//Asigno el page_code al PCB
+			set_PageCode(newPCB, page_code);
+
+			aProgram->PID = PID_PCB;	//Asigno el PID a la consola
+			list_add(LIST_CONSOLAS,aProgram);	//Almaceno el socket de la consola y el PID
+
+			//Agrego el pcb a la lista de new
+			queue_push(QUEUE_NEW, newPCB);
+			//Aviso que hay un nuevo PCB
+			sem_post(&SEM_READY);
+
 		} else{
-			log_info(log_Kernel, "No hay memoria");
+			log_info(log_Kernel, "Las solicitud de memoria del proceso %d fue rechazada", PID_PCB);
 			// No acepto el programa
 		}
 
-		//Agrego el pcb a la lista de new
-		queue_push(QUEUE_NEW, newPCB);
-		//Aviso que hay un nuevo PCB
-		sem_post(&SEM_READY);
-
 		//Envio el PID a la consola
 		serializar_int(aProgram->ID_Consola, PID_PCB);
-
-		//Muestro el PID Del proceso
-		//print_PCB(newPCB);
 
 		PID_PCB++;
 	}
@@ -262,15 +268,14 @@ void connection_handler(uint32_t socket, uint32_t command){
 			t_SerialString* PATH = malloc(sizeof(t_SerialString));
 			deserializar_string(socket, PATH);
 			log_info(log_Kernel,"El nuevo programa ocupa %d bytes", PATH->sizeString);
-			//Preguntar a memoria si hay lugar para almacenarlo
-				//Si tiene lugar enviarlo
-				//Si no tiene exit run
-			//Libero el programa en el kernel
+
+			//Almacenar la consola
+			Program* NewProgram = Program_new(socket, 0, PATH->dataString);
+			queue_sync_push(QUEUE_PCB, NewProgram);
+
 			free(PATH->dataString);
 			free(PATH);
-			//Almacenar la consola
-			Program* NewProgram = Program_new(socket, 0);
-			queue_sync_push(QUEUE_PCB, NewProgram);
+
 			break;
 		}
 		case NUEVA_CONEXION_CPU:{

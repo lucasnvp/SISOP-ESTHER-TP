@@ -20,7 +20,7 @@ typedef struct {
 	int size;
 } t_stream;
 
-int i;
+int i, j;
 
 t_stream* stream_create(int size);
 void stream_destroy(t_stream* stream);
@@ -33,6 +33,11 @@ void deserializar_string(int servidor, t_SerialString* PATH);
 
 void serializar_pcb(int client, PCB_t* PCB);
 void deserializar_pcb(int servidor, PCB_t* PCB);
+
+void serializar_stackpointer(int client, STACKPOINTER_T* lineStack);
+t_stream* stackpointer_serialize(STACKPOINTER_T* lineStack);
+STACKPOINTER_T* deserializar_stackpointer(int servidor);
+STACKPOINTER_T* stackpointer_deserialize(char* stream, int* size);
 
 void serializar_variable_t(int client, VARIABLE_T* VARIABLE);
 t_stream* variable_t_serialize(VARIABLE_T* VARIABLE);

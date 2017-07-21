@@ -86,15 +86,6 @@ void stack_free(STACKPOINTER_T* this){
 	free(this);
 }
 
-void push_stack(PCB_t* pcb, STACKPOINTER_T* unStack){
-	queue_push(pcb->StackPointer, unStack);
-}
-
-STACKPOINTER_T * pull_stack(PCB_t* pcb){
-	return queue_pop(pcb->StackPointer);
-}
-
-
 void print_variable(VARIABLE_T* auxVariable){
 	printf("--ID: %c\n",auxVariable->id);
 	printf("--Pagina: %d\n",auxVariable->pagina);
@@ -136,3 +127,4 @@ void print_LineStack(STACKPOINTER_T* auxStackPointer){
 		printf("-Variable de retorno: NULL\n");
 	}
 }
+
