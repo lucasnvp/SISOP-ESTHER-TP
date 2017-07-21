@@ -38,27 +38,27 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	while (true) {
+	//while (true) {
 
-		//Quedo a la espera de recibir un PCB del Kernel
-		deserializar_pcb(kernel, pcbActivo);
+	//Quedo a la espera de recibir un PCB del Kernel
+	//deserializar_pcb(kernel, pcbActivo);
 
-		log_info(log_Console, "PCB Activo\n");
+	log_info(log_Console, "PCB Activo\n");
 
-		print_PCB(pcbActivo);
+	//print_PCB(pcbActivo);
 
-		//Proceso de ejecucion de Primitivas Ansisop
-		ejecutar();
+	//Proceso de ejecucion de Primitivas Ansisop
+	ejecutar();
 
-		print_PCB(pcbActivo);
+	//print_PCB(pcbActivo);
 
-		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-		serializar_int(kernel, FIN_CORRECTO);
+	//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+	//serializar_int(kernel, FIN_CORRECTO);
 
-		//Envio a kernel PCB actualizado
-		serializar_pcb(kernel, pcbActivo);
+	//Envio a kernel PCB actualizado
+	//serializar_pcb(kernel, pcbActivo);
 
-	}
+	//}
 
 	return EXIT_SUCCESS;
 
@@ -70,30 +70,23 @@ void ejecutar() {
 
 	log_info(log_Console, "Tamanio de pagina %d\n", tamanio_pagina);
 
-	//while (!codigoFinalizado()) { Lo ejecuto una vez porque la sentencia esta hardcodeada
+	while (!codigoFinalizado()) {
 
-	uint32_t pc = pcbActivo->ProgramCounter;
+		t_metadata_program *ctp = pcbActivo->CodeTagsPointer;
 
-	t_metadata_program * ctp = pcbActivo->CodeTagsPointer;
+		//Instancio para utilizar
+		t_intructions inst = ctp->instrucciones_serializado[0];
 
-	//Instancio para utilizar
-	t_puntero_instruccion start =
-			pcbActivo->CodeTagsPointer->instrucciones_serializado[pcbActivo->ProgramCounter].start;
+		//Solicito a memoria la instruccion.
+		char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,
+				0, inst.start, inst.offset); //falta la pagina en donde esta la instruccion.
 
-	//Instancio para utilizar
-	t_size offset =
-			pcbActivo->CodeTagsPointer->instrucciones_serializado[pcbActivo->ProgramCounter].offset; //que me devuelva la siguiente linea la memoria
+		//Ejecuta las primitivas
+		analizadorLinea(instruccion, &functions, &kernel_functions);
 
-	//Solicito a memoria la instruccion.
-	char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID, 0,
-			start, offset); //falta la pagina en donde esta la instruccion.
+		pcbActivo->ProgramCounter++;
 
-	//Ejecuta las primitivas
-	analizadorLinea(instruccion, &functions, &kernel_functions);
-
-	pcbActivo->ProgramCounter++;
-
-	//}
+	}
 }
 
 char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina,
@@ -502,12 +495,13 @@ void ansi_finalizar(void) {
 }
 
 bool codigoFinalizado() {
-	return termino_codigo;
+	return termino_codigo = true;
 }
 
 void ansi_retornar(t_valor_variable retorno) {
 
-	printf("Soy retornar con este valor: %i\n", retorno);
+	log_info(log_Console,
+			"Se ejecuta la primitiva Retornar para el valor: %d\n", retorno);
 
 	//Obtengo registro actual:
 	STACKPOINTER_T *lineaSPActual = list_get(pcbActivo->StackPointer,
@@ -523,6 +517,38 @@ void ansi_retornar(t_valor_variable retorno) {
 
 void kernel_wait(t_nombre_semaforo identificador_semaforo) {
 
+	log_info(log_Console,
+			"Se ejecuta la primitiva Retornar para el valor: %d\n",
+			identificador_semaforo);
+
+	//Le envio al kernel el mensaje del wait.
+	//serializar_int(kernel, KERNEL_WAIT);
+
+	//Variable para enviar
+	t_SerialString* semaforo;
+
+	//Le cargo el dato del semaforo
+	semaforo->dataString = identificador_semaforo;
+	semaforo->sizeString = sizeof(identificador_semaforo);
+
+	//Le envio al kernel el semaforo
+	//serializar_string(kernel, semaforo);
+
+	//Estructura con el valor de retorno
+	t_SerialString* retorno;
+
+	//Deserializo el dato.
+	//deserializar_string(kernel, retorno);
+
+	retorno->dataString = 1;
+	retorno->sizeString = sizeof(int);
+
+	//Si el retorno es True tengo que bloquear el proceso
+	if (retorno->dataString == "TRUE") {
+		procesoBloqueado = true;
+		log_info(log_Console, "El proceso %d, se encuentra bloqueado: \n",
+				pcbActivo->PID);
+	}
 
 }
 
