@@ -182,6 +182,7 @@ t_Consola* leerComandos() {
 	consola->kernel = 0;
 	consola->comando = "";
 	consola->argumento = "";
+	strcpy(mensaje, "");
 	scanf("%[^\n]s", mensaje);
 	if (strcmp(mensaje, "")) {
 		log_info(log_Consola, "Leida linea de comandos del usuario: %s.", mensaje);
@@ -201,8 +202,7 @@ void crearHiloConsola(t_Consola* consola) {
 	if (strcmp(substr(param->argumento, 0, 1), "/")
 			&& strcmp(substr(param->argumento, 0, 1), ".")) {
 		//Archivo en directorio local
-		char* aux = (char *) malloc(
-				sizeof(char) * strlen(param->argumento) + 3);
+		char* aux = (char *) malloc(sizeof(char) * strlen(param->argumento) + 3);
 		strcpy(aux, "./");
 		strcat(aux, param->argumento);
 		strcpy(param->argumento, aux);
