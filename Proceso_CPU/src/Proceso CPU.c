@@ -17,12 +17,7 @@ AnSISOP_kernel kernel_functions = {
 
 .AnSISOP_wait = kernel_wait };  //Syscalls
 
-static const char* PROGRAMA = "begin\n"
-		"variables a, b\n";
-
 int main(void) {
-
-	programa = strdup(PROGRAMA); //copia el programa entero en esa variable, lo hace el Kernel, despues sacarlo
 
 	//Leemos configuracion
 	config = load_config(PATH_CONFIG);
@@ -38,30 +33,34 @@ int main(void) {
 	//Conexion a memoria
 	connect_server_memoria();
 
-	//Dejo crado el PCB para deserealizar
+	//Inicializo el PCB
 	pcbActivo = PCB_new_pointer(0, 0, NULL);
 
-	while (true) {
+	//while (true) {
 
-		//Quedo a la espera de recibir un PCB del Kernel
-		deserializar_pcb(kernel, pcbActivo);
+	//Quedo a la espera de recibir un PCB del Kernel
+	deserializar_pcb(kernel, pcbActivo);
 
-		log_info(log_Console, "PCB Activo\n");
+	log_info(log_Console, "PCB Activo\n");
 
-		print_PCB(pcbActivo);
+	print_PCB(pcbActivo);
 
-		//Proceso de ejecucion de Primitivas Ansisop
-		ejecutar();
+	//Proceso de ejecucion de Primitivas Ansisop
+	//ejecutar();
 
-		print_PCB(pcbActivo);
+	print_PCB(pcbActivo);
 
-		//Envio el mensaje al kernel de que finalizo la rafaga correctamente
-		serializar_int(kernel, FIN_CORRECTO);
+	char* pedido = solicitarInstruccionAMemoria(1, 0, 25, 16);
 
-		//Envio a kernel PCB actualizado
-		serializar_pcb(kernel, pcbActivo);
+	printf("El pedido a memoria es: %s", pedido);
 
-	}
+	//Envio el mensaje al kernel de que finalizo la rafaga correctamente
+	serializar_int(kernel, FIN_CORRECTO);
+
+	//Envio a kernel PCB actualizado
+	serializar_pcb(kernel, pcbActivo);
+
+	//}
 
 	return EXIT_SUCCESS;
 
@@ -78,14 +77,29 @@ void ejecutar() {
 		t_metadata_program *ctp = pcbActivo->CodeTagsPointer;
 
 		//Instancio para utilizar
-		t_intructions inst = ctp->instrucciones_serializado[0];
+		t_intructions inst =
+				ctp->instrucciones_serializado[pcbActivo->ProgramCounter];
+
+		//Sirve para calcular en que pagina esta la instruccion que acaba de traer del PCB
+		uint32_t pagina_actual = 0;
+		uint32_t offset_actual = inst.offset;
+
+		while (offset_actual > tamanio_pagina) {
+
+			pagina_actual++;
+
+			offset_actual = offset_actual - tamanio_pagina;
+
+		}
 
 		//Solicito a memoria la instruccion.
 		char* const instruccion = solicitarInstruccionAMemoria(pcbActivo->PID,
-				0, inst.start, inst.offset); //falta la pagina en donde esta la instruccion.
+				pagina_actual, inst.start, inst.offset);
+
+		log_info(log_Console, "Instruccion %s\n", instruccion);
 
 		//Ejecuta las primitivas
-		analizadorLinea(instruccion, &functions, &kernel_functions);
+		//analizadorLinea(instruccion, &functions, &kernel_functions);
 
 		pcbActivo->ProgramCounter++;
 
@@ -114,7 +128,7 @@ char* const solicitarInstruccionAMemoria(uint32_t pid, uint32_t pagina,
 
 	//Quedo a al espera de que memoria me envie la instruccion
 	t_SerialString* linea = malloc(sizeof(t_SerialString));
-	deserializar_string(memoria, linea->dataString);
+	deserializar_string(memoria, linea);
 
 	return linea;
 
@@ -497,8 +511,15 @@ void ansi_finalizar(void) {
 	stack_free(lineaSPActual);
 }
 
+//Funcion que permite evaluar si el codigo ha finalizado
 bool codigoFinalizado() {
-	return termino_codigo = true;
+	return termino_codigo;
+}
+
+//Funcion que permitira indicar que el codigo ha finalizado.
+void finalizarCodigo() {
+
+	termino_codigo = true;
 }
 
 void ansi_retornar(t_valor_variable retorno) {
@@ -532,25 +553,190 @@ void kernel_wait(t_nombre_semaforo identificador_semaforo) {
 
 	//Le cargo el dato del semaforo
 	semaforo->dataString = identificador_semaforo;
-	semaforo->sizeString = sizeof(identificador_semaforo);
+	semaforo->sizeString = strlen(identificador_semaforo);
 
 	//Le envio al kernel el semaforo
-	serializar_string(kernel, semaforo);
-
-	//Estructura con el valor de retorno
-	t_SerialString* retorno;
+	//serializar_string(kernel, semaforo);
 
 	//Deserializo el dato.
-	deserializar_string(kernel, retorno);
+	uint32_t retorno = deserializar_int(kernel);
 
-	retorno->dataString = 1;
-	retorno->sizeString = sizeof(int);
+	retorno = true;
 
 	//Si el retorno es True tengo que bloquear el proceso
-	if (retorno->dataString == true) {
+	if (retorno == true) {
 		procesoBloqueado = true;
 		log_info(log_Console, "El proceso %d, se encuentra bloqueado: \n",
 				pcbActivo->PID);
 	}
 
 }
+
+void kernel_signal(t_nombre_semaforo identificador_semaforo) {
+
+	//Le envio al kernel el mensaje del signal.
+	serializar_int(kernel, KERNEL_SIGNAL);
+
+	//Variable para enviar
+	t_SerialString* semaforo;
+
+	//Le cargo el dato del semaforo
+	semaforo->dataString = identificador_semaforo;
+	semaforo->sizeString = strlen(identificador_semaforo);
+
+	//Le envio al kernel el semaforo
+	serializar_string(kernel, semaforo);
+
+	//Deserializo el dato.
+	uint32_t retorno = deserializar_int(kernel);
+
+	retorno = true;
+
+	//Si el retorno es True tengo que bloquear el proceso
+	if (retorno == true) {
+		log_info(log_Console, "El proceso %d, se desbloqueo: \n",
+				pcbActivo->PID);
+	}
+
+}
+
+t_descriptor_archivo abrir_archivo(t_direccion_archivo direccion,
+		t_banderas flags) {
+
+	serializar_int(kernel, FS_ABRIR);
+
+	//Serializo para enviar la direccion
+	t_SerialString* dire;
+
+	//Le cargo el dato de la direccion
+	dire->dataString = direccion;
+	dire->sizeString = strlen(direccion);
+
+	//Le envio al kernel el semaforo
+	serializar_string(kernel, dire);
+
+	char* permisos = concatenarPermisos(flags);
+
+	//Serializo para enviar los permisos
+	t_SerialString* envioPermios;
+
+	envioPermios->dataString = permisos;
+	envioPermios->sizeString = strlen(permisos);
+
+	serializar_string(kernel, envioPermios);
+
+	uint32_t resultado;
+
+	//Quedo a la espera del resultado del pedido
+	resultado = deserializar_int(kernel);
+
+	if (resultado < 0) {
+
+		log_error(log_Console, "Error al intentar abrir archivo en modo %s/n",
+				permisos);
+		return 0;
+
+	}
+
+	t_descriptor_archivo descriptor = deserializar_int(kernel);
+
+	log_info(log_Console, "El proceso %d ha abierto un achivo en modo %s",
+			pcbActivo->PID, permisos);
+
+	return descriptor;
+}
+
+void borrar_archivo(t_descriptor_archivo descriptor_archivo) {
+
+	serializar_int(kernel, FS_BORRAR);
+
+	serializar_int(kernel, descriptor_archivo);
+
+	uint32_t resultado;
+
+	//Quedo a la espera del resultado del pedido
+	resultado = deserializar_int(kernel);
+
+	if (resultado > 0) {
+
+		log_info(log_Console, "El proceso %d ha borrado el archivo %d/n",
+				pcbActivo->PID, descriptor_archivo);
+	} else {
+
+		log_error(log_Console, "Error del proceso %d al borrar el archivo %d",
+				pcbActivo->PID, descriptor_archivo);
+
+	}
+
+}
+
+void cerrar_archivo(t_descriptor_archivo descriptor_archivo) {
+
+	serializar_int(kernel, FS_CERRAR);
+
+	serializar_int(kernel, descriptor_archivo);
+
+	uint32_t resultado;
+
+	resultado = deserializar_int(kernel);
+
+	if (resultado > 0)
+		log_info(log_Console, "El proceso %d ha cerrado un archivo %d\n",
+				pcbActivo->PID, descriptor_archivo);
+	else {
+		log_error(log_Console, "Error del proceso %d al cerrar el archivo %d",
+				pcbActivo->PID, descriptor_archivo);
+
+	}
+
+}
+
+void moverCursor_archivo(t_descriptor_archivo descriptor_archivo,
+		t_valor_variable posicion) {
+
+	serializar_int(kernel, FS_MOVER_CURSOR);
+
+	serializar_int(kernel, descriptor_archivo);
+	serializar_int(kernel, posicion);
+
+	uint32_t resultado = deserializar_int(kernel);
+
+	if (resultado > 0)
+		log_info(log_Console,
+				"El proceso %d ha movido el cursor del archivo %d en la posicion %d\n",
+				pcbActivo->PID, descriptor_archivo, posicion);
+	else {
+		log_error(log_Console,
+				"Error del proceso %d al mover el cursor del archivo %d",
+				pcbActivo->PID, descriptor_archivo);
+
+	}
+
+}
+
+void leer_archivo(t_descriptor_archivo descriptor_archivo,
+		t_puntero informacion, t_valor_variable tamanio) {
+
+	serializar_int(kernel, FS_LEER);
+}
+
+void escribir(t_descriptor_archivo descriptor_archivo, void* informacion,
+		t_valor_variable tamanio) {
+
+}
+
+char* concatenarPermisos(t_banderas flags) {
+	char *flagsAConcatenar = string_new();
+	if (flags.creacion == true) {
+		string_append(&flagsAConcatenar, "c");
+	}
+	if (flags.lectura == true) {
+		string_append(&flagsAConcatenar, "r");
+	}
+	if (flags.escritura == true) {
+		string_append(&flagsAConcatenar, "w");
+	}
+
+	return flagsAConcatenar;
+}
+

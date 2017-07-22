@@ -24,10 +24,11 @@ t_log* log_CPU; //REGISTRA
 //PCB QUE VA A ESTAR CARGADO AL MOMENTO DE EJECUTAR
 PCB_t *pcbActivo;
 
-char *programa;
-
 //Variable que indica si el codigo finalizo
 bool termino_codigo = false;
+
+//Cantidad de Instrucciones que le quedan al proceso para finalizar.
+uint32_t cant_instrucciones;
 
 //Variable que indica que el proceso se encuentra bloqueado
 bool procesoBloqueado;
@@ -53,6 +54,12 @@ uint32_t memoria;
 #define ASIGNAR_VAR_COMPARTIDA 10
 #define KERNEL_WAIT 7
 #define KERNEL_SIGNAL 8
+#define FS_ABRIR 11
+#define FS_BORRAR 12
+#define FS_CERRAR 13
+#define FS_MOVER_CURSOR 14
+#define FS_LEER 15
+#define FS_ESCRIBIR 16
 
 //Funcion que ejecuta el codigo
 void ejecutar();
@@ -86,5 +93,15 @@ void ansi_llamarConRetorno(t_nombre_etiqueta etiqueta, t_puntero punto_retorno);
 void ansi_finalizar(void);
 void ansi_retornar(t_valor_variable retorno);
 void kernel_wait();
+t_descriptor_archivo abrir_archivo(t_direccion_archivo direccion,
+		t_banderas flags);
+void borrar_archivo(t_descriptor_archivo descriptor_archivo);
+char* concatenarPermisos(t_banderas flags);
+void moverCursor_archivo(t_descriptor_archivo descriptor_archivo,
+		t_valor_variable posicion);
+void leer_archivo(t_descriptor_archivo descriptor_archivo,
+		t_puntero informacion, t_valor_variable tamanio);
+void escribir(t_descriptor_archivo descriptor_archivo, void* informacion,
+		t_valor_variable tamanio);
 
 #endif /* PROCESO_CPU_H_ */

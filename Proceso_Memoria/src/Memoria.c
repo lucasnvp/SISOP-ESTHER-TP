@@ -325,18 +325,18 @@ void * solicitarBytesPaginaCache(int PID, int pagina, int offset, int size) {
 	/*printf("el frame traido por la funcion es:%d\n",frame);*/
 
 //Busco en memoria y lo traigo a cache VIEJO
-	/*for (i = cantMarcosOcupaMemoriaAdm;
-	 i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
-	 if (PID == tablaEPI.matriz[i][N_PID]
-	 && pagina == tablaEPI.matriz[i][N_PAGINA]) {
-	 aux = malloc(size);
-	 memcpy(aux,
-	 bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
-	 + offset, size);
-	 encontrePagina = 1;
-	 actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
-	 }
-	 }*/
+	for (i = cantMarcosOcupaMemoriaAdm;
+			i < tablaEPI.filas && !encontreEnCache && !encontrePagina; i++) {
+		if (PID == tablaEPI.matriz[i][N_PID]
+				&& pagina == tablaEPI.matriz[i][N_PAGINA]) {
+			aux = malloc(size);
+			memcpy(aux,
+					bloque_Memoria + tablaEPI.matriz[i][N_FRAME] * MARCO_SIZE
+							+ offset, size);
+			encontrePagina = 1;
+			actualizoCache(PID, pagina, tablaEPI.matriz[i][N_FRAME]);
+		}
+	}
 
 	return aux;
 }
@@ -728,10 +728,13 @@ void connection_handler(uint32_t socket, uint32_t command) {
 		char* instruccion = solicitarBytesPagina(nuevoPedido->id,
 				nuevoPedido->pagina, nuevoPedido->offset, nuevoPedido->size);
 
-		t_SerialString *envio;
+		printf("Instruccion a devolver: %s", instruccion);
 
-		envio->dataString = instruccion;
+		t_SerialString *envio = malloc(sizeof(t_SerialString));
+
 		envio->sizeString = strlen(instruccion);
+		envio->dataString = malloc(envio->sizeString);
+		envio->dataString = instruccion;
 
 		serializar_string(servidor, envio);
 
