@@ -13,6 +13,7 @@ typedef struct PCBType{
 	t_metadata_program * CodeTagsPointer;
 	t_list* StackPointer;
 	int32_t ExitCode;
+	uint32_t Quantum;
 } PCB_t;
 
 typedef struct VARIABLE_T{
@@ -32,11 +33,14 @@ typedef struct STACKPOINTER_T{
 int i;
 int sizeStack;
 
-PCB_t* PCB_new_pointer(uint32_t PID, uint32_t PageCode, t_metadata_program * CodePointer);
-STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno);
+PCB_t* PCB_new_pointer(uint32_t PID, uint32_t PageCode, t_metadata_program * CodePointer, uint32_t Quantum);
+STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno);
 VARIABLE_T* variable_new(char id, uint32_t pagina, uint32_t offset, uint32_t size);
 
 PCB_t* buscar_PCB(uint32_t pid,t_queue* QUEUE_PCB);
+void set_PageCode(PCB_t* PCB, uint32_t PageCode);
+void set_Quantum(PCB_t* PCB, uint32_t Quantum);
+void next_ProgramCounter(PCB_t* this);
 
 void print_PCB(PCB_t* auxPCB);
 void print_LineStack(STACKPOINTER_T* auxStackPointer);
