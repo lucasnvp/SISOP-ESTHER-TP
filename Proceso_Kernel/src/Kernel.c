@@ -102,7 +102,7 @@ void procesarPCB(void* args){
 		//Creo el metadata program del proceso
 		t_metadata_program* metadata = metadata_desde_literal(aProgram->InfoPath);
 		//Creo el PCB
-		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, metadata);
+		PCB_t* newPCB = PCB_new_pointer(PID_PCB, 0, metadata, 0);
 
 		//Pido Memoria
 		log_info(log_Kernel, "Se solicita espacio a memoria para guardar el proceso: %d", PID_PCB);

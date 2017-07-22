@@ -1,6 +1,6 @@
 #include "pcb.h"
 
-PCB_t* PCB_new_pointer(	uint32_t PID, uint32_t PageCode, t_metadata_program * CodePointer){
+PCB_t* PCB_new_pointer(	uint32_t PID, uint32_t PageCode, t_metadata_program * CodePointer, uint32_t Quantum){
 	PCB_t * unPCB = malloc(sizeof(PCB_t));
 	unPCB->PID = PID;
 	unPCB->ProgramCounter = 0;
@@ -8,6 +8,7 @@ PCB_t* PCB_new_pointer(	uint32_t PID, uint32_t PageCode, t_metadata_program * Co
 	unPCB->CodeTagsPointer = CodePointer;
 	unPCB->StackPointer = list_create();
 	unPCB->ExitCode = 0;
+	unPCB->Quantum = Quantum;
 	return unPCB;
 }
 
@@ -43,6 +44,7 @@ void print_PCB(PCB_t* auxPCB){
 		print_LineStack(lineSP);
 	}
 	printf("ExitCode: %d\n",auxPCB->ExitCode);
+	printf("Quantum: %d\n",auxPCB->Quantum);
 }
 
 PCB_t* buscar_PCB(uint32_t pid,t_queue* QUEUE_PCB){
@@ -73,7 +75,7 @@ void variable_free(VARIABLE_T* this){
 	free(this);
 }
 
-STACKPOINTER_T* stack_new(t_queue* Argumentos, t_queue* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
+STACKPOINTER_T* stack_new(t_list* Argumentos, t_list* Variables, uint32_t DireccionDeRetorno, VARIABLE_T * VariableDeRetorno){
 	STACKPOINTER_T * unStack = malloc(sizeof(STACKPOINTER_T));
 	unStack->Argumentos = Argumentos;
 	unStack->Variables = Variables;
@@ -128,3 +130,14 @@ void print_LineStack(STACKPOINTER_T* auxStackPointer){
 	}
 }
 
+void set_PageCode(PCB_t* PCB, uint32_t PageCode){
+	PCB->PageCode = PageCode;
+}
+
+void set_Quantum(PCB_t* PCB, uint32_t Quantum){
+	PCB->Quantum = Quantum;
+}
+
+void next_ProgramCounter(PCB_t* this){
+	this->ProgramCounter++;
+}

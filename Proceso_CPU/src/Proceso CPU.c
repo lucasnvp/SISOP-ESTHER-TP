@@ -39,7 +39,7 @@ int main(void) {
 	connect_server_memoria();
 
 	//Dejo crado el PCB para deserealizar
-	pcbActivo = PCB_new_pointer(0, 0, NULL);
+	pcbActivo = PCB_new_pointer(0, 0, NULL, 0);
 
 	while (true) {
 

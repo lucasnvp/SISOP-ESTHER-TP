@@ -149,6 +149,11 @@ void serializar_pcb(int client, PCB_t* PCB){
 	memcpy(ENVIAR->data + offset, &(PCB->ExitCode),size_to_send);
 	offset += size_to_send;
 
+	//Quantum
+	size_to_send = sizeof(PCB->Quantum);
+	memcpy(ENVIAR->data + offset, &(PCB->Quantum),size_to_send);
+	offset += size_to_send;
+
 	serializar_int(client,ENVIAR->size);
 	send_data(client, ENVIAR->data, ENVIAR->size);
 	free(ENVIAR);
@@ -239,6 +244,11 @@ void deserializar_pcb(int servidor, PCB_t* PCB){
 	//ExitCode
 	size_to_recive = sizeof(PCB->ExitCode);
 	memcpy(&PCB->ExitCode, buffer + offset, sizeof(PCB->ExitCode));
+	offset += size_to_recive;
+
+	//Quantum
+	size_to_recive = sizeof(PCB->Quantum);
+	memcpy(&PCB->Quantum, buffer + offset, sizeof(PCB->Quantum));
 	offset += size_to_recive;
 
 	free(buffer);
