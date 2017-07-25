@@ -1,4 +1,3 @@
-
 #ifndef CONFIG_CONSOLA_H_
 #define CONFIG_CONSOLA_H_
 
@@ -10,7 +9,7 @@
 
 typedef struct ConfigType{
 	uint32_t PUERTO_KERNEL;
-	char IP_KERNEL[16];
+	char* IP_KERNEL;
 } Type_Config;
 
 Type_Config load_config(char* path);

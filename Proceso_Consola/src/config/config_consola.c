@@ -6,9 +6,10 @@ Type_Config load_config(char* path){
 	auxConfig = config_create(path);
 
 	config.PUERTO_KERNEL = config_get_int_value(auxConfig, "PUERTO_KERNEL");
-	char *ipKernel = config_get_string_value(auxConfig, "IP_KERNEL");
-	memcpy(config.IP_KERNEL, ipKernel, strlen(ipKernel)+1);
-	free (ipKernel);
+	char* ipKernel = malloc(64);
+	ipKernel = config_get_string_value(auxConfig, "IP_KERNEL");
+	config.IP_KERNEL = malloc(strlen(ipKernel)+1);
+	strcpy(config.IP_KERNEL,ipKernel);
 
 	config_destroy(auxConfig);
 

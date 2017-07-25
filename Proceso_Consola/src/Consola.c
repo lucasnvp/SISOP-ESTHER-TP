@@ -4,8 +4,8 @@ int main(void) {
 	puts("Proceso Consola");
 
 	//Configuracion inicial
-	//config = load_config(PATH_CONFIG);
-	//print_config(config);
+	config = load_config(PATH_CONFIG);
+	print_config(config);
 
 	//Inicializar Log
 	init_log(PATH_LOG);
@@ -34,8 +34,8 @@ void init_log(char* pathLog) {
 
 void connect_server_kernel() {
 	//Me conecto al servidor
-	//SERVIDOR_KERNEL = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
-	SERVIDOR_KERNEL = connect_server("127.0.0.1", 5010);
+	SERVIDOR_KERNEL = connect_server(config.IP_KERNEL, config.PUERTO_KERNEL);
+	//SERVIDOR_KERNEL = connect_server("127.0.0.1", 5010);
 
 	//Si conecto, informo
 	if (SERVIDOR_KERNEL > 0) {
