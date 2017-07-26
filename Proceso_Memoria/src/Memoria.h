@@ -22,7 +22,7 @@
 //#define MARCOS 100
 //#define MARCO_SIZE 256
 //#define ENTRADAS_CACHE 15
-#define CACHE_X_PROCESO 3
+//#define CACHE_X_PROCESO 3
 
 uint32_t servidor;
 
