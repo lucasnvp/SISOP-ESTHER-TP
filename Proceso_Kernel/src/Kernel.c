@@ -25,6 +25,10 @@ int main(void) {
 	QUEUE_EXEC = queue_create();
 	LIST_CONSOLAS = list_create();
 
+	//Inicializo las variables compartidas
+	init_variables_compartidas(config.SHARED_VARS);
+	print_variables_comparitdas(log_Kernel);
+
 	pthread_mutex_init(&mutexPCB, NULL);	//Inicializo el mutex
 	sem_init(&SEM_MULTIPROGRAMACION,0,config.GRADO_MULTIPROG); 	//Semaforo de multi programacion
 	sem_init(&SEM_PCB,0,0);	//Iniciazilo el semaforo de la cola de PCB
@@ -339,6 +343,26 @@ void connection_handler(uint32_t socket, uint32_t command){
 		}
 		case KILL_ALL_PROCESS:{
 			// KILL todos los procesos asociados a esa consola
+			serializar_int(socket,0);
+			break;
+		}
+		case WAIT_CPU:{
+
+			break;
+		}
+		case SIGNAL_CPU:{
+
+			break;
+		}
+		case LECTURA_VARIABLE_COMPARTIDA:{
+			//Deserializar el string  de la variable que se quiere leer
+			uint32_t value = get_variable_compartida("!Global");
+			serializar_int(socket, value);
+			break;
+		}
+		case ESCRITURA_VARIABLE_COMPARTIDA:{
+			uint32_t value = deserializar_int(socket);
+			set_variable_compartida("!Global", value);
 			break;
 		}
 		default:{

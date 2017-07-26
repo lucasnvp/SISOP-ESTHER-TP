@@ -20,6 +20,7 @@
 #include "consola/consola.h"
 #include "config/config_kernel.h"
 #include "cpu/cpu.h"
+#include "variable-compartida/variable-compartida.h"
 
 #include "dummy-componets/dummy-program.h"
 
